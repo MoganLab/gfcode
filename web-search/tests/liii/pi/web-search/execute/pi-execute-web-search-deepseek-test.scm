@@ -205,11 +205,10 @@
   ;; 5.9 通过 execute-tool-call 分发（web_search 为扩展工具，需在注册表内分发）
   (let* ((api (make-extension-api))
          (_
-           (pi-load-extension (cond ((file-exists? "tools/pi/extensions/web-search.scm")
-                                     "tools/pi/extensions/web-search.scm"
-                                    ) ;
-                                    (else "extensions/web-search.scm")
-                              ) ;cond
+           (pi-load-extension (if (file-exists? "extensions/web-search.scm")
+                                  "extensions/web-search.scm"
+                                  "../extensions/web-search.scm"
+                              ) ;if
              api
            ) ;pi-load-extension
          ) ;_
