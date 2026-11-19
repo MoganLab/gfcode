@@ -1,5 +1,21 @@
 ;; resolve-pi-config headers 集成
 ;; provider/model 两级 headers 合并、凭据插值与 CLI 配置注入。
+;;
+;; 语法
+;; ----
+;; (resolve-pi-config parsed-args [env]) -> pi-config
+;;
+;; 参数
+;; ----
+;; parsed-args : pi-args
+;;   经 parse-pi-args 解析的命令行参数（含 --provider/--model）。
+;; env : alist（可选）
+;;   环境变量表；测试用它定位临时配置目录并注入 TENANT_ID。
+;;
+;; 返回值
+;; ----
+;; pi-config
+;;   含 'headers 字段的配置记录，headers 为 provider/model 合并后的 alist。
 
 (import (scheme base)
   (scheme file)

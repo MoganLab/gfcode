@@ -1,0 +1,12 @@
+{
+  "goldfish_version": "18.11",
+  "rules": {
+    "unit-test": {
+      "enabled": true
+    },
+    "max-file-lines": {
+      "enabled": true,
+      "limit": 400
+    }
+  }
+}

@@ -22,11 +22,12 @@
     (liii pi ai models)
     (liii pi ai thinking)
     (liii pi ai providers registry)
-
     (liii pi ai config settings)
     (liii pi code config settings)
     (liii pi code config query)
     (liii pi code config user-catalog)
+    (liii pi code config thinking)
+    (liii pi code config headers)
     (liii pi code all-in-one loader)
     (liii pi code core extensions registry)
     (liii pi code core extensions event)
@@ -45,9 +46,7 @@
     augment-pi-config
   ) ;export
   (begin
-
     ;; pi-get-agent-dir 已下沉至 (liii pi code core tools read)，此处经 import 再导出
-
     ;; JSON 配置文件目录：settings.json / auth.json / models/providers.json /
     ;; models/（provider 与模型配置）/ models-store.json / web-search.json 等所在目录。
     ;; 优先级：显式目录参数 > GF_CONFIG_DIR > PI_CODING_AGENT_DIR
@@ -187,116 +186,6 @@
       ) ;lambda
     ) ;define
 
-    ;; 从 models-store 原始条目查询模型是否支持 reasoning；
-    ;; 元数据缺失时默认支持（对齐上游：无模型信息时返回全集级别）。
-    ;; JSON 布尔为符号 true/false，必须归一化后再判真假，
-    ;; 否则 reasoning: false 会被当成真值。
-    (define (%model-supports-thinking? models-store provider model-id)
-      (let ((model
-              (find (lambda (entry) (equal? (json-dict-ref entry "id" #f) model-id))
-                (pi-catalog-provider-models models-store provider)
-              ) ;find
-            ) ;model
-           ) ;
-        (if model (pi-model-supports-reasoning? model) #t)
-      ) ;let
-    ) ;define
-
-    ;; 公开包装：/model 切换后重算 supports-thinking（worker 与 TUI 共用）
-    (define (pi-model-supports-thinking? models-store provider model-id)
-      (%model-supports-thinking? models-store provider model-id)
-    ) ;define
-
-    ;; 模型可用思考级别集（对齐上游 getSupportedThinkingLevels）：
-    ;; 目录条目缺失时返回全集（对齐上游：无模型信息时返回全集级别）
-    (define (pi-model-available-thinking-levels models-store provider model-id)
-      (let ((model
-              (find (lambda (entry) (equal? (json-dict-ref entry "id" #f) model-id))
-                (pi-catalog-provider-models models-store provider)
-              ) ;find
-            ) ;model
-           ) ;
-        (if model (pi-model-thinking-levels model) pi-thinking-levels)
-      ) ;let
-    ) ;define
-
-    ;; 将模型目录的 headers 对象转换为请求层使用的 header alist。
-    ;; ${API_KEY} 保留至每次请求时按当前 key 展开，支持密钥轮换；环境变量在此解析。
-    (define (%resolve-header-value name value api-key opt-env provider model-id)
-      (unless (string? value)
-        (error 'pi-config-error
-          (string-append "Header \"" name "\" for model \"" provider "/" model-id
-            "\" must have a string value"
-          ) ;string-append
-        ) ;error
-      ) ;unless
-      (let* ((key-required? (string-contains? value "${API_KEY}"))
-             (_
-               (when (and key-required?
-                       (or (not (string? api-key)) (string-null? api-key))
-                     ) ;and
-                 (error 'pi-config-error
-                   (string-append "Header \"" name "\" for model \"" provider "/" model-id
-                     "\" requires ${API_KEY}, but no API key was resolved"
-                   ) ;string-append
-                 ) ;error
-               ) ;when
-             ) ;_
-             (template (string-replace value "${API_KEY}" "$${API_KEY}"))
-             (resolved (if (pair? opt-env)
-                         (pi-resolve-config-value template (car opt-env))
-                         (pi-resolve-config-value template)
-                       ) ;if
-             ) ;resolved
-            ) ;
-        (unless (string? resolved)
-          (error 'pi-config-error
-            (string-append "Header \"" name "\" for model \"" provider "/" model-id
-              "\" references an undefined environment variable"
-            ) ;string-append
-          ) ;error
-        ) ;unless
-        resolved
-      ) ;let*
-    ) ;define
-
-    (define* (pi-resolve-request-headers models-store provider model-id api-key . opt-env)
-      (let* ((model
-               (find (lambda (entry) (equal? (json-dict-ref entry "id" #f) model-id))
-                 (pi-catalog-provider-models models-store provider)
-               ) ;find
-             ) ;model
-             (headers (and model (json-dict-ref model "headers" '())))
-            ) ;
-        (cond ((not headers) '())
-              ((not (list? headers))
-               (error 'pi-config-error
-                 (string-append "Headers for model \"" provider "/" model-id
-                   "\" must be a JSON object"
-                 ) ;string-append
-               ) ;error
-              ) ;not
-              (else
-                (map
-                  (lambda (h)
-                    (unless (and (pair? h) (string? (car h)) (not (string-null? (car h))))
-                      (error 'pi-config-error
-                        (string-append "Headers for model \"" provider "/" model-id
-                          "\" must have non-empty string names"
-                        ) ;string-append
-                      ) ;error
-                    ) ;unless
-                    (cons (car h)
-                      (%resolve-header-value (car h) (cdr h) api-key opt-env provider model-id)
-                    ) ;cons
-                  ) ;lambda
-                  headers
-                ) ;map
-              ) ;else
-        ) ;cond
-      ) ;let*
-    ) ;define*
-
     ;; 按指定 provider/model 取协议标识（会话内 /model 切换后调用）。
     ;; 模型级 api 优先于 provider 级；未传 model-id 时保持原 provider 级查询语义。
     (define (pi-cfg-provider-api cfg provider . opt-model-id)
@@ -333,6 +222,19 @@
         (pi-resolve-effective-proxy cli catalog provider settings)
       ) ;let
     ) ;define
+
+    ;; 模型级 api 优先于 provider 级；无模型条目时回退 provider 文件。
+    (define (%resolve-provider-api models-store provider model-id)
+      (let* ((p-entry (pi-user-provider-config models-store provider))
+             (provider-api (and p-entry (json-dict-ref p-entry "api" #f)))
+             (entry (and p-entry
+                      (find (lambda (m) (equal? (json-dict-ref m "id" #f) model-id))
+                        (json-dict-ref p-entry "models" '())
+                      ) ;find
+                    ) ;and
+             ) ;entry
+             (model-api (and entry (json-dict-ref entry "api" #f))))
+        (or model-api provider-api)))
 
     (define (resolve-pi-config parsed-args . opt-env)
       (let* ((env-agent-dir (lookup-env-var "PI_CODING_AGENT_DIR" opt-env))
@@ -447,21 +349,7 @@
                 ;; 未声明时回退 provider 级配置。provider 文件的 baseUrl 与
                 ;; models/<provider>/<model>.json 的 baseUrl 由 user-models.scm 的
                 ;; %compose-model 按字段合并，模型文件优先。
-                (let* ((p-entry (pi-user-provider-config models-store provider))
-                       (provider-api (and p-entry (json-dict-ref p-entry "api" #f)))
-                       (model-api
-                         (let ((entry (find
-                                        (lambda (m) (equal? (json-dict-ref m "id" #f) model-id))
-                                        (json-dict-ref p-entry "models" '())
-                                      ) ;find
-                               ))
-                           (and entry (json-dict-ref entry "api" #f))
-                         ) ;let
-                       ) ;model-api
-                       (eff-api (or model-api provider-api))
-                      ) ;
-                  eff-api
-                ) ;let
+                (%resolve-provider-api models-store provider model-id)
                 :api-key                  api-key
                 :model-id                 model-id
                 :model-meta               meta

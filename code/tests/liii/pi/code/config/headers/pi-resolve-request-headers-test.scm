@@ -6,6 +6,19 @@
 ;; (pi-resolve-request-headers models-store provider model-id api-key [env])
 ;;   -> alist
 ;;
+;; 参数
+;; ----
+;; models-store : alist
+;;   provider 与模型目录，形如 (("<provider>" ("models" ...)) ...)。
+;; provider : string
+;;   要查询的 provider 名称。
+;; model-id : string
+;;   要查询的模型 id；模型条目缺失时视为未配置 headers。
+;; api-key : string | #f
+;;   当前 provider 解析出的 API key，用于 ${API_KEY} 占位符。
+;; env : alist（可选）
+;;   环境变量表，用于插值 ${VAR}；缺省时读取真实环境。
+;;
 ;; 返回值
 ;; ----
 ;; alist

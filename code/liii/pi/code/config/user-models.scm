@@ -17,6 +17,7 @@
     (liii pi ai models builtin)
     (liii pi code all-in-one provider)
     (liii pi code config user-fs)
+    (liii pi code config model-files)
     (liii pi code config user-providers)
     (liii pi code config types)
   ) ;import
@@ -156,81 +157,6 @@
           ) ;let*
         ) ;or
       ) ;and
-    ) ;define
-
-    ;; 读 models/<p>/<m>.json；缺失返回 #f，语法错告警后返回 #f
-    (define (%find-model-file-by-id config-dir p-id m-id)
-      (let* ((dir-str (pi-user-config-path config-dir "models" p-id))
-             (exists (file-exists? dir-str))
-             (entries
-               (and exists
-                 (catch #t (lambda () (vector->list (listdir dir-str))) (lambda args '()))
-               ) ;and
-             ) ;entries
-            ) ;
-        (if (not exists)
-          #f
-          (let loop
-            ((files
-               (filter
-                 (lambda (e) (and (string-ends? e ".json") (not (string=? e ".json"))))
-                 entries
-               ) ;filter
-             ) ;files
-            ) ;
-            (if (null? files)
-              #f
-              (let* ((f (car files))
-                     (p (pi-user-config-path config-dir "models" p-id f))
-                     (data (pi-user-read-json p))
-                    ) ;
-                (if (and (pair? data) (equal? (pi-user-dict-ref data "id" #f) m-id))
-                  data
-                  (loop (cdr files))
-                ) ;if
-              ) ;let*
-            ) ;if
-          ) ;let
-        ) ;if
-      ) ;let*
-    ) ;define
-
-    (define (%model-file config-dir p-id m-id)
-      (let* ((path-str (pi-user-config-path config-dir "models" p-id (string-append m-id ".json"))
-             ) ;path-str
-             (exists (file-exists? path-str))
-             (data (and exists (pi-user-read-json path-str)))
-            ) ;
-        (cond ((pair? data) data)
-              (exists (pi-user-warn (string-append path-str ": JSON 解析失败，已忽略该模型")
-                      ) ;pi-user-warn
-                #f
-              ) ;exists
-              (else (%find-model-file-by-id config-dir p-id m-id))
-        ) ;cond
-      ) ;let*
-    ) ;define
-
-    ;; 列出 models/<p>/ 下的模型 id（去 .json 后缀）
-    (define (%directory-model-ids config-dir p-id)
-      (let* ((dir-str (pi-user-config-path config-dir "models" p-id))
-             (exists (file-exists? dir-str))
-             (entries
-               (and exists
-                 (catch #t (lambda () (vector->list (listdir dir-str))) (lambda args '()))
-               ) ;and
-             ) ;entries
-            ) ;
-        (if (not exists)
-          '()
-          (map (lambda (e) (string-remove-suffix e ".json"))
-            (filter
-              (lambda (e) (and (string-ends? e ".json") (not (string=? e ".json"))))
-              entries
-            ) ;filter
-          ) ;map
-        ) ;if
-      ) ;let*
     ) ;define
 
     ;; ---------- provider 层字段 ----------
