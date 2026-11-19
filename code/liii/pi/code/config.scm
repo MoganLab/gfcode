@@ -350,8 +350,24 @@
               :config-dir config-dir
               :provider   provider
               :provider-api
-              (let ((p-entry (pi-user-provider-config models-store provider)))
-                (and p-entry (json-dict-ref p-entry "api" #f))
+              ;; 模型文件里可声明 api（如 deepseek 走 openai-completions）；
+              ;; 未声明时回退 provider 级配置。provider 文件的 baseUrl 与
+              ;; models/<provider>/<model>.json 的 baseUrl 由 user-models.scm 的
+              ;; %compose-model 按字段合并，模型文件优先。
+              (let* ((p-entry (pi-user-provider-config models-store provider))
+                     (provider-api (and p-entry (json-dict-ref p-entry "api" #f)))
+                     (model-api
+                       (let ((entry (find
+                                      (lambda (m) (equal? (json-dict-ref m "id" #f) model-id))
+                                      (json-dict-ref p-entry "models" '())
+                                    ) ;find
+                             ))
+                         (and entry (json-dict-ref entry "api" #f))
+                       ) ;let
+                     ) ;model-api
+                     (eff-api (or model-api provider-api))
+                    ) ;
+                eff-api
               ) ;let
               :api-key                  api-key
               :model-id                 model-id
