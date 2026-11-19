@@ -87,9 +87,14 @@ PI_CODING_AGENT_DIR=/tmp/my-agent-dir bin/gf pi -p "hello"
   旧位置 `providers.json`（配置目录顶层）仍兼容，`models/providers.json` 优先
 - **models/<provider>.json**：字段级合并，未写字段回落内置默认；`models` 为模型
   id 白名单 array（缺省不过滤）；`httpProxy` 为 per-provider 代理
-  （`--proxy` > 本字段 > `HTTPS_PROXY`/`ALL_PROXY` > settings.json `httpProxy`）
+  （`--proxy` > 本字段 > `HTTPS_PROXY`/`ALL_PROXY` > settings.json `httpProxy`）；
+  `headers` 为自定义请求头对象
 - **models/<provider>/<model>.json**：字段集与旧版 `models.json` 模型条目一致；
-  合并优先级 `<model>.json > 内置目录`（按字段逐项补缺）
+  合并优先级 `<model>.json > 内置目录`（按字段逐项补缺）；`headers` 与 provider 级对象合并，
+  同名 header（大小写不敏感）由模型级覆盖
+- **headers 值插值**：`${API_KEY}` 引用当前 provider 已解析的密钥，`${ENV_NAME}` 引用环境变量；
+  密钥仍只存放于 `auth.json` 或环境变量。`${API_KEY}` 在每次请求时展开，支持密钥轮换；
+  缺少密钥或环境变量时拒绝启动。当前自定义 headers 请求链路支持 `openai-completions`
 - **auth.json**：key 唯一存放处，provider 文件不含密钥
 
 ```json
@@ -98,6 +103,7 @@ PI_CODING_AGENT_DIR=/tmp/my-agent-dir bin/gf pi -p "hello"
 { "baseUrl": "https://mirror.example.com/coding" }     // models/kimi-coding.json：换镜像
 { "httpProxy": "http://127.0.0.1:7890" }               // models/google.json：仅 google 走代理
 { "name": "Kimi K3.1 Pro" }                            // models/kimi-coding/k3.1-pro.json
+{ "headers": { "x-goog-api-key": "${API_KEY}" } }      // Vertex OpenAI 兼容模型：复用已解析密钥
 ```
 
 旧版 `models.json` 已删除（自定义 baseUrl → `models/<provider>.json`，自定义模型条目 →

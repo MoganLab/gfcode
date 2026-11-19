@@ -107,6 +107,40 @@
   (rmtree agent-dir)
 ) ;let*
 
+;; 同 provider 内切到模型级 OpenAI 协议：协议与 headers 必须同步更新，
+;; 切回 Gemini 后不能残留 Vertex 认证头。
+(let* ((agent-dir (path->string (path-join (path-temp-dir) "pi-cfg-with-model-headers-test"))
+       ) ;agent-dir
+       (env (list (cons "PI_CODING_AGENT_DIR" agent-dir)))
+      ) ;
+  (when (file-exists? agent-dir)
+    (rmtree agent-dir)
+  ) ;when
+  (path-mkdir (path-join (path agent-dir) (path "models") (path "google"))
+    :parents #t :exist-ok #t
+  ) ;path-mkdir
+  (path-write-text (path->string (path-join (path agent-dir) (path "auth.json")))
+    "{\"google\":{\"type\":\"api_key\",\"key\":\"vertex-key\"}}"
+  ) ;path-write-text
+  (path-write-text (path->string (path-join (path agent-dir) (path "models/google/vertex.json")))
+    "{\"id\":\"vertex\",\"api\":\"openai-completions\",\"contextWindow\":1024,\"maxTokens\":128,\"headers\":{\"x-goog-api-key\":\"${API_KEY}\"}}"
+  ) ;path-write-text
+  (let ((cfg (resolve-pi-config (parse-pi-args '()) env)))
+    (let* ((cfg* (pi-cfg-with-model cfg "google" "vertex"))
+           (headers (pi-cfg-ref cfg* 'headers))
+          ) ;
+      (check (pi-cfg-ref cfg* 'provider-api) => "openai-completions")
+      (check (cdr (assoc "x-goog-api-key" headers)) => "${API_KEY}")
+      (check (pi-cfg-ref cfg 'headers) => '())
+      (let ((back (pi-cfg-with-model cfg* "google" "gemini-3.8-flash")))
+        (check (pi-cfg-ref back 'provider-api) => "google-generative-ai")
+        (check (pi-cfg-ref back 'headers) => '())
+      ) ;let
+    ) ;let*
+  ) ;let
+  (rmtree agent-dir)
+) ;let*
+
 (rmtree TMP-AGENT-DIR)
 
 (check-report)

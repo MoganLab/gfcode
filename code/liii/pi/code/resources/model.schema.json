@@ -28,6 +28,13 @@
       "type": "string",
       "description": "该模型专属协议标识，缺省用 provider 的 api"
     },
+    "headers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "该模型专属 HTTP 请求头。${API_KEY} 引用 auth.json 或环境变量已解析的当前 provider 密钥，${ENV_NAME} 引用环境变量；与 provider 级 headers 合并，同名项覆盖"
+    },
     "reasoning": {
       "type": "boolean",
       "description": "是否为推理模型（支持思考链），缺省 false"
