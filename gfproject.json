@@ -1,0 +1,40 @@
+{
+  "domains": {
+    "agent": {
+      "root": "agent/",
+      "depends-on": [],
+      "mode": "r7rs"
+    },
+    "code": {
+      "root": "code/",
+      "depends-on": [
+        "agent"
+      ],
+      "mode": "r7rs"
+    },
+    "simplify": {
+      "root": "simplify/",
+      "depends-on": [
+        "agent",
+        "code"
+      ],
+      "mode": "r7rs"
+    },
+    "web-search": {
+      "root": "web-search/",
+      "depends-on": [
+        "agent",
+        "code"
+      ],
+      "mode": "r7rs"
+    },
+    "review": {
+      "root": "review/",
+      "depends-on": [
+        "agent",
+        "code"
+      ],
+      "mode": "r7rs"
+    }
+  }
+}
