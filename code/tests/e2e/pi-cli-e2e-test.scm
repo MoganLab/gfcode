@@ -13,7 +13,7 @@
 ;; ------
 ;; 见各断言场景：按被测函数实际返回值断言。
 
-(set! *load-path* (append (list "tools/pi" ".") *load-path*))
+(set! *load-path* (append (list "code" "agent" "." "../code" "../agent") *load-path*))
 
 (import (scheme process-context)
   (scheme load)
@@ -30,22 +30,11 @@
 
 (check-set-mode! 'report-failed)
 
-(define %support-rel "tests/liii/pi-cli-e2e-support.scm")
-
 (define %support-path
-  (let ((a
-          (path->string
-            (path-join (path (path->string (path-cwd))) "tools/pi" %support-rel)
-          ) ;path->string
-        ) ;a
-       ) ;
-    (if (path-exists? (path a))
-      a
-      (path->string
-        (path-join (path (path->string (path-cwd))) %support-rel)
-      ) ;path->string
-    ) ;if
-  ) ;let
+  (if (file-exists? "code/tests/e2e/pi-cli-e2e-support.scm")
+    "code/tests/e2e/pi-cli-e2e-support.scm"
+    "tests/e2e/pi-cli-e2e-support.scm"
+  ) ;if
 ) ;define
 (load %support-path)
 
@@ -148,7 +137,7 @@
           ;; 6. 项目上下文 AGENTS.md / CLAUDE.md 注入验证
           (let* ((cmd (list GF_BIN "pi" "--model" "check-project-context" "--print" "Check context")
                  ) ;cmd
-                 (res (safe-exec cmd test-env 10000))
+                 (res (safe-exec cmd test-env 10000 CONTEXT_PROJECT_DIR))
                  (code (car res))
                  (out (cadr res))
                 ) ;

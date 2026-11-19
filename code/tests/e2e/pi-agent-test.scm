@@ -13,7 +13,7 @@
 ;; ------
 ;; 见各断言场景：按被测函数实际返回值断言。
 
-(set! *load-path* (append (list "tools/pi" ".") *load-path*))
+(set! *load-path* (append (list "code" "agent" "." "../code" "../agent") *load-path*))
 
 (import (liii check)
   (liii string)
@@ -36,13 +36,12 @@
 ) ;define
 
 (define stub-server-file
-  (if (file-exists? "tests/stub_gemini_server.py")
-    "tests/stub_gemini_server.py"
-    (if (file-exists? "tools/pi/tests/stub_gemini_server.py")
-      "tools/pi/tests/stub_gemini_server.py"
-      "../../tools/pi/tests/stub_gemini_server.py"
-    ) ;if
-  ) ;if
+  (cond ((file-exists? "code/tests/stub_gemini_server.py")
+         "code/tests/stub_gemini_server.py"
+        ) ;
+        ((file-exists? "tests/stub_gemini_server.py") "tests/stub_gemini_server.py")
+        (else "../code/tests/stub_gemini_server.py")
+  ) ;cond
 ) ;define
 
 (define (make-test-cfg provider api-key model-id base-url max-turns . tools-opt)

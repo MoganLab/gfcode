@@ -1,0 +1,24 @@
+{
+  "domains": {
+    "agent": {
+      "root": "../../../../agent/",
+      "depends-on": [],
+      "mode": "r7rs"
+    },
+    "code": {
+      "root": "../../../../code/",
+      "depends-on": [
+        "agent"
+      ],
+      "mode": "r7rs"
+    }
+  },
+  "tools": {
+    "pi": {
+      "tools_dir": "../../../..",
+      "tool": "code",
+      "organization": "liii",
+      "module": "pi/code/cli"
+    }
+  }
+}

@@ -40,23 +40,19 @@
 ) ;define
 
 (define stub-server-file
-  (if (file-exists? "tools/pi/tests/stub_gemini_server.py")
-    "tools/pi/tests/stub_gemini_server.py"
-    (if (file-exists? "tests/stub_gemini_server.py")
-      "tests/stub_gemini_server.py"
-      "../../tools/pi/tests/stub_gemini_server.py"
-    ) ;if
-  ) ;if
+  (cond ((file-exists? "code/tests/stub_gemini_server.py")
+         "code/tests/stub_gemini_server.py"
+        ) ;
+        ((file-exists? "tests/stub_gemini_server.py") "tests/stub_gemini_server.py")
+        (else "../code/tests/stub_gemini_server.py")
+  ) ;cond
 ) ;define
 
 (define FIXTURE_DIR
-  (if (file-exists? "tools/pi/tests/fixtures/direct")
-    "tools/pi/tests/fixtures/direct"
-    (if (file-exists? "tests/fixtures/direct")
-      "tests/fixtures/direct"
-      "../../tools/pi/tests/fixtures/direct"
-    ) ;if
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/direct") "code/tests/fixtures/direct")
+        ((file-exists? "tests/fixtures/direct") "tests/fixtures/direct")
+        (else "../code/tests/fixtures/direct")
+  ) ;cond
 ) ;define
 
 (define GF_BIN (executable))

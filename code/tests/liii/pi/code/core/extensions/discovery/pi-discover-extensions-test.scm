@@ -22,6 +22,7 @@
   (liii os)
   (only (liii list) find)
   (liii string)
+  (liii json)
   (liii shutil)
   (liii subprocess)
   (liii sys)
@@ -32,17 +33,37 @@
 
 
 (define (get-fixtures-dir)
-  (cond ((file-exists? "tests/fixtures/extensions") "tests/fixtures/extensions")
-        ((file-exists? "tools/pi/tests/fixtures/extensions")
-         "tools/pi/tests/fixtures/extensions"
-        ) ;
-        (else "../../tools/pi/tests/fixtures/extensions")
+  (cond ((file-exists? "code/tests/fixtures/extensions") "code/tests/fixtures/extensions")
+        ((file-exists? "tests/fixtures/extensions") "tests/fixtures/extensions")
+        (else "../code/tests/fixtures/extensions")
   ) ;cond
 ) ;define
 
 (define (%norm dir)
   ;; Windows 上 path-resolve 会把 / 规范化为 \，期望路径需做同样处理
   (path->string (path-resolve (path dir)))
+) ;define
+
+(define PROJECT_ROOT (%norm (if (file-exists? "gfproject.json") "." "..")))
+
+(define (write-test-project-config dir)
+  (define (path-json p)
+    (string-replace (json->string (string-replace p "\\" "/")) "\\/" "/")
+  ) ;define
+  (path-write-text (path (string-append dir "/gfproject.json"))
+    (string-append
+      "{\"domains\":{"
+      "\"agent\":{\"root\":"
+      (path-json (string-append PROJECT_ROOT "/agent/"))
+      ",\"depends-on\":[],\"mode\":\"r7rs\"},"
+      "\"code\":{\"root\":"
+      (path-json (string-append PROJECT_ROOT "/code/"))
+      ",\"depends-on\":[\"agent\"],\"mode\":\"r7rs\"}},"
+      "\"tools\":{\"pi\":{\"tools_dir\":"
+      (path-json PROJECT_ROOT)
+      ",\"tool\":\"code\",\"organization\":\"liii\",\"module\":\"pi/code/cli\"}}}"
+    ) ;string-append
+  ) ;path-write-text
 ) ;define
 
 ;; 1. 默认参数调用安全返回列表
@@ -274,17 +295,18 @@
   (catch #t (lambda () (rmtree conflict-base #t)) (lambda args #f))
 ) ;let*
 
-;; 6. 当前目录存在 tools/pi/extensions 时，仍优先使用程序自身的内置目录
+;; 6. 当前目录存在 extensions 时，仍优先使用程序自身的内置目录
 (let* ((test-base
          (path->string (path-resolve (path (get-fixtures-dir))))
        ) ;test-base
        (priority-base (%norm (string-append test-base "/test-builtin-priority")))
        (decoy-cwd (%norm (string-append priority-base "/cwd")))
-       (decoy-ext-dir (%norm (string-append decoy-cwd "/tools/pi/extensions")))
+       (decoy-ext-dir (%norm (string-append decoy-cwd "/extensions")))
        (empty-agent-dir (%norm (string-append priority-base "/agent")))
       ) ;
   (path-mkdir (path decoy-ext-dir) :parents #t :exist-ok #t)
   (path-mkdir (path empty-agent-dir) :parents #t :exist-ok #t)
+  (write-test-project-config decoy-cwd)
   (path-write-text (path (string-append decoy-ext-dir "/decoy.scm"))
     "(import (liii pi definitely-missing-library))"
   ) ;path-write-text

@@ -52,14 +52,15 @@
 ) ;define
 
 (define (pi-import-leak-load-path-args)
-  ;; 优先用 bin/gf 所在仓库的 tools/pi；找不到时退回当前目录。
-  (let* ((repo-root
-           (path-parent (path-parent (path (executable))))
-         ) ;repo-root
-         (tools-dir (path-join repo-root "tools" "pi"))
-        ) ;
-    (if (path-dir? tools-dir) (list "-I" (path->string tools-dir)) (list "-I" "."))
-  ) ;let*
+  (let ((code-dir
+          (if (path-dir? (path "code")) (path "code") (path "../code"))
+        ) ;code-dir
+        (agent-dir
+          (if (path-dir? (path "agent")) (path "agent") (path "../agent"))
+        ) ;agent-dir
+       ) ;
+    (list "-I" (path->string code-dir) "-I" (path->string agent-dir))
+  ) ;let
 ) ;define
 
 (define (pi-import-leak-run-script script-path)

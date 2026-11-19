@@ -13,7 +13,7 @@
 ;; ------
 ;; 见各断言场景：按被测函数实际返回值断言。
 
-(set! *load-path* (append (list "tools/pi" ".") *load-path*))
+(set! *load-path* (append (list "code" "agent" "." "../code" "../agent") *load-path*))
 
 (import (scheme process-context)
   (liii check)
@@ -66,26 +66,24 @@
 (check-catch 'parse-error (json-line-round-trip-ok? "{\"broken\": }"))
 
 (define stub-server-file
-  (if (file-exists? "tests/stub_gemini_server.py")
-    "tests/stub_gemini_server.py"
-    (if (file-exists? "tools/pi/tests/stub_gemini_server.py")
-      "tools/pi/tests/stub_gemini_server.py"
-      "../../tools/pi/tests/stub_gemini_server.py"
-    ) ;if
-  ) ;if
+  (cond ((file-exists? "code/tests/stub_gemini_server.py")
+         "code/tests/stub_gemini_server.py"
+        ) ;
+        ((file-exists? "tests/stub_gemini_server.py") "tests/stub_gemini_server.py")
+        (else "../code/tests/stub_gemini_server.py")
+  ) ;cond
 ) ;define
 
 (define FIXTURE_DIR
-  (if (file-exists? "tests/fixtures/direct")
-    "tests/fixtures/direct"
-    (if (file-exists? "tools/pi/tests/fixtures/direct")
-      "tools/pi/tests/fixtures/direct"
-      "../../tools/pi/tests/fixtures/direct"
-    ) ;if
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/direct") "code/tests/fixtures/direct")
+        ((file-exists? "tests/fixtures/direct") "tests/fixtures/direct")
+        (else "../code/tests/fixtures/direct")
+  ) ;cond
 ) ;define
 
 (define GF_BIN (executable))
+
+(define PROJECT_ROOT (if (file-exists? "gfproject.json") "." ".."))
 
 (define %tmp-agent-dir
   (path->string (path-join (path-temp-dir) "gf-pi-json-e2e-direct"))
@@ -174,7 +172,7 @@
 
           ;; 1. 单轮简单对话的 JSONL 事件序列
           (let* ((cmd (list GF_BIN "pi" "--mode" "json" "Hello from json e2e test"))
-                 (p (process-spawn cmd :env test-env :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
                  (raw-out (read-all-output p))
                  (code (process-wait p 10000))
                  (lines (split-json-lines raw-out))
@@ -204,7 +202,7 @@
           ;; 2. 多轮带工具调用（functionCall）的 JSONL 事件序列
           (let* ((cmd (list GF_BIN "pi" "--mode" "json" "--model" "multi-turn" "Run multi turn steps")
                  ) ;cmd
-                 (p (process-spawn cmd :env test-env :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
                  (raw-out (read-all-output p))
                  (code (process-wait p 15000))
                  (lines (split-json-lines raw-out))
@@ -226,7 +224,7 @@
 
           ;; 3. 模型报错/aborted 情况下进程退出码仍为 0（§3.3：事件流中出现 error/aborted 不改变退出码）
           (let* ((cmd (list GF_BIN "pi" "--mode" "json" "--model" "safety" "Run safety check"))
-                 (p (process-spawn cmd :env test-env :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
                  (raw-out (read-all-output p))
                  (code (process-wait p 10000))
                  (lines (split-json-lines raw-out))
@@ -254,7 +252,7 @@
                         "MiniMax-M2.7" "--mode" "json" "Hello anthropic json"
                       ) ;list
                  ) ;cmd
-                 (p (process-spawn cmd :env ant-env :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env ant-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
                  (raw-out (read-all-output p))
                  (code (process-wait p 10000))
                  (lines (split-json-lines raw-out))
@@ -272,7 +270,7 @@
 
           ;; 5. 缺陷8防回归测试：4字节 UTF-8 字符（emoji）与 '<' 组合在 JSON 模式事件流验证
           (let* ((cmd (list GF_BIN "pi" "--mode" "json" "🚀 <"))
-                 (p (process-spawn cmd :env test-env :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
                  (raw-out (read-all-output p))
                  (code (process-wait p 10000))
                  (lines (split-json-lines raw-out))

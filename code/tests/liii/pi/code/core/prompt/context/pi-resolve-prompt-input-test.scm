@@ -24,16 +24,11 @@
 ;; pi-resolve-prompt-input
 ;; 解析直接字符串输入或文件引用输入。
 
-(define REPO_ROOT
-  (cond ((file-exists? "xmake.lua") ".")
-        ((file-exists? "../../xmake.lua") "../..")
-        (else ".")
-  ) ;cond
-) ;define
-
 (define TEST_FILE
-  (path->string (path-join (path REPO_ROOT) (path "tools/pi/tests/fixtures/sample.txt"))
-  ) ;path->string
+  (cond ((file-exists? "code/tests/fixtures/sample.txt") "code/tests/fixtures/sample.txt")
+        ((file-exists? "tests/fixtures/sample.txt") "tests/fixtures/sample.txt")
+        (else "../code/tests/fixtures/sample.txt")
+  ) ;cond
 ) ;define
 
 (check (pi-resolve-prompt-input "Hello prompt") => "Hello prompt")

@@ -15,6 +15,13 @@
 ;; alist
 ;; 解析后的参数字典。
 
+(set! *load-path*
+  (append
+    (list "../review" "../simplify" "../web-search" "review" "simplify" "web-search")
+    *load-path*
+  ) ;append
+) ;set!
+
 (import (liii check) (liii pi code cli args))
 
 (check-set-mode! 'report-failed)

@@ -6,36 +6,40 @@
 ) ;define
 
 (define stub-server-file
-  (if (file-exists? "tools/pi/tests/stub_gemini_server.py")
-    "tools/pi/tests/stub_gemini_server.py"
-    (if (file-exists? "tests/stub_gemini_server.py")
-      "tests/stub_gemini_server.py"
-      "../../tools/pi/tests/stub_gemini_server.py"
-    ) ;if
-  ) ;if
+  (cond ((file-exists? "code/tests/stub_gemini_server.py")
+         "code/tests/stub_gemini_server.py"
+        ) ;
+        ((file-exists? "tests/stub_gemini_server.py") "tests/stub_gemini_server.py")
+        (else "../code/tests/stub_gemini_server.py")
+  ) ;cond
 ) ;define
 
 (define FIXTURE_DIR
-  (if (file-exists? "tests/fixtures/direct")
-    "tests/fixtures/direct"
-    (if (file-exists? "tools/pi/tests/fixtures/direct")
-      "tools/pi/tests/fixtures/direct"
-      "../../tools/pi/tests/fixtures/direct"
-    ) ;if
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/direct") "code/tests/fixtures/direct")
+        ((file-exists? "tests/fixtures/direct") "tests/fixtures/direct")
+        (else "../code/tests/fixtures/direct")
+  ) ;cond
 ) ;define
 
 (define CONFIG_EMPTY_DIR
-  (if (file-exists? "tests/fixtures/config-empty")
-    "tests/fixtures/config-empty"
-    (if (file-exists? "tools/pi/tests/fixtures/config-empty")
-      "tools/pi/tests/fixtures/config-empty"
-      "../../tools/pi/tests/fixtures/config-empty"
-    ) ;if
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/config-empty")
+         "code/tests/fixtures/config-empty"
+        ) ;
+        ((file-exists? "tests/fixtures/config-empty") "tests/fixtures/config-empty")
+        (else "../code/tests/fixtures/config-empty")
+  ) ;cond
 ) ;define
 
 (define GF_BIN (executable))
+
+(define PROJECT_ROOT (if (file-exists? "gfproject.json") "." ".."))
+
+(define CONTEXT_PROJECT_DIR
+  (if (file-exists? "code/tests/fixtures/project-context/gfproject.json")
+    "code/tests/fixtures/project-context"
+    "tests/fixtures/project-context"
+  ) ;if
+) ;define
 
 (define %tmp-agent-dir
   (path->string (path-join (path-temp-dir) "gf-pi-cli-e2e-direct"))
@@ -115,8 +119,8 @@
   ) ;let
 ) ;define
 
-(define* (safe-exec cmd env (timeout-ms 10000))
-  (let* ((p (process-spawn cmd :env env :stdout 'pipe :stderr 'pipe))
+(define* (safe-exec cmd env (timeout-ms 10000) (cwd PROJECT_ROOT))
+  (let* ((p (process-spawn cmd :env env :cwd cwd :stdout 'pipe :stderr 'pipe))
          (code (process-wait p timeout-ms))
         ) ;
     (unless code

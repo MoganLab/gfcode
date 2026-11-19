@@ -45,20 +45,26 @@
 ) ;define
 
 (define STUB
-  (if (file-exists? "tests/stub_gemini_server.py")
-    "tests/stub_gemini_server.py"
-    "tools/pi/tests/stub_gemini_server.py"
-  ) ;if
+  (cond ((file-exists? "code/tests/stub_gemini_server.py")
+         "code/tests/stub_gemini_server.py"
+        ) ;
+        ((file-exists? "tests/stub_gemini_server.py") "tests/stub_gemini_server.py")
+        (else "../code/tests/stub_gemini_server.py")
+  ) ;cond
 ) ;define
 
 (define FIXTURE_DIR
-  (if (file-exists? "tests/fixtures/direct")
-    "tests/fixtures/direct"
-    "tools/pi/tests/fixtures/direct"
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/direct") "code/tests/fixtures/direct")
+        ((file-exists? "tests/fixtures/direct") "tests/fixtures/direct")
+        (else "../code/tests/fixtures/direct")
+  ) ;cond
 ) ;define
 
 (define GF_BIN (executable))
+
+(define PROJECT_ROOT
+  (path->string (path-resolve (path (if (file-exists? "gfproject.json") "." ".."))))
+) ;define
 
 (define AGENT_DIR
   (path->string (path-join (path-temp-dir) "pi-compact-e2e-agent"))
@@ -88,7 +94,7 @@
 ) ;define
 
 (define (write-large-session)
-  (let* ((sdir (get-session-dir AGENT_DIR (path->string (path-cwd))))
+  (let* ((sdir (get-session-dir AGENT_DIR PROJECT_ROOT))
          (sfile (path->string (path-join sdir "2026-10-19T00-00-00-000Z_compact-e2e.jsonl"))
          ) ;sfile
         ) ;
@@ -96,7 +102,7 @@
     (save-session-header! sfile
       "compact-e2e"
       "2026-10-19T00:00:00.000Z"
-      (path->string (path-cwd))
+      PROJECT_ROOT
     ) ;save-session-header!
     (let ((msgs
             (list (pi-user-message (make-string 100000 #\a))
@@ -171,6 +177,7 @@
       ;; 1. --compact 不带 prompt：只压缩并退出
       (let* ((p (process-spawn (list GF_BIN "pi" "--compact")
                   :env    test-env
+                  :cwd    PROJECT_ROOT
                   :stdin  'null
                   :stdout 'pipe
                   :stderr 'pipe
@@ -202,6 +209,7 @@
       ;; 2. --compact 带 prompt：压缩后继续本次请求
       (let* ((p (process-spawn (list GF_BIN "pi" "--compact" "follow up")
                   :env    test-env
+                  :cwd    PROJECT_ROOT
                   :stdin  'null
                   :stdout 'pipe
                   :stderr 'pipe
@@ -228,6 +236,7 @@
       ;; 3. -c 续接压缩后的会话：基于 summary + 保留消息
       (let* ((p (process-spawn (list GF_BIN "pi" "-c" "-p" "continue after compact")
                   :env    test-env
+                  :cwd    PROJECT_ROOT
                   :stdin  'null
                   :stdout 'pipe
                   :stderr 'pipe
@@ -247,6 +256,7 @@
       ) ;path-write-text
       (let* ((p (process-spawn (list GF_BIN "pi" "-c" "-p" "auto compact please")
                   :env    test-env
+                  :cwd    PROJECT_ROOT
                   :stdin  'null
                   :stdout 'pipe
                   :stderr 'pipe

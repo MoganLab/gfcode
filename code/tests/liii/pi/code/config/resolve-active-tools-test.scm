@@ -19,6 +19,13 @@
 ;; list
 ;; 去重且保持顺序的工具名列表。
 
+(set! *load-path*
+  (append
+    (list "../review" "../simplify" "../web-search" "review" "simplify" "web-search")
+    *load-path*
+  ) ;append
+) ;set!
+
 (import (liii check)
   (liii pi ai config settings)
   (liii pi code cli args)
@@ -60,12 +67,10 @@
        (args-override (parse-pi-args '("--tools" "read,bash")))
        (api-ws (make-extension-api))
        (_
-         (pi-load-extension (cond ((file-exists? "tools/pi/extensions/web-search.scm")
-                                   "tools/pi/extensions/web-search.scm"
-                                  ) ;
-                                  ((file-exists? "extensions/web-search.scm") "extensions/web-search.scm")
-                                  (else "../../extensions/web-search.scm")
-                            ) ;cond
+         (pi-load-extension (if (file-exists? "extensions/web-search.scm")
+                                   "extensions/web-search.scm"
+                                   "../extensions/web-search.scm"
+                            ) ;if
            api-ws
          ) ;pi-load-extension
        ) ;_

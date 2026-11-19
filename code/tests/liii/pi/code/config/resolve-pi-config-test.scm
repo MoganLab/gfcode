@@ -17,6 +17,13 @@
 ;; alist
 ;; 解析后的运行配置。
 
+(set! *load-path*
+  (append
+    (list "../review" "../simplify" "../web-search" "review" "simplify" "web-search")
+    *load-path*
+  ) ;append
+) ;set!
+
 (import (liii check)
   (liii pi ai config model-metadata)
   (liii pi code cli args)
@@ -27,33 +34,37 @@
 (check-set-mode! 'report-failed)
 
 (define FIXTURE_DIR
-  (if (file-exists? "tests/fixtures/default")
-    "tests/fixtures/default"
-    "tools/pi/tests/fixtures/default"
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/default") "code/tests/fixtures/default")
+        ((file-exists? "tests/fixtures/default") "tests/fixtures/default")
+        (else "../code/tests/fixtures/default")
+  ) ;cond
 ) ;define
 
 (define INVALID_CMD_DIR
-  (if (file-exists? "tests/fixtures/invalid_cmd")
-    "tests/fixtures/invalid_cmd"
-    "tools/pi/tests/fixtures/invalid_cmd"
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/invalid_cmd") "code/tests/fixtures/invalid_cmd")
+        ((file-exists? "tests/fixtures/invalid_cmd") "tests/fixtures/invalid_cmd")
+        (else "../code/tests/fixtures/invalid_cmd")
+  ) ;cond
 ) ;define
 
 (define CONFIG_EMPTY_DIR
-  (if (file-exists? "tests/fixtures/config-empty")
-    "tests/fixtures/config-empty"
-    "tools/pi/tests/fixtures/config-empty"
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/config-empty")
+         "code/tests/fixtures/config-empty"
+        ) ;
+        ((file-exists? "tests/fixtures/config-empty") "tests/fixtures/config-empty")
+        (else "../code/tests/fixtures/config-empty")
+  ) ;cond
 ) ;define
 
 ;; per-model 思考级别覆盖 fixture（settings.modelThinkingLevels）
 
 (define MODEL_THINKING_DIR
-  (if (file-exists? "tests/fixtures/model-thinking")
-    "tests/fixtures/model-thinking"
-    "tools/pi/tests/fixtures/model-thinking"
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/model-thinking")
+         "code/tests/fixtures/model-thinking"
+        ) ;
+        ((file-exists? "tests/fixtures/model-thinking") "tests/fixtures/model-thinking")
+        (else "../code/tests/fixtures/model-thinking")
+  ) ;cond
 ) ;define
 
 ;; 1. 默认配置解析（基于 default fixture）

@@ -64,13 +64,12 @@
 ) ;define
 
 (define stub-server-file
-  (if (file-exists? "tools/pi/tests/stub_gemini_server.py")
-    "tools/pi/tests/stub_gemini_server.py"
-    (if (file-exists? "tests/stub_gemini_server.py")
-      "tests/stub_gemini_server.py"
-      "../tools/pi/tests/stub_gemini_server.py"
-    ) ;if
-  ) ;if
+  (cond ((file-exists? "code/tests/stub_gemini_server.py")
+         "code/tests/stub_gemini_server.py"
+        ) ;
+        ((file-exists? "tests/stub_gemini_server.py") "tests/stub_gemini_server.py")
+        (else "../code/tests/stub_gemini_server.py")
+  ) ;cond
 ) ;define
 
 (define (write-cfg-dir base-url)

@@ -10,7 +10,6 @@
     (liii string)
     (liii list)
     (liii path)
-    (liii sys)
     (liii os)
     (liii sort)
     (liii pi code core tools read)
@@ -21,35 +20,40 @@
   ) ;export
   (begin
 
+    (define (%source-tree-extension-candidates)
+      (let loop
+        ((roots *load-path*) (acc '()))
+        (if (null? roots)
+          (reverse acc)
+          (let ((root (path (car roots))))
+            (loop (cdr roots)
+              (if (path-file? (path-join root "liii/pi/code/cli.scm"))
+                (cons (path-join (path-parent root) "extensions") acc)
+                acc
+              ) ;if
+            ) ;loop
+          ) ;let
+        ) ;if
+      ) ;let
+    ) ;define
+
     (define (pi-default-builtin-extensions-dir)
       (let ((env-dir (get-environment-variable "PI_BUILTIN_EXTENSIONS_DIR")))
         (if
           (and (string? env-dir) (not (string-null? (string-trim-both env-dir))))
           env-dir
-          (let* ((repo-root
-                   (catch #t (lambda () (path-parent (path-parent (executable)))) (lambda _ #f))
-                 ) ;repo-root
-                 (candidates
-                   ;; 内置扩展必须先匹配可执行文件对应的安装/源码目录，
-                   ;; 避免 cwd 下的 tools/pi/extensions 混入另一套 Pi 库。
-                   (append (if repo-root
-                             (list (path-join repo-root "tools/pi/extensions")
-                               (path-join repo-root "share/goldfish/tools/pi/extensions")
-                             ) ;list
-                             '()
-                           ) ;if
-                     (list (path "tools/pi/extensions")
-                       (path "extensions")
-                       (path "../tools/pi/extensions")
-                       (path "../../tools/pi/extensions")
-                     ) ;list
+          (let* ((candidates
+                   ;; 内置扩展优先匹配实际加载的 Pi 源目录，避免 cwd
+                   ;; 下的同名 extensions 混入另一套 Pi 库。
+                   (append (%source-tree-extension-candidates)
+                     (list (path "extensions") (path "../extensions"))
                    ) ;append
                  ) ;candidates
                  (found
                    (find (lambda (c) (and (path-exists? c) (path-dir? c))) candidates)
                  ) ;found
                 ) ;
-            (if found (path->string (path-resolve found)) "tools/pi/extensions")
+            (if found (path->string (path-resolve found)) "extensions")
           ) ;let*
         ) ;if
       ) ;let

@@ -64,21 +64,23 @@
 
 (define GF-BIN (executable))
 
+(define PROJECT_ROOT
+  (path->string (path-resolve (path (if (file-exists? "gfproject.json") "." ".."))))
+) ;define
+
 (define STUB
-  (cond ((file-exists? "tools/pi/tests/stub_gemini_server.py")
-         "tools/pi/tests/stub_gemini_server.py"
+  (cond ((file-exists? "code/tests/stub_gemini_server.py")
+         "code/tests/stub_gemini_server.py"
         ) ;
         ((file-exists? "tests/stub_gemini_server.py") "tests/stub_gemini_server.py")
-        (else "../../tools/pi/tests/stub_gemini_server.py")
+        (else "../code/tests/stub_gemini_server.py")
   ) ;cond
 ) ;define
 
 (define FIXTURE-DIR
-  (cond ((file-exists? "tools/pi/tests/fixtures/direct")
-         "tools/pi/tests/fixtures/direct"
-        ) ;
+  (cond ((file-exists? "code/tests/fixtures/direct") "code/tests/fixtures/direct")
         ((file-exists? "tests/fixtures/direct") "tests/fixtures/direct")
-        (else "../../tools/pi/tests/fixtures/direct")
+        (else "../code/tests/fixtures/direct")
   ) ;cond
 ) ;define
 
@@ -266,14 +268,14 @@
                      ) ;list
                    ) ;append
          ) ;test-env
-         (sdir (get-session-dir E2E-AGENT-DIR (path->string (path-cwd))))
+         (sdir (get-session-dir E2E-AGENT-DIR PROJECT_ROOT))
          (sfile (path->string (path-join sdir "2026-10-29T00-00-00-000Z-compact.jsonl")))
         ) ;
     (path-mkdir sdir :parents #t :exist-ok #t)
     (save-session-header! sfile
       "compact-1205"
       "2026-10-29T00:00:00.000Z"
-      (path->string (path-cwd))
+      PROJECT_ROOT
     ) ;save-session-header!
     (persist-new-messages! sfile
       '()
@@ -292,6 +294,7 @@
     ) ;persist-new-messages!
     (let* ((p (process-spawn (list GF-BIN "pi" "--compact" "压缩后追问")
                 :env    test-env
+                :cwd    PROJECT_ROOT
                 :stdin  'null
                 :stdout 'pipe
                 :stderr 'pipe

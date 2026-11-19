@@ -15,6 +15,13 @@
 ;; 不返回
 ;; 参数组合非法时抛出错误。
 
+(set! *load-path*
+  (append
+    (list "../review" "../simplify" "../web-search" "review" "simplify" "web-search")
+    *load-path*
+  ) ;append
+) ;set!
+
 (import (liii check) (liii pi code cli args))
 
 (check-set-mode! 'report-failed)

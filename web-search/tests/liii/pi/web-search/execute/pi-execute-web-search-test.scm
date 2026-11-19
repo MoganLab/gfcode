@@ -50,12 +50,8 @@
 
 (define (find-stub-server)
   (let loop
-    ((candidates '("tools/pi/tests/stub_gemini_server.py"
-                   "tests/stub_gemini_server.py" "stub_gemini_server.py"
-                   "../stub_gemini_server.py" "../../stub_gemini_server.py"
-                   "../../../stub_gemini_server.py"
-                   "../../../../tools/pi/tests/stub_gemini_server.py"
-                   "../../../../../tools/pi/tests/stub_gemini_server.py")
+    ((candidates '("code/tests/stub_gemini_server.py"
+                   "tests/stub_gemini_server.py" "../code/tests/stub_gemini_server.py")
      ) ;candidates
     ) ;
     (cond ((null? candidates) (error 'file-not-found "stub_gemini_server.py not found"))
@@ -194,11 +190,10 @@
   ;; 11. 通过 execute-tool-call 分发执行（web_search 为扩展工具，需在注册表内分发）
   (let* ((api (make-extension-api))
          (_
-           (pi-load-extension (cond ((file-exists? "tools/pi/extensions/web-search.scm")
-                                     "tools/pi/extensions/web-search.scm"
-                                    ) ;
-                                    (else "extensions/web-search.scm")
-                              ) ;cond
+           (pi-load-extension (if (file-exists? "extensions/web-search.scm")
+                                     "extensions/web-search.scm"
+                                     "../extensions/web-search.scm"
+                              ) ;if
              api
            ) ;pi-load-extension
          ) ;_

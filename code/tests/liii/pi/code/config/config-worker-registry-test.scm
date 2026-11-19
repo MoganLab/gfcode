@@ -15,6 +15,13 @@
 ;; list
 ;; 默认激活的扩展工具名列表。
 
+(set! *load-path*
+  (append
+    (list "../review" "../simplify" "../web-search" "review" "simplify" "web-search")
+    *load-path*
+  ) ;append
+) ;set!
+
 (import (liii check)
   (liii os)
   (liii go)
@@ -26,10 +33,12 @@
 (check-set-mode! 'report-failed)
 
 (define CONFIG_EMPTY_DIR
-  (if (file-exists? "tests/fixtures/config-empty")
-    "tests/fixtures/config-empty"
-    "tools/pi/tests/fixtures/config-empty"
-  ) ;if
+  (cond ((file-exists? "code/tests/fixtures/config-empty")
+         "code/tests/fixtures/config-empty"
+        ) ;
+        ((file-exists? "tests/fixtures/config-empty") "tests/fixtures/config-empty")
+        (else "../code/tests/fixtures/config-empty")
+  ) ;cond
 ) ;define
 
 ;; 默认注册表含声明 default-active? 的 web_search
