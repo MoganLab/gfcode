@@ -9,6 +9,7 @@
 (define-library (liii pi code config user-models)
   (import (scheme base)
     (scheme file)
+    (scheme char)
     (liii base)
     (liii list)
     (liii string)
@@ -32,16 +33,52 @@
     ) ;define
 
     ;; override 写了的字段生效，其余从 base 取；结果键统一为字符串
-    (define (%merge-fields base override)
-      (let ((keys (map %field-key override)))
-        (append
-          (map (lambda (f) (cons (%field-key f) (cdr f))) override)
+    ;; headers 是对象级合并：上层提供默认值，下层覆盖同名 header，
+    ;; 其他 header 保留；其余模型字段仍按整个字段覆盖。
+    (define (%header-key? key)
+      (equal? (%field-key key) "headers")
+    ) ;define
+
+    (define (%merge-header-objects base override)
+      (let ((names (map car override)))
+        (append override
           (filter
-            (lambda (f) (not (member (%field-key f) keys)))
+            (lambda (h)
+              (not (find (lambda (name) (string-ci=? (car h) name)) names))
+            ) ;lambda
             base
           ) ;filter
         ) ;append
       ) ;let
+    ) ;define
+
+    (define (%merge-fields base override)
+      (let* ((base-headers (or (pi-user-dict-ref base "headers" #f) '()))
+             (override-headers (pi-user-dict-ref override "headers" 'unset))
+             (headers
+               (cond ((eq? override-headers 'unset) base-headers)
+                     ((pair? override-headers)
+                      (%merge-header-objects base-headers override-headers)
+                     ) ;pair?
+                     (else override-headers)
+               ) ;cond
+             ) ;headers
+             (base* (filter (lambda (f) (not (%header-key? f))) base))
+             (override* (filter (lambda (f) (not (%header-key? f))) override))
+             (keys (map %field-key override*))
+            ) ;
+        (append
+          (map (lambda (f) (cons (%field-key f) (cdr f))) override*)
+          (filter
+            (lambda (f) (not (member (%field-key f) keys)))
+            base*
+          ) ;filter
+          (if (or (pair? headers) (and headers (not (eq? headers 'unset))))
+            (list (cons "headers" headers))
+            '()
+          ) ;if
+        ) ;append
+      ) ;let*
     ) ;define
 
     ;; 单模型合成：provider 层字段覆盖内置值，模型文件再覆盖其上
@@ -198,7 +235,7 @@
 
     ;; ---------- provider 层字段 ----------
 
-    ;; provider 文件的 baseUrl/api（字段级覆盖内置值；支持 <pi-provider-entry> 或 alist）
+    ;; provider 文件的 baseUrl/api/headers（字段级覆盖内置值；支持 record 或 alist）
     (define (pi-user-provider-fields p-entry)
       (let ((p-url (if (pi-provider-entry? p-entry)
                      (pi-provider-entry-base-url p-entry)
@@ -210,9 +247,11 @@
                      (pi-user-dict-ref p-entry "api" #f)
                    ) ;if
             ) ;p-api
+            (p-headers (pi-provider-entry-headers p-entry))
            ) ;
         (append (if p-url (list (cons "baseUrl" p-url)) '())
-          (if p-api (list (cons "api" p-api)) '())
+          (if p-api (list (cons "api" (pi-user-normalize-api p-api))) '())
+          (if p-headers (list (cons "headers" p-headers)) '())
         ) ;append
       ) ;let
     ) ;define

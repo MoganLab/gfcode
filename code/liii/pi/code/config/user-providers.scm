@@ -25,7 +25,7 @@
     pi-providers-json pi-providers-write-writes pi-provider-file-with-models
     make-pi-provider-entry pi-provider-entry? pi-provider-entry-schema
     pi-provider-entry-name pi-provider-entry-base-url pi-provider-entry-api
-    pi-provider-entry-http-proxy pi-provider-entry-models
+    pi-provider-entry-http-proxy pi-provider-entry-models pi-provider-entry-headers
     pi-provider-entry-extras json->pi-provider-entry pi-provider-entry->json
     pi-load-provider-entry
   ) ;export
@@ -133,6 +133,16 @@
       (models pi-provider-entry-models)
       (extras pi-provider-entry-extras)
     ) ;define*-record-type
+
+    ;; headers 作为扩展字段保存在 extras 中；统一支持 record 与原始 JSON alist。
+    (define (pi-provider-entry-headers p-entry)
+      (if (pi-provider-entry? p-entry)
+        (let ((pair (assoc "headers" (pi-provider-entry-extras p-entry))))
+          (and pair (cdr pair))
+        ) ;let
+        (pi-user-dict-ref p-entry "headers" #f)
+      ) ;if
+    ) ;define
 
     (define (%provider-known-key? k)
       (let ((s (if (symbol? k) (symbol->string k) k)))

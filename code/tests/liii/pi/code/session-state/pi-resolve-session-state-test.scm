@@ -217,6 +217,50 @@
   (check warnings => '())
 ) ;let-values
 
+;; 8. TUI /model 已切换到 google 下的 OpenAI 兼容模型后，
+;;    run-session-flow 应用会话模型状态时不得把协议重置为 Gemini，认证头也不应丢失。
+(let* ((vertex-model
+         (list (cons "id" "vertex-deepseek")
+           (cons "name" "Vertex DeepSeek")
+           (cons "api" "openai-completions")
+           (cons "contextWindow" 1000000)
+           (cons "maxTokens" 65536)
+           (cons "reasoning" #t)
+           (cons "headers" (list (cons "x-goog-api-key" "${API_KEY}")))
+         ) ;list
+       ) ;vertex-model
+       (store
+         (list (cons "google"
+                 (list (cons "api" "google-generative-ai")
+                   (cons "models" (list vertex-model))
+                 ) ;list
+               ) ;cons
+         ) ;list
+       ) ;store
+       (base
+         (list (cons 'provider "google")
+           (cons 'provider-api "openai-completions")
+           (cons 'model-id "vertex-deepseek")
+           (cons 'config-dir (path TMP-DIR))
+           (cons 'models-store store)
+           (cons 'headers (list (cons "x-goog-api-key" "${API_KEY}")))
+         ) ;list
+       ) ;base
+       (state
+         (list (cons 'model
+                 (list (cons 'provider "google") (cons 'modelId "vertex-deepseek"))
+               ) ;cons
+           (cons 'modelSource "model_change")
+         ) ;list
+       ) ;state
+      ) ;
+  (let-values (((cfg warnings) (pi-resolve-session-state base state '())))
+    (check (cdr (assoc 'provider-api cfg)) => "openai-completions")
+    (check (cdr (assoc 'headers cfg)) => '(("x-goog-api-key" . "${API_KEY}")))
+    (check warnings => '())
+  ) ;let-values
+) ;let*
+
 (when (file-exists? TMP-DIR)
   (rmtree TMP-DIR #t)
 ) ;when

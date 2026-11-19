@@ -39,7 +39,8 @@
     pi-save-default-model! pi-model-supports-thinking? pi-cfg-provider-proxy
     pi-model-available-thinking-levels pi-cfg-provider-api
     pi-load-compaction-settings pi-resolve-proxy-url pi-load-auth
-    pi-resolve-provider-key pi-resolve-model-metadata resolve-pi-config
+    pi-resolve-provider-key pi-resolve-model-metadata pi-resolve-request-headers
+    resolve-pi-config
     resolve-goldpi-config resolve-active-tools pi-missing-credential-msg
     augment-pi-config
   ) ;export
@@ -219,21 +220,107 @@
       ) ;let
     ) ;define
 
-    ;; 按指定 provider 取协议标识（会话内 /model 切换后调用）。
-    ;; 缺失时回退注册表内置值，保证分发不沿用旧 provider 的实现。
-    (define (pi-cfg-provider-api cfg provider)
+    ;; 将模型目录的 headers 对象转换为请求层使用的 header alist。
+    ;; ${API_KEY} 保留至每次请求时按当前 key 展开，支持密钥轮换；环境变量在此解析。
+    (define (%resolve-header-value name value api-key opt-env provider model-id)
+      (unless (string? value)
+        (error 'pi-config-error
+          (string-append "Header \"" name "\" for model \"" provider "/" model-id
+            "\" must have a string value"
+          ) ;string-append
+        ) ;error
+      ) ;unless
+      (let* ((key-required? (string-contains? value "${API_KEY}"))
+             (_
+               (when (and key-required?
+                       (or (not (string? api-key)) (string-null? api-key))
+                     ) ;and
+                 (error 'pi-config-error
+                   (string-append "Header \"" name "\" for model \"" provider "/" model-id
+                     "\" requires ${API_KEY}, but no API key was resolved"
+                   ) ;string-append
+                 ) ;error
+               ) ;when
+             ) ;_
+             (template (string-replace value "${API_KEY}" "$${API_KEY}"))
+             (resolved (if (pair? opt-env)
+                         (pi-resolve-config-value template (car opt-env))
+                         (pi-resolve-config-value template)
+                       ) ;if
+             ) ;resolved
+            ) ;
+        (unless (string? resolved)
+          (error 'pi-config-error
+            (string-append "Header \"" name "\" for model \"" provider "/" model-id
+              "\" references an undefined environment variable"
+            ) ;string-append
+          ) ;error
+        ) ;unless
+        resolved
+      ) ;let*
+    ) ;define
+
+    (define* (pi-resolve-request-headers models-store provider model-id api-key . opt-env)
+      (let* ((model
+               (find (lambda (entry) (equal? (json-dict-ref entry "id" #f) model-id))
+                 (pi-catalog-provider-models models-store provider)
+               ) ;find
+             ) ;model
+             (headers (and model (json-dict-ref model "headers" '())))
+            ) ;
+        (cond ((not headers) '())
+              ((not (list? headers))
+               (error 'pi-config-error
+                 (string-append "Headers for model \"" provider "/" model-id
+                   "\" must be a JSON object"
+                 ) ;string-append
+               ) ;error
+              ) ;not
+              (else
+                (map
+                  (lambda (h)
+                    (unless (and (pair? h) (string? (car h)) (not (string-null? (car h))))
+                      (error 'pi-config-error
+                        (string-append "Headers for model \"" provider "/" model-id
+                          "\" must have non-empty string names"
+                        ) ;string-append
+                      ) ;error
+                    ) ;unless
+                    (cons (car h)
+                      (%resolve-header-value (car h) (cdr h) api-key opt-env provider model-id)
+                    ) ;cons
+                  ) ;lambda
+                  headers
+                ) ;map
+              ) ;else
+        ) ;cond
+      ) ;let*
+    ) ;define*
+
+    ;; 按指定 provider/model 取协议标识（会话内 /model 切换后调用）。
+    ;; 模型级 api 优先于 provider 级；未传 model-id 时保持原 provider 级查询语义。
+    (define (pi-cfg-provider-api cfg provider . opt-model-id)
       (let* ((catalog (pi-cfg-ref cfg 'models-store '()))
              (entry (and (pair? catalog) (assoc provider catalog)))
-             (declared
+             (model-id (and (pair? opt-model-id) (car opt-model-id)))
+             (model
+               (and model-id
+                 (find (lambda (m) (equal? (json-dict-ref m "id" #f) model-id))
+                   (pi-catalog-provider-models catalog provider)
+                 ) ;find
+               ) ;and
+             ) ;model
+             (model-api (and model (json-dict-ref model "api" #f)))
+             (provider-api
                (and (pair? entry)
                  (pair? (cdr entry))
                  (let ((v (assoc "api" (cdr entry))))
                    (and v (cdr v))
                  ) ;let
                ) ;and
-             ) ;declared
+             ) ;provider-api
             ) ;
-        (or declared (pi-provider-api provider))
+        (or model-api provider-api (pi-provider-api provider))
       ) ;let*
     ) ;define
 
@@ -344,31 +431,56 @@
                                  ) ;pi-resolve-thinking-level
                  ) ;thinking-level
                  (supports-thinking (%model-supports-thinking? models-store provider model-id))
+                 (headers (if (pair? opt-env)
+                            (pi-resolve-request-headers models-store provider model-id api-key (car opt-env))
+                            (pi-resolve-request-headers models-store provider model-id api-key)
+                          ) ;if
+                 ) ;headers
                 ) ;
-            (make-pi-config
-              :agent-dir  agent-dir
-              :config-dir config-dir
-              :provider   provider
-              :provider-api
-              (let ((p-entry (pi-user-provider-config models-store provider)))
-                (and p-entry (json-dict-ref p-entry "api" #f))
-              ) ;let
-              :api-key                  api-key
-              :model-id                 model-id
-              :model-meta               meta
-              :models-store             models-store
-              :thinking-level           thinking-level
-              :thinking-level-explicit? cli-thinking-explicit?
-              :thinking-level-source (if cli-thinking-explicit? 'cli 'default)
-              :supports-thinking     supports-thinking
-              :cli-proxy             cli-proxy
-              :proxy-url             proxy-url
-              :tools                 tools
-              :tool-resolver         get-tool-definition
-              :execute-tool-call     execute-tool-call
-              :emit-extension-event  (%make-extension-emitter)
-              :settings              settings
-            ) ;make-pi-config
+            (pi-cfg-set
+              (make-pi-config
+                :agent-dir  agent-dir
+                :config-dir config-dir
+                :provider   provider
+                :provider-api
+                ;; 模型文件里可声明 api（如 deepseek 走 openai-completions）；
+                ;; 未声明时回退 provider 级配置。provider 文件的 baseUrl 与
+                ;; models/<provider>/<model>.json 的 baseUrl 由 user-models.scm 的
+                ;; %compose-model 按字段合并，模型文件优先。
+                (let* ((p-entry (pi-user-provider-config models-store provider))
+                       (provider-api (and p-entry (json-dict-ref p-entry "api" #f)))
+                       (model-api
+                         (let ((entry (find
+                                        (lambda (m) (equal? (json-dict-ref m "id" #f) model-id))
+                                        (json-dict-ref p-entry "models" '())
+                                      ) ;find
+                               ))
+                           (and entry (json-dict-ref entry "api" #f))
+                         ) ;let
+                       ) ;model-api
+                       (eff-api (or model-api provider-api))
+                      ) ;
+                  eff-api
+                ) ;let
+                :api-key                  api-key
+                :model-id                 model-id
+                :model-meta               meta
+                :models-store             models-store
+                :thinking-level           thinking-level
+                :thinking-level-explicit? cli-thinking-explicit?
+                :thinking-level-source (if cli-thinking-explicit? 'cli 'default)
+                :supports-thinking     supports-thinking
+                :cli-proxy             cli-proxy
+                :proxy-url             proxy-url
+                :tools                 tools
+                :tool-resolver         get-tool-definition
+                :execute-tool-call     execute-tool-call
+                :emit-extension-event  (%make-extension-emitter)
+                :settings              settings
+              ) ;make-pi-config
+              'headers
+              headers
+            ) ;pi-cfg-set
           ) ;let*
         ) ;let-values
       ) ;let*

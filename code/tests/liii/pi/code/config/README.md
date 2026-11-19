@@ -26,6 +26,8 @@ bin/gf test tools/pi/tests/liii/pi/code/config/
 - `resolve-pi-config-env-test.scm` — 环境变量污染隔离
 - `resolve-pi-config-dir-test.scm` — 配置目录优先级
 - `resolve-pi-config-user-catalog-test.scm` — 用户目录驱动的 provider/模型路由
+- `resolve-pi-config-headers-test.scm` — provider/model headers 合并与 CLI 配置注入
+- `pi-resolve-request-headers-test.scm` — 请求头模板解析、校验与环境变量插值
 - `resolve-goldpi-config-test.scm` — `resolve-goldpi-config` 别名
 - `resolve-active-tools-test.scm` — 生效工具列表计算
 - `config-worker-registry-test.scm` — worker 配置注册
