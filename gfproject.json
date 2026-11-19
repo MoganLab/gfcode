@@ -36,5 +36,17 @@
       ],
       "mode": "r7rs"
     }
+  },
+  "tools": {
+    "pi": {
+      "tools_dir": ".",
+      "tool": "code",
+      "organization": "liii",
+      "module": "pi/code/cli",
+      "description": {
+        "en_US": "gf pi subcommand",
+        "zh_CN": "gf pi 子命令"
+      }
+    }
   }
 }
