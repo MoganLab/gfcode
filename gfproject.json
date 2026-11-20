@@ -1,38 +1,39 @@
 {
   "domains": {
+    "ai": {
+      "root": "ai/",
+      "mode": "r7rs"
+    },
     "agent": {
       "root": "agent/",
-      "depends-on": [],
+      "depends-on": ["ai"],
       "mode": "r7rs"
     },
     "code": {
       "root": "code/",
       "depends-on": [
-        "agent"
+        "agent", "ai"
       ],
       "mode": "r7rs"
     },
     "simplify": {
       "root": "simplify/",
       "depends-on": [
-        "agent",
-        "code"
+        "agent", "code", "pi"
       ],
       "mode": "r7rs"
     },
     "web-search": {
       "root": "web-search/",
       "depends-on": [
-        "agent",
-        "code"
+        "agent", "code", "pi"
       ],
       "mode": "r7rs"
     },
     "review": {
       "root": "review/",
       "depends-on": [
-        "agent",
-        "code"
+        "agent", "code", "pi"
       ],
       "mode": "r7rs"
     }
