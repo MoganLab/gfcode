@@ -1,8 +1,7 @@
-name: CI on Debian trixie
+name: Test on Debian trixie
 
-# gfcode 是纯 Scheme 项目（无 xmake 构建系统），依赖外部 Goldfish 提供的
-# bin/gf 运行时来跑测试与格式化检查。参考 ~/git/liii 的各组件 CI：
-# 安装最新版 goldfish deb → gf fmt --check → gf test 各 domain 的 tests。
+# 测试 CI：只跑单元测试（gf test 各 domain 的 tests），
+# 不执行格式化与代码度量检查（静态检查在 check-debian.yml 中独立运行）。
 # 与 liii 固定 GOLDFISH_VERSION 不同，这里通过 releases/latest API 取最新 tag，
 # 始终用最新发布的 Goldfish（参考 liii/cd-debian13.yml 的取最新版做法）。
 
@@ -21,8 +20,7 @@ on:
       - 'tui/**'
       - 'web-search/**'
       - 'gfproject.json'
-      - 'gf_check.json'
-      - '.github/workflows/ci-debian.yml'
+      - '.github/workflows/test-debian.yml'
   pull_request:
     paths:
       - 'ai/**'
@@ -35,19 +33,16 @@ on:
       - 'tui/**'
       - 'web-search/**'
       - 'gfproject.json'
-      - 'gf_check.json'
-      - '.github/workflows/ci-debian.yml'
+      - '.github/workflows/test-debian.yml'
 
 env:
   DEBIAN_FRONTEND: noninteractive
 
 jobs:
-  build:
+  test:
     container: debian:trixie
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      fail-fast: true
     steps:
       - name: Install dependencies
         run: |
@@ -72,21 +67,6 @@ jobs:
             "https://github.com/MoganLab/goldfish/releases/download/$TAG/goldfish-scheme-x86_64-$TAG.deb"
           apt-get install -y /tmp/goldfish.deb
           gf version
-
-      - name: Format Check
-        run: |
-          gf fmt --check ai
-          gf fmt --check agent
-          gf fmt --check code
-          gf fmt --check extensions
-          gf fmt --check review
-          gf fmt --check simplify
-          gf fmt --check tui
-          gf fmt --check web-search
-          gf fmt --check tests
-
-      - name: Run code metrics check
-        run: gf check
 
       - name: Run tests
         run: |
