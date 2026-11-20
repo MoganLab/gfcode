@@ -115,14 +115,14 @@
     (check-true (string-contains? out "model"))
     (check-true (string-contains? out "context"))
     (check-true (string-contains? out "max-out"))
-    ;; 跨 provider 全部出现（anthropic / glm provider 已移除）
+    ;; 跨 provider 全部出现（glm provider 已移除）
     (check-true (string-contains? out "deepseek"))
     (check-true (string-contains? out "glm"))
     (check-true (string-contains? out "google"))
     (check-true (string-contains? out "kimi-coding"))
     (check-true (string-contains? out "minimax-cn"))
     (check-true (string-contains? out "zai-coding-cn"))
-    (check-false (string-contains? out "anthropic"))
+    (check-true (string-contains? out "anthropic"))
   ) ;let
 ) ;let
 
