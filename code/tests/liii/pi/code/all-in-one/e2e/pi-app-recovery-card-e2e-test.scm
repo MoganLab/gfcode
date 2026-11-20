@@ -29,11 +29,11 @@
   (liii tui)
   (liii pi code event)
   (liii tui component)
-  (liii pi code modes interactive)
-  (liii pi code modes interactive worker-emit)
-  (liii pi code modes interactive app-events)
-  (liii pi code modes interactive state)
-  (liii pi code modes interactive views)
+  (liii pi tui interactive)
+  (liii pi tui interactive worker-emit)
+  (liii pi tui interactive app-events)
+  (liii pi tui interactive state)
+  (liii pi tui interactive views)
 ) ;import
 
 (check-set-mode! 'report-failed)

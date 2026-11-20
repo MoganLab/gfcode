@@ -16,6 +16,13 @@
       ],
       "mode": "r7rs"
     },
+    "tui": {
+      "root": "tui/",
+      "depends-on": [
+        "code", "agent", "ai"
+      ],
+      "mode": "r7rs"
+    },
     "simplify": {
       "root": "simplify/",
       "depends-on": [
@@ -41,9 +48,9 @@
   "tools": {
     "pi": {
       "tools_dir": ".",
-      "tool": "code",
+      "tool": "tui",
       "organization": "liii",
-      "module": "pi/code/cli",
+      "module": "pi/tui/cli",
       "description": {
         "en_US": "gf pi subcommand",
         "zh_CN": "gf pi 子命令"

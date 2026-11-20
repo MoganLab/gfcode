@@ -21,7 +21,7 @@
 (import (liii check)
   (liii raw-string)
   (liii pi code cli args)
-  (liii pi code cli help)
+  (liii pi tui cli help)
   (liii pi code config settings)
   (liii pi code core compaction)
   (liii pi code core extensions)
@@ -29,7 +29,7 @@
   (liii pi code core prompt)
   (liii pi code core session-manager)
   (liii pi code core tools)
-  (liii pi code modes interactive)
+  (liii pi tui interactive)
   (liii pi code utils git)
 ) ;import
 

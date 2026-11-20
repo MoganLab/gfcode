@@ -84,9 +84,9 @@
 ;; 搜索源码文件：字面量、大小写、正则、context、limit 与错误路径
 
 (define legacy-test-file
-  (if (file-exists? "liii/pi/code/cli.scm")
-    "liii/pi/code/cli.scm"
-    "tools/pi/liii/pi/code/cli.scm"
+  (if (file-exists? "liii/pi/code/core/tools.scm")
+    "liii/pi/code/core/tools.scm"
+    "tools/pi/liii/pi/code/core/tools.scm"
   ) ;if
 ) ;define
 
@@ -98,7 +98,7 @@
       ) ;out
      ) ;
   (check-true (string? out))
-  (check-true (string-contains? out ": (define-library (liii pi code cli)"))
+  (check-true (string-contains? out ": (define-library (liii pi code core tools)"))
 ) ;let
 
 (let ((out (pi-execute-grep (list (cons "pattern" "DEFINE-LIBRARY")
@@ -109,26 +109,26 @@
            ) ;pi-execute-grep
       ) ;out
      ) ;
-  (check-true (string-contains? out ": (define-library (liii pi code cli)"))
+  (check-true (string-contains? out ": (define-library (liii pi code core tools)"))
 ) ;let
 
 (let ((out
         (pi-execute-grep
-          (list (cons "pattern" "define.*display")
+          (list (cons "pattern" "define.*pi-execute")
             (cons "path"
-              (if (file-exists? "liii/pi/code/cli/help.scm")
-                "liii/pi/code/cli/help.scm"
-                "tools/pi/liii/pi/code/cli/help.scm"
+              (if (file-exists? "liii/pi/code/core/tools.scm")
+                "liii/pi/code/core/tools.scm"
+                "tools/pi/liii/pi/code/core/tools.scm"
               ) ;if
             ) ;cons
           ) ;list
         ) ;pi-execute-grep
       ) ;out
      ) ;
-  (check-true (string-contains? out "display-pi-help"))
+  (check-true (string-contains? out "pi-execute"))
 ) ;let
 
-(let ((out (pi-execute-grep (list (cons "pattern" "display-pi-help")
+(let ((out (pi-execute-grep (list (cons "pattern" "pi-execute-read")
                               (cons "path" legacy-test-file)
                               (cons "context" 1)
                               (cons "limit" 1)

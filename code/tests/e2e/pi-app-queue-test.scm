@@ -18,7 +18,7 @@
   (liii check)
   (liii string)
   (liii tui)
-  (liii pi code modes interactive)
+  (liii pi tui interactive)
   (liii pi agent queue)
 ) ;import
 

@@ -17,9 +17,9 @@
   (liii check)
   (liii string)
   (liii tui)
-  (liii pi code modes interactive)
-  (liii pi code modes interactive thinking)
-  (liii pi code modes interactive worker)
+  (liii pi tui interactive)
+  (liii pi tui interactive thinking)
+  (liii pi tui interactive worker)
 ) ;import
 
 (check-set-mode! 'report-failed)
