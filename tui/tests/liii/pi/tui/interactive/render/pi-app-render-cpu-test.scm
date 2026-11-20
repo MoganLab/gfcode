@@ -20,6 +20,7 @@
 ;; 测试用例无返回值；耗时数据打印到标准输出，断言只做性能回退护栏。
 
 (import (scheme base)
+  (scheme process-context)
   (liii check)
   (liii tui)
   (liii time)
@@ -33,6 +34,13 @@
 ) ;import
 
 (check-set-mode! 'report)
+
+;; 临时禁用：本测试为 CPU 性能基准，绝对耗时受 CI 机器负载与并行度影响较大，
+;; 在常规 CI 上易触发护栏误报。默认不执行；仅当显式设置环境变量
+;; GF_PI_RENDER_CPU_TEST=1 时才启用，便于本地或专项性能回归验证。
+(define %cpu-test-enabled?
+  (let ((v (get-environment-variable "GF_PI_RENDER_CPU_TEST")))
+    (and v (not (string=? v "")) (not (string-ci=? v "0")) (not (string-ci=? v "false")))))
 
 ;; 性能测量取多轮最小值：测试运行器默认并行执行多个用例，
 ;; 单轮测量会被其它用例的 CPU 争用放大，最小值更接近真实单跑成本
@@ -50,6 +58,7 @@
 ) ;define
 
 ;; 1. 单帧渲染成本：空闲 app（无消息）连渲 200 帧
+(when %cpu-test-enabled?
 (let* ((vt (make-virtual-terminal :width 120 :height 40))
        (app (make-pi-app :terminal vt :handler (lambda (a m) #t)))
       ) ;
@@ -81,9 +90,11 @@
     (check-true (< per-frame-us 5000))
   ) ;let*
 ) ;let*
+) ;when
 
 ;; 2. 流式场景：模拟 300 个 assistant 文本增量事件，每次事件后整帧渲染
 ;;    （对齐真实 busy 路径：每个流式 chunk → handle-event → render）
+(when %cpu-test-enabled?
 (let* ((vt (make-virtual-terminal :width 120 :height 40))
        (app (make-pi-app :terminal vt :handler (lambda (a m) #t)))
       ) ;
@@ -146,8 +157,10 @@
     ;; 本测试针对 Working 动画的 CPU 回归护栏见第 5 节。
   ) ;let*
 ) ;let*
+) ;when
 
 ;; 3. 空闲主循环成本：模拟 1000 拍 (poll-events + frame-lines + 无变化渲染)
+(when %cpu-test-enabled?
 (let* ((vt (make-virtual-terminal :width 120 :height 40))
        (app (make-pi-app :terminal vt :handler (lambda (a m) #t)))
       ) ;
@@ -181,8 +194,10 @@
     (check-true (< per-tick-us 10000))
   ) ;let*
 ) ;let*
+) ;when
 
 ;; 4. 分段定位：帧计算 vs 屏幕差异提交 vs 终端尺寸查询
+(when %cpu-test-enabled?
 (let* ((vt (make-virtual-terminal :width 120 :height 40))
        (app (make-pi-app :terminal vt :handler (lambda (a m) #t)))
       ) ;
@@ -254,10 +269,12 @@
     ) ;let
   ) ;let*
 ) ;let*
+) ;when
 
 ;; 5. 真实 busy 主循环节拍：复刻 run.scm 的 ((not k) busy 分支），
 ;;    连续跑 ~3 秒的 (poll-events + working-tick + sleep 10ms)，
 ;;    测主循环在无按键、无事件（agent 网络等待）时的自身 CPU 占比
+(when %cpu-test-enabled?
 (let* ((vt (make-virtual-terminal :width 120 :height 40))
        (app (make-pi-app :terminal vt :handler (lambda (a m) (sleep 30))))
       ) ;
@@ -290,5 +307,9 @@
     ) ;let*
   ) ;let*
 ) ;let*
+) ;when
+
+(unless %cpu-test-enabled?
+  (format #t "[skipped] pi-app-render-cpu-test：默认禁用；设置 GF_PI_RENDER_CPU_TEST=1 启用~%"))
 
 (check-report)
