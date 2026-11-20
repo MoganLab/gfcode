@@ -30,20 +30,18 @@
 (check-set-mode! 'report-failed)
 
 ;; 夹具：包含 google 与 kimi-coding（白名单激活），google 下两个模型，kimi-coding 下一个模型
+
 (define fixture-store
   '(("google"
      ("name" . "Google")
-     ("models" . ((("id" . "gemini-2.5-flash")
-                   ("name" . "Gemini 2.5 Flash")
-                   ("reasoning" . #t))
-                  (("id" . "gemini-2.5-pro")
-                   ("name" . "Gemini 2.5 Pro")
-                   ("reasoning" . #t)))))
+     ("models"
+      (("id" . "gemini-2.5-flash")
+       ("name" . "Gemini 2.5 Flash")
+       ("reasoning" . #t))
+      (("id" . "gemini-2.5-pro") ("name" . "Gemini 2.5 Pro") ("reasoning" . #t))))
     ("kimi-coding"
      ("name" . "Kimi Coding")
-     ("models" . ((("id" . "k3")
-                   ("name" . "Kimi K3")
-                   ("reasoning" . #f))))))
+     ("models" (("id" . "k3") ("name" . "Kimi K3") ("reasoning" . #f)))))
 ) ;define
 
 (let* ((models (pi-usable-models fixture-store))

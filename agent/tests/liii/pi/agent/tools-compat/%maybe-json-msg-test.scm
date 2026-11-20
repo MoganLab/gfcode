@@ -19,7 +19,9 @@
 
 (check-set-mode! 'report-failed)
 
-(check-true (pi-user-message? (%maybe-json-msg '(("role" . "user") ("content" . "hi")))))
+(check-true
+  (pi-user-message? (%maybe-json-msg '(("role" . "user") ("content" . "hi"))))
+) ;check-true
 (check (%maybe-json-msg '((role . "user"))) => '((role . "user")))
 
 (check-report)

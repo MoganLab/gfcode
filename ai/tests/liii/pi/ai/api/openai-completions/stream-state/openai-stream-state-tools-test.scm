@@ -15,9 +15,7 @@
 ;; list
 ;; tool_call_state 关联表；没有待拼接工具时为空列表。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -25,7 +23,7 @@
 (let ((state (make-openai-stream-state '() #f '() "stop" #f '())))
   (check (openai-stream-state? state) => #t)
   (check (openai-stream-state-tools state) => '())
-) ;let*
+) ;let
 
 
 (check-report)

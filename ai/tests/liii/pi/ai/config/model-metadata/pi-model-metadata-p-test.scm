@@ -19,9 +19,8 @@
 
 (check-set-mode! 'report-failed)
 
-(let ((obj (pi-model-metadata "gemini-2.5-flash" "Gemini 2.5 Flash"
-             "google" "https://generativelanguage.googleapis.com" 1048576 65536
-             #t
+(let ((obj (pi-model-metadata "gemini-2.5-flash" "Gemini 2.5 Flash" "google"
+             "https://generativelanguage.googleapis.com" 1048576 65536 #t
            ) ;pi-model-metadata
       ) ;obj
      ) ;

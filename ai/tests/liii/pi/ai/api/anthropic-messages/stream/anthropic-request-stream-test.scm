@@ -43,7 +43,7 @@
   (liii time)
   (scheme time)
   (liii pi ai abort)
- 
+
   (liii pi ai api anthropic-messages)
 ) ;import
 
@@ -70,6 +70,7 @@
 
 ;; 延迟发送 abort 信号的 worker：0.5s 后向通道发中止信号。
 ;; 顶层 define + (go (fn ch)) 传参形式（闭包变量无法跨 go 会话传输）
+
 (define (delay-abort-signal ch)
   (sleep 0.5)
   (chan-send! ch 'abort 0)
@@ -216,7 +217,8 @@
              `((provider . "anthropic")
                (model-id . "claude-3-7-sonnet-20250219")
                (api-key . "sk-ant-test-key")
-               (model-meta (base-url . ,(string-append base-url "/stream-abort-hang"))
+               (model-meta (base-url
+                             . ,(string-append base-url "/stream-abort-hang"))
                  (max-tokens . 4096))
                (proxy-url . #f)
                (tools "bash")

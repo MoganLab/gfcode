@@ -33,7 +33,9 @@
 (check-set-mode! 'report-failed)
 
 ;; 测试 process-stream-part 在流式接收 thinking 块并过渡到普通 text 块时的事件和结构
-(let* ((stream-state (make-gemini-stream-state '() #f '((input . 10) (output . 5)) '() #f #f #f #f))
+(let* ((stream-state (make-gemini-stream-state '() #f '((input . 10)
+                                                        (output . 5)) '() #f #f #f #f)
+       ) ;stream-state
        (events '())
        (emit
          (lambda (ev) (set! events (append events (list ev))))
@@ -48,7 +50,10 @@
     emit
   ) ;process-stream-part
   (check (length (gemini-stream-state-blocks stream-state)) => 1)
-  (check (pi-thinking-block? (car (gemini-stream-state-blocks stream-state))) => #t)
+  (check (pi-thinking-block? (car (gemini-stream-state-blocks stream-state)))
+    =>
+    #t
+  ) ;check
   (check (length events) => 2)
   (check (cdr (assoc 'type (car events))) => "thinking_start")
   (check (cdr (assoc 'type (cadr events))) => "thinking_delta")
@@ -69,7 +74,10 @@
   ;; 3. 第三个 chunk: 思考结束，进入普通回答 text
   (process-stream-part '(("text" . "Here is the result.")) stream-state emit)
   (check (length (gemini-stream-state-blocks stream-state)) => 2)
-  (check (pi-thinking-block? (car (gemini-stream-state-blocks stream-state))) => #t)
+  (check (pi-thinking-block? (car (gemini-stream-state-blocks stream-state)))
+    =>
+    #t
+  ) ;check
   (check (pi-text-block? (cadr (gemini-stream-state-blocks stream-state))) => #t)
   ;; 应该先触发 thinking_end，再触发 text_start, text_delta
   (check (length events) => 6)

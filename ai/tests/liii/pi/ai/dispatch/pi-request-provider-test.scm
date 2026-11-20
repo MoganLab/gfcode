@@ -34,27 +34,26 @@
 (check-true (procedure? pi-request-provider))
 
 ;; 明确指定未知测试供应商协议会走默认 Gemini 分支，失败也返回结构化助手消息。
-(let* ((config (list (cons 'provider "nonexistent-probe-provider")
-                 (cons 'provider-api "unknown-api")
-                 (cons 'model-id "probe-model")
-                 (cons 'model-meta (list (cons 'base-url "http://127.0.0.1:1")
-                                     (cons 'max-tokens 16)
-                                   ) ;list
-                 ) ;cons
-                 (cons 'api-key "test-key")
-                 (cons 'proxy-url #f)
-                 (cons 'settings '())
-               ) ;list
+(let* ((config
+         (list (cons 'provider "nonexistent-probe-provider")
+           (cons 'provider-api "unknown-api")
+           (cons 'model-id "probe-model")
+           (cons 'model-meta
+             (list (cons 'base-url "http://127.0.0.1:1") (cons 'max-tokens 16))
+           ) ;cons
+           (cons 'api-key "test-key")
+           (cons 'proxy-url #f)
+           (cons 'settings '())
+         ) ;list
        ) ;config
-       (response
-         (pi-request-provider "nonexistent-probe-provider"
-           config
-           (list (pi-user-message "ping"))
-           #f
-           '()
-           1
-           '((enabled . #f))
-         ) ;pi-request-provider
+       (response (pi-request-provider "nonexistent-probe-provider"
+                   config
+                   (list (pi-user-message "ping"))
+                   #f
+                   '()
+                   1
+                   '((enabled . #f))
+                 ) ;pi-request-provider
        ) ;response
       ) ;
   (check-true (pi-assistant-message? response))

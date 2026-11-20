@@ -19,8 +19,7 @@
 
 (check-set-mode! 'report-failed)
 
-(let* ((obj-a (pi-event-session "/tmp/work" "session-uuid-1" "2026-01-01T00:00:00Z" 3)
-       ) ;obj-a
+(let* ((obj-a (pi-event-session "/tmp/work" "session-uuid-1" "2026-01-01T00:00:00Z" 3))
        (obj-b (pi-event-session "/home/user" "session-uuid-2" "2026-01-02T00:00:00Z" 3)
        ) ;obj-b
       ) ;

@@ -19,7 +19,8 @@
 
 (check-set-mode! 'report-failed)
 
-(check-true (pi-simplify-suggestion? (make-pi-simplify-suggestion "a.scm" 1 "cat" "msg" #f)))
+(check-true (pi-simplify-suggestion? (make-pi-simplify-suggestion "a.scm" 1 "cat" "msg" #f))
+) ;check-true
 (check-false (pi-simplify-suggestion? '()))
 (check-false (pi-simplify-suggestion? #f))
 

@@ -133,20 +133,64 @@
 
     (define (%handle-http-stream-error tag args timeout eff-idle start-sec on-idle-timeout)
       (if (not (eq? tag 'http-client-timeout-error))
-        (list (cons 'status-code 0) (cons 'reason (if (pair? args) (car args) "Network error")) (cons 'text ""))
-        (let* ((raw (if (and (pair? args) (string? (car args))) (car args) ""))
-               (idle? (and eff-idle (or (string-contains? (string-downcase raw) "too slow") (and (< eff-idle timeout) (< (- (pi-current-monotonic-seconds) start-sec) (- timeout 0.5))))))
-               (msg (if idle? (begin (when (procedure? on-idle-timeout) (on-idle-timeout)) (string-append "Stream idle timed out after " (number->string eff-idle) "s")) (string-append "Request timed out after " (number->string timeout) "s"))))
-          (list (cons 'status-code 0) (cons 'reason msg) (cons 'text "") (cons 'timeout #t) (cons 'timeout-sec (if idle? eff-idle timeout)))
+        (list (cons 'status-code 0)
+          (cons 'reason (if (pair? args) (car args) "Network error"))
+          (cons 'text "")
+        ) ;list
+        (let* ((raw
+                 (if (and (pair? args) (string? (car args))) (car args) "")
+               ) ;raw
+               (idle?
+                 (and eff-idle
+                   (or (string-contains? (string-downcase raw) "too slow")
+                     (and (< eff-idle timeout)
+                       (< (- (pi-current-monotonic-seconds) start-sec) (- timeout 0.5))
+                     ) ;and
+                   ) ;or
+                 ) ;and
+               ) ;idle?
+               (msg
+                 (if idle?
+                   (begin
+                     (when (procedure? on-idle-timeout)
+                       (on-idle-timeout)
+                     ) ;when
+                     (string-append "Stream idle timed out after " (number->string eff-idle) "s")
+                   ) ;begin
+                   (string-append "Request timed out after " (number->string timeout) "s")
+                 ) ;if
+               ) ;msg
+              ) ;
+          (list (cons 'status-code 0)
+            (cons 'reason msg)
+            (cons 'text "")
+            (cons 'timeout #t)
+            (cons 'timeout-sec (if idle? eff-idle timeout))
+          ) ;list
         ) ;let*
       ) ;if
     ) ;define
 
-    (define (%perform-http-stream url req-json-str headers proxy-alist stream-cb progress timeout eff-idle on-idle-timeout)
+    (define (%perform-http-stream url req-json-str headers proxy-alist stream-cb
+              progress timeout eff-idle on-idle-timeout
+            ) ;%perform-http-stream
       (let ((start-sec (pi-current-monotonic-seconds)))
         (catch #t
-          (lambda () (http-post url :data req-json-str :headers headers :proxy proxy-alist :stream #t :callback stream-cb :timeout timeout :idle-timeout eff-idle :progress progress))
-          (lambda (tag . args) (%handle-http-stream-error tag args timeout eff-idle start-sec on-idle-timeout))
+          (lambda ()
+            (http-post url
+              :data         req-json-str
+              :headers      headers
+              :proxy        proxy-alist
+              :stream       #t
+              :callback     stream-cb
+              :timeout      timeout
+              :idle-timeout eff-idle
+              :progress     progress
+            ) ;http-post
+          ) ;lambda
+          (lambda (tag . args)
+            (%handle-http-stream-error tag args timeout eff-idle start-sec on-idle-timeout)
+          ) ;lambda
         ) ;catch
       ) ;let
     ) ;define

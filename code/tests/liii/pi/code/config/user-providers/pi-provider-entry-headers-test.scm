@@ -20,11 +20,10 @@
 (check-set-mode! 'report-failed)
 
 ;; 记录条目：headers 保存在 extras 中。
-(check (pi-provider-entry-headers
-         (make-pi-provider-entry #f #f #f #f #f #f
-           '(("headers" ("x-key" . "v")))
-         ) ;make-pi-provider-entry
-       ) ;pi-provider-entry-headers
+(check
+  (pi-provider-entry-headers
+    (make-pi-provider-entry #f #f #f #f #f #f '(("headers" ("x-key" . "v"))))
+  ) ;pi-provider-entry-headers
   =>
   '(("x-key" . "v"))
 ) ;check
@@ -33,7 +32,8 @@
 (check (pi-provider-entry-headers (make-pi-provider-entry)) => #f)
 
 ;; 原始 JSON alist 输入直接读取 headers 键。
-(check (pi-provider-entry-headers '(("headers" ("x-key" . "v"))))
+(check
+  (pi-provider-entry-headers '(("headers" ("x-key" . "v"))))
   =>
   '(("x-key" . "v"))
 ) ;check

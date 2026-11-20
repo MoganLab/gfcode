@@ -24,7 +24,7 @@
 
 (import (liii check)
   (liii pi ai api google-generative-ai)
- 
+
   (liii pi ai message)
 ) ;import
 
@@ -78,11 +78,7 @@
       (check (pi-block-type blk) => "toolCall")
       (check (pi-tool-call-block-id blk) => "call_123")
       (check (pi-tool-call-block-name blk) => "bash")
-      (check
-        (cdr (assoc "command" (pi-tool-call-block-arguments blk)))
-        =>
-        "ls"
-      ) ;check
+      (check (cdr (assoc "command" (pi-tool-call-block-arguments blk))) => "ls")
     ) ;let
   ) ;let
 ) ;let*
@@ -164,9 +160,7 @@
       (check (pi-block-type blk) => "toolCall")
       (check (pi-tool-call-block-name blk) => "bash")
       (check-true (string? (pi-tool-call-block-id blk)))
-      (check-true
-        (> (string-length (pi-tool-call-block-id blk)) 0)
-      ) ;check-true
+      (check-true (> (string-length (pi-tool-call-block-id blk)) 0))
     ) ;let
   ) ;let
 ) ;let*

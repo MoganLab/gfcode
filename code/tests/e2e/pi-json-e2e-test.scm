@@ -13,7 +13,9 @@
 ;; ------
 ;; 见各断言场景：按被测函数实际返回值断言。
 
-(set! *load-path* (append (list "code" "agent" "." "../code" "../agent") *load-path*))
+(set! *load-path*
+  (append (list "code" "agent" "." "../code" "../agent") *load-path*)
+) ;set!
 
 (import (scheme process-context)
   (liii check)
@@ -172,7 +174,8 @@
 
           ;; 1. 单轮简单对话的 JSONL 事件序列
           (let* ((cmd (list GF_BIN "pi" "--mode" "json" "Hello from json e2e test"))
-                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe)
+                 ) ;p
                  (raw-out (read-all-output p))
                  (code (process-wait p 10000))
                  (lines (split-json-lines raw-out))
@@ -202,7 +205,8 @@
           ;; 2. 多轮带工具调用（functionCall）的 JSONL 事件序列
           (let* ((cmd (list GF_BIN "pi" "--mode" "json" "--model" "multi-turn" "Run multi turn steps")
                  ) ;cmd
-                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe)
+                 ) ;p
                  (raw-out (read-all-output p))
                  (code (process-wait p 15000))
                  (lines (split-json-lines raw-out))
@@ -224,7 +228,8 @@
 
           ;; 3. 模型报错/aborted 情况下进程退出码仍为 0（§3.3：事件流中出现 error/aborted 不改变退出码）
           (let* ((cmd (list GF_BIN "pi" "--mode" "json" "--model" "safety" "Run safety check"))
-                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe)
+                 ) ;p
                  (raw-out (read-all-output p))
                  (code (process-wait p 10000))
                  (lines (split-json-lines raw-out))
@@ -252,7 +257,8 @@
                         "MiniMax-M2.7" "--mode" "json" "Hello anthropic json"
                       ) ;list
                  ) ;cmd
-                 (p (process-spawn cmd :env ant-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env ant-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe)
+                 ) ;p
                  (raw-out (read-all-output p))
                  (code (process-wait p 10000))
                  (lines (split-json-lines raw-out))
@@ -270,7 +276,8 @@
 
           ;; 5. 缺陷8防回归测试：4字节 UTF-8 字符（emoji）与 '<' 组合在 JSON 模式事件流验证
           (let* ((cmd (list GF_BIN "pi" "--mode" "json" "🚀 <"))
-                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe))
+                 (p (process-spawn cmd :env test-env :cwd PROJECT_ROOT :stdout 'pipe :stderr 'pipe)
+                 ) ;p
                  (raw-out (read-all-output p))
                  (code (process-wait p 10000))
                  (lines (split-json-lines raw-out))

@@ -16,7 +16,11 @@
 ;; 包括普通消息与 bashExecution 的消息总数。
 ;;
 
-(import (scheme base) (liii check) (liii pi code core session-stats token-stats) (liii pi code core session-stats stats))
+(import (scheme base)
+  (liii check)
+  (liii pi code core session-stats token-stats)
+  (liii pi code core session-stats stats)
+) ;import
 
 (check-set-mode! 'report-failed)
 

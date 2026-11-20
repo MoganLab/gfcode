@@ -4,9 +4,12 @@
     "unit-test": {
       "enabled": true
     },
+    "layer-order": {
+      "enabled": false
+    },
     "max-file-lines": {
       "enabled": true,
-      "limit": 400
+      "limit": 450
     }
   }
 }

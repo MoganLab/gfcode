@@ -34,7 +34,12 @@
 
 ;; 省略可选参数 message 时默认 #f；支持关键字参数
 (let ((obj-default (pi-quota-limit "five-hour" "1308"))
-      (obj-kw (pi-quota-limit :kind "quota" :code "exceeded_current_quota_error" :message "limit"))
+      (obj-kw (pi-quota-limit
+                :kind    "quota"
+                :code    "exceeded_current_quota_error"
+                :message "limit"
+              ) ;pi-quota-limit
+      ) ;obj-kw
      ) ;
   (check-true (pi-quota-limit? obj-default))
   (check (pi-quota-limit-message obj-default) => #f)

@@ -20,11 +20,9 @@
 (check-set-mode! 'report-failed)
 
 (let* ((obj-a (pi-event-tool-execution-start "tc-001" "read" '(("path"
-                                                                      . "foo.txt")))
-       ) ;obj-a
+                                                                . "foo.txt"))))
        (obj-b (pi-event-tool-execution-start "tc-002" "bash" '(("command"
-                                                                      . "ls")))
-       ) ;obj-b
+                                                                . "ls"))))
       ) ;
   (check (pi-event-tool-execution-start-tool-name obj-a) => "read")
   (check (pi-event-tool-execution-start-tool-name obj-b) => "bash")

@@ -209,28 +209,26 @@
     ) ;define
 
     (define (%strip-ansi str)
-      (let* ((bv (string->byte-vector str))
-             (len (bytevector-length bv))
-            ) ;bv
+      (let* ((bv (string->byte-vector str)) (len (bytevector-length bv)))
         (let loop
           ((i 0) (out (list)))
           (cond
            ((>= i len) (byte-vector->string (apply byte-vector (reverse out))))
-           ((and (< (+ i 1) len) (= (bytevector-u8-ref bv i) 27) (= (bytevector-u8-ref bv (+ i 1)) 91))
+           ((and (< (+ i 1) len)
+              (= (bytevector-u8-ref bv i) 27)
+              (= (bytevector-u8-ref bv (+ i 1)) 91)
+            ) ;and
             (let scan
               ((j (+ i 2)))
-              (cond
-               ((>= j len) (loop len out))
-               ((and (>= (bytevector-u8-ref bv j) 64) (<= (bytevector-u8-ref bv j) 126))
-                (loop (+ j 1) out)
-               ) ;and
-               (else (scan (+ j 1)))
+              (cond ((>= j len) (loop len out))
+                    ((and (>= (bytevector-u8-ref bv j) 64) (<= (bytevector-u8-ref bv j) 126))
+                     (loop (+ j 1) out)
+                    ) ;
+                    (else (scan (+ j 1)))
               ) ;cond
             ) ;let
-           ) ;and
-           (else
-             (loop (+ i 1) (cons (bytevector-u8-ref bv i) out))
-           ) ;else
+           ) ;
+           (else (loop (+ i 1) (cons (bytevector-u8-ref bv i) out)))
           ) ;cond
         ) ;let
       ) ;let*

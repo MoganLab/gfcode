@@ -63,7 +63,9 @@
 (define GF_BIN (executable))
 
 (define PROJECT_ROOT
-  (path->string (path-resolve (path (if (file-exists? "gfproject.json") "." ".."))))
+  (path->string
+    (path-resolve (path (if (file-exists? "gfproject.json") "." "..")))
+  ) ;path->string
 ) ;define
 
 (define AGENT_DIR
@@ -99,9 +101,7 @@
          ) ;sfile
         ) ;
     (path-mkdir sdir :parents #t :exist-ok #t)
-    (save-session-header! sfile
-      "compact-e2e"
-      "2026-10-19T00:00:00.000Z"
+    (save-session-header! sfile "compact-e2e" "2026-10-19T00:00:00.000Z"
       PROJECT_ROOT
     ) ;save-session-header!
     (let ((msgs

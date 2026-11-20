@@ -25,11 +25,9 @@
 
 (define STORE
   '(("google"
-     ("models" (("id" . "m1") ("reasoning" . true))
-       (("id" . "m2") ("reasoning" . false))
-     ) ;models
-    ) ;list
-   ) ;list
+     ("models"
+      (("id" . "m1") ("reasoning" . true))
+      (("id" . "m2") ("reasoning" . false)))))
 ) ;define
 
 (check (cdr (assoc "reasoning" (openai-resolve-model-entry STORE "google" "m1")))

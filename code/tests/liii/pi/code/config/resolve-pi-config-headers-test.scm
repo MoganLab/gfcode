@@ -36,7 +36,8 @@
   (rmtree TMP-DIR #t)
 ) ;when
 (path-mkdir (path-join (path TMP-DIR) (path "models") (path "vertex"))
-  :parents #t :exist-ok #t
+  :parents  #t
+  :exist-ok #t
 ) ;path-mkdir
 
 (path-write-text (path->string (path-join (path TMP-DIR) (path "models/providers.json")))
@@ -53,10 +54,7 @@
 ) ;path-write-text
 
 (let* ((args (parse-pi-args '("--provider" "vertex" "--model" "m")))
-       (env (list (cons "PI_CODING_AGENT_DIR" TMP-DIR)
-              (cons "TENANT_ID" "42")
-            ) ;list
-       ) ;env
+       (env (list (cons "PI_CODING_AGENT_DIR" TMP-DIR) (cons "TENANT_ID" "42")))
        (cfg (resolve-pi-config args env))
        (headers (pi-cfg-ref cfg 'headers))
       ) ;

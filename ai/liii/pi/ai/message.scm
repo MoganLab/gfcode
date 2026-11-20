@@ -26,22 +26,22 @@
     pi-block? pi-block-type pi-block->json json->pi-block pi-user-message
     pi-user-message? pi-user-message-role pi-user-message-content
     pi-user-message-timestamp pi-bash-execution->user-text pi-assistant-message
-    pi-assistant-message? pi-assistant-message-role
-    pi-assistant-message-content pi-assistant-message-stop-reason
-    pi-assistant-message-error-message pi-assistant-message-usage
-    pi-assistant-message-timestamp pi-assistant-message-provider
-    pi-assistant-message-model pi-assistant-message-api pi-tool-result-message
-    pi-tool-result-message? pi-tool-result-message-role
-    pi-tool-result-message-tool-call-id pi-tool-result-message-tool-name
-    pi-tool-result-message-content pi-tool-result-message-is-error
-    pi-tool-result-message-timestamp pi-text-block pi-text-block?
-    pi-text-block-type pi-text-block-text pi-text-block-signature
-    pi-thinking-block pi-thinking-block? pi-thinking-block-type
-    pi-thinking-block-thinking pi-thinking-block-thinking-signature
-    pi-tool-call-block pi-tool-call-block? pi-tool-call-block-type
-    pi-tool-call-block-id pi-tool-call-block-name pi-tool-call-block-arguments
-    pi-tool-call-block-thought-signature pi-image-block pi-image-block?
-    pi-image-block-type pi-image-block-data pi-image-block-mime-type
+    pi-assistant-message? pi-assistant-message-role pi-assistant-message-content
+    pi-assistant-message-stop-reason pi-assistant-message-error-message
+    pi-assistant-message-usage pi-assistant-message-timestamp
+    pi-assistant-message-provider pi-assistant-message-model
+    pi-assistant-message-api pi-tool-result-message pi-tool-result-message?
+    pi-tool-result-message-role pi-tool-result-message-tool-call-id
+    pi-tool-result-message-tool-name pi-tool-result-message-content
+    pi-tool-result-message-is-error pi-tool-result-message-timestamp
+    pi-text-block pi-text-block? pi-text-block-type pi-text-block-text
+    pi-text-block-signature pi-thinking-block pi-thinking-block?
+    pi-thinking-block-type pi-thinking-block-thinking
+    pi-thinking-block-thinking-signature pi-tool-call-block pi-tool-call-block?
+    pi-tool-call-block-type pi-tool-call-block-id pi-tool-call-block-name
+    pi-tool-call-block-arguments pi-tool-call-block-thought-signature
+    pi-image-block pi-image-block? pi-image-block-type pi-image-block-data
+    pi-image-block-mime-type
   ) ;export
   (begin
 
@@ -87,14 +87,24 @@
                (model (pi-assistant-message-model msg))
                (api (pi-assistant-message-api msg))
                (res (list (cons "role" "assistant") (cons "content" c) (cons "stopReason" sr)))
-               (res (if err (append res (list (cons "errorMessage" err))) res))
-               (res (if prov (append res (list (cons "provider" prov))) res))
-               (res (if model (append res (list (cons "model" model))) res))
-               (res (if api (append res (list (cons "api" api))) res))
+               (res
+                 (if err (append res (list (cons "errorMessage" err))) res)
+               ) ;res
+               (res
+                 (if prov (append res (list (cons "provider" prov))) res)
+               ) ;res
+               (res
+                 (if model (append res (list (cons "model" model))) res)
+               ) ;res
+               (res
+                 (if api (append res (list (cons "api" api))) res)
+               ) ;res
                (res
                  (if u (append res (list (cons "usage" (%normalize-json-value u)))) res)
                ) ;res
-               (res (if ts (append res (list (cons "timestamp" ts))) res))
+               (res
+                 (if ts (append res (list (cons "timestamp" ts))) res)
+               ) ;res
               ) ;
           res
         ) ;let*
@@ -102,12 +112,13 @@
        ((pi-tool-result-message? msg)
         (let* ((c (%normalize-json-value (pi-tool-result-message-content msg)))
                (ts (pi-tool-result-message-timestamp msg))
-               (res (list (cons "role" "toolResult")
-                      (cons "toolCallId" (pi-tool-result-message-tool-call-id msg))
-                      (cons "toolName" (pi-tool-result-message-tool-name msg))
-                      (cons "content" c)
-                      (cons "isError" (if (pi-tool-result-message-is-error msg) 'true 'false))
-                    ) ;list
+               (res
+                 (list (cons "role" "toolResult")
+                   (cons "toolCallId" (pi-tool-result-message-tool-call-id msg))
+                   (cons "toolName" (pi-tool-result-message-tool-name msg))
+                   (cons "content" c)
+                   (cons "isError" (if (pi-tool-result-message-is-error msg) 'true 'false))
+                 ) ;list
                ) ;res
               ) ;
           (if ts (append res (list (cons "timestamp" ts))) res)
@@ -140,15 +151,14 @@
                   (raw-model (json-ref obj "model"))
                   (raw-api (json-ref obj "api"))
                  ) ;
-              (pi-assistant-message
-                (%convert-message-content (if (null? raw-content) #() raw-content))
+              (pi-assistant-message (%convert-message-content (if (null? raw-content) #() raw-content))
                 :stop-reason   (json-ref-string obj "stopReason" "stop")
                 :error-message (if (string? raw-err) raw-err #f)
                 :usage         (if (null? raw-usage) #f raw-usage)
-                :timestamp     (if (null? raw-ts) (pi-current-time-millis) raw-ts)
-                :provider      (if (string? raw-prov) raw-prov #f)
-                :model         (if (string? raw-model) raw-model #f)
-                :api           (if (string? raw-api) raw-api #f)
+                :timestamp (if (null? raw-ts) (pi-current-time-millis) raw-ts)
+                :provider  (if (string? raw-prov) raw-prov #f)
+                :model     (if (string? raw-model) raw-model #f)
+                :api       (if (string? raw-api) raw-api #f)
               ) ;pi-assistant-message
             ) ;let
            ) ;

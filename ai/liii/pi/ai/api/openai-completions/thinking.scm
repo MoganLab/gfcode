@@ -43,9 +43,7 @@
     ) ;define
 
     (define (%thinking-off? level)
-      (or (not (string? level))
-        (string=? (string-trim-both level) "off")
-      ) ;or
+      (or (not (string? level)) (string=? (string-trim-both level) "off"))
     ) ;define
 
     ;; 在模型条目数组中按 id 查找
@@ -106,10 +104,7 @@
     (define (%openai-thinking-params model level)
       (if (%thinking-off? level)
         (let ((off-effort (%val (%val "thinkingLevelMap" model '()) "off" #f)))
-          (if (string? off-effort)
-            (list (cons "reasoning_effort" off-effort))
-            '()
-          ) ;if
+          (if (string? off-effort) (list (cons "reasoning_effort" off-effort)) '())
         ) ;let
         (if (%compat-ref model "supportsReasoningEffort" #t)
           (list (cons "reasoning_effort" (%mapped-effort model level)))

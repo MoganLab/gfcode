@@ -201,7 +201,11 @@
     (define (%openai-extra-headers url provider session-id config settings)
       (let* ((cfg-hdrs (or (pi-cfg-ref config 'headers) '()))
              (set-hdrs
-               (or (and (pair? settings) (cdr (or (assoc 'headers settings) '(#f . #f)))) '())
+               (or
+                 (and (pair? settings) (cdr (or (assoc 'headers settings) '(#f
+                                                                            . #f))))
+                 '()
+               ) ;or
              ) ;set-hdrs
              (opencode-hdrs
                (if
@@ -378,11 +382,16 @@
              (prompt-cache-key (openai-resolve-prompt-cache-key base-url (pi-cfg-ref config 'session-id))
              ) ;prompt-cache-key
              (openai-msgs (openai-build-messages messages system-instruction))
-             (req-body (openai-build-request-body model-id openai-msgs #t
-                         tool-decls max-tokens prompt-cache-key
+             (req-body (openai-build-request-body model-id
+                         openai-msgs
+                         #t
+                         tool-decls
+                         max-tokens
+                         prompt-cache-key
                          (pi-cfg-ref config 'thinking-level)
                          (openai-resolve-model-entry (pi-cfg-ref config 'models-store '())
-                           (pi-cfg-ref config 'provider) model-id
+                           (pi-cfg-ref config 'provider)
+                           model-id
                          ) ;openai-resolve-model-entry
                        ) ;openai-build-request-body
              ) ;req-body

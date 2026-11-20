@@ -15,16 +15,15 @@
 ;; boolean
 ;; 是流状态记录返回 #t，否则返回 #f。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 
 ;; 流状态记录
-(check (openai-stream-state?
-         (make-openai-stream-state '() #f '() "stop" #f '()))
-  => #t)
+(check (openai-stream-state? (make-openai-stream-state '() #f '() "stop" #f '()))
+  =>
+  #t
+) ;check
 
 ;; 其它对象
 (check (openai-stream-state? '()) => #f)

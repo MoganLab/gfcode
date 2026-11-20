@@ -29,10 +29,14 @@
 
 (check-set-mode! 'report-failed)
 
-(let* ((stream-state
-         (make-anthropic-stream-state '() #f '((input . 10) (output . 5)) '() #f #f
-           '((thinking . "") (signature . "") (index . 0))
-         ) ;make-anthropic-stream-state
+(let* ((stream-state (make-anthropic-stream-state '()
+                       #f
+                       '((input . 10) (output . 5))
+                       '()
+                       #f
+                       #f
+                       '((thinking . "") (signature . "") (index . 0))
+                     ) ;make-anthropic-stream-state
        ) ;stream-state
        (events '())
        (emit

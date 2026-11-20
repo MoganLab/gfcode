@@ -24,9 +24,7 @@
 ;; alist
 ;; ((header-name . resolved-value) ...)；未配置 headers 时返回空列表。
 
-(import (liii check)
-  (liii pi code config)
-) ;import
+(import (liii check) (liii pi code config))
 
 (check-set-mode! 'report-failed)
 
@@ -46,7 +44,10 @@
 (check (pi-resolve-request-headers STORE "vertex" "plain" "key") => '())
 
 ;; 当前 provider 的 API key 保留为请求模板，环境变量在配置阶段插值。
-(let ((headers (pi-resolve-request-headers STORE "vertex" "custom" "secret-key"
+(let ((headers (pi-resolve-request-headers STORE
+                 "vertex"
+                 "custom"
+                 "secret-key"
                  '(("TENANT_ID" . "42"))
                ) ;pi-resolve-request-headers
       ) ;headers
@@ -57,9 +58,14 @@
 ) ;let
 
 ;; 同一个值支持多个占位符。
-(let* ((store '(("p" ("models" (("id" . "m")
-                      ("headers" ("x-key" . "${API_KEY}-${SUFFIX}-${API_KEY}")))))))
-       (headers (pi-resolve-request-headers store "p" "m" "key" '(("SUFFIX" . "env"))))
+(let* ((store
+         '(("p"
+            ("models"
+             (("id" . "m")
+              ("headers" ("x-key" . "${API_KEY}-${SUFFIX}-${API_KEY}"))))))
+       ) ;store
+       (headers (pi-resolve-request-headers store "p" "m" "key" '(("SUFFIX"
+                                                                   . "env"))))
       ) ;
   (check (cdr (assoc "x-key" headers)) => "${API_KEY}-env-${API_KEY}")
 ) ;let*
@@ -73,7 +79,10 @@
 ) ;check-catch
 
 ;; 已定义的空环境变量是合法值，可用于拼接可选前后缀。
-(let ((headers (pi-resolve-request-headers STORE "vertex" "custom" "secret-key"
+(let ((headers (pi-resolve-request-headers STORE
+                 "vertex"
+                 "custom"
+                 "secret-key"
                  '(("TENANT_ID" . ""))
                ) ;pi-resolve-request-headers
       ) ;headers
@@ -85,13 +94,17 @@
 (check-catch 'pi-config-error
   (pi-resolve-request-headers
     '(("p" ("models" (("id" . "m") ("headers" . "bad")))))
-    "p" "m" "key"
+    "p"
+    "m"
+    "key"
   ) ;pi-resolve-request-headers
 ) ;check-catch
 (check-catch 'pi-config-error
   (pi-resolve-request-headers
     '(("p" ("models" (("id" . "m") ("headers" ("x-key" . 42))))))
-    "p" "m" "key"
+    "p"
+    "m"
+    "key"
   ) ;pi-resolve-request-headers
 ) ;check-catch
 

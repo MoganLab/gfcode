@@ -11,7 +11,8 @@
     (liii pi ai thinking)
     (liii pi code config settings)
   ) ;import
-  (export %model-supports-thinking? pi-model-supports-thinking?
+  (export %model-supports-thinking?
+    pi-model-supports-thinking?
     pi-model-available-thinking-levels
   ) ;export
   (begin

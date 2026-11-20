@@ -19,9 +19,7 @@
 
 (check-set-mode! 'report-failed)
 
-(let ((obj (pi-event-session "/tmp/work" "session-uuid-1" "2026-01-01T00:00:00Z" 3)
-      ) ;obj
-     ) ;
+(let ((obj (pi-event-session "/tmp/work" "session-uuid-1" "2026-01-01T00:00:00Z" 3)))
   (check-true (pi-event-session? obj))
 ) ;let
 (check-false (pi-event-session? '()))

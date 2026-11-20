@@ -20,13 +20,17 @@
 (check-set-mode! 'report-failed)
 
 ;; 1. proxy 字段
-(check (pi-web-search-config-proxy (make-pi-web-search-config "google" #f #f "http://proxy:7890"))
+(check (pi-web-search-config-proxy (make-pi-web-search-config "google" #f #f "http://proxy:7890")
+       ) ;pi-web-search-config-proxy
   =>
   "http://proxy:7890"
 ) ;check
 
 ;; 2. 未配置或非记录时返回 #f
-(check (pi-web-search-config-proxy (make-pi-web-search-config "google" #f #f #f)) => #f)
+(check (pi-web-search-config-proxy (make-pi-web-search-config "google" #f #f #f))
+  =>
+  #f
+) ;check
 (check (pi-web-search-config-proxy #f) => #f)
 (check (pi-web-search-config-proxy '()) => #f)
 

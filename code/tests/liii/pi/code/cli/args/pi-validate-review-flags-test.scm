@@ -16,8 +16,9 @@
 ;; 参数组合非法时抛出错误。
 
 (set! *load-path*
-  (append
-    (list "../review" "../simplify" "../web-search" "review" "simplify" "web-search")
+  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
+            "web-search"
+          ) ;list
     *load-path*
   ) ;append
 ) ;set!

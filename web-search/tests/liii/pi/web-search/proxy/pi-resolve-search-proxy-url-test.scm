@@ -44,7 +44,11 @@
 ;; 7. 全局 settings.json 中的 httpProxy
 ;; 8. 直连（返回 #f）
 
-(import (liii check) (liii path) (liii pi web-search types) (liii pi web-search proxy))
+(import (liii check)
+  (liii path)
+  (liii pi web-search types)
+  (liii pi web-search proxy)
+) ;import
 
 (check-set-mode! 'report-failed)
 

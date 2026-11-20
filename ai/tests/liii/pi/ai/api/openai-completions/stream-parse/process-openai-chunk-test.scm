@@ -30,30 +30,48 @@
 ;; 处理文本 delta 与 usage
 (let* ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
        (events '())
-       (emit (lambda (ev) (set! events (append events (list ev)))))
-       (chunk (list (cons "choices"
-                          (vector (list (cons "index" 0)
-                                        (cons "delta" (list (cons "content" "Hi"))))))
-                    (cons "usage" (list (cons "prompt_tokens" 10)
-                                        (cons "completion_tokens" 2)
-                                        (cons "total_tokens" 12)))))
+       (emit
+         (lambda (ev) (set! events (append events (list ev))))
+       ) ;emit
+       (chunk
+         (list
+           (cons "choices"
+             (vector
+               (list (cons "index" 0) (cons "delta" (list (cons "content" "Hi"))))
+             ) ;vector
+           ) ;cons
+           (cons "usage"
+             (list (cons "prompt_tokens" 10)
+               (cons "completion_tokens" 2)
+               (cons "total_tokens" 12)
+             ) ;list
+           ) ;cons
+         ) ;list
+       ) ;chunk
       ) ;
   (process-openai-chunk chunk stream-state emit)
   (check (length (openai-stream-state-blocks stream-state)) => 1)
-  (check (pi-text-block-text (car (openai-stream-state-blocks stream-state))) => "Hi")
+  (check (pi-text-block-text (car (openai-stream-state-blocks stream-state)))
+    =>
+    "Hi"
+  ) ;check
   (check (cdr (assoc 'input (openai-stream-state-usage stream-state))) => 10)
   (check (length events) => 2)
 ) ;let*
 
 ;; 处理 finish_reason
 (let ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
-      (chunk (list (cons "choices"
-                         (vector (list (cons "index" 0)
-                                       (cons "delta" '())
-                                       (cons "finish_reason" "length"))))))
+      (chunk
+        (list
+          (cons "choices"
+            (vector (list (cons "index" 0) (cons "delta" '()) (cons "finish_reason" "length"))
+            ) ;vector
+          ) ;cons
+        ) ;list
+      ) ;chunk
      ) ;
   (process-openai-chunk chunk stream-state #f)
   (check (openai-stream-state-stop-reason stream-state) => "length")
-) ;let*
+) ;let
 
 (check-report)

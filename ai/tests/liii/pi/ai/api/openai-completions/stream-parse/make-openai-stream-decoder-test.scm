@@ -47,9 +47,15 @@
   (decoder "data: [DONE]\n\n")
 
   (check (length (openai-stream-state-blocks stream-state)) => 1)
-  (check (pi-text-block-text (car (openai-stream-state-blocks stream-state))) => "Hello world")
+  (check (pi-text-block-text (car (openai-stream-state-blocks stream-state)))
+    =>
+    "Hello world"
+  ) ;check
   (check (openai-stream-state-stop-reason stream-state) => "stop")
-  (check (cdr (assoc 'totalTokens (openai-stream-state-usage stream-state))) => 15)
+  (check (cdr (assoc 'totalTokens (openai-stream-state-usage stream-state)))
+    =>
+    15
+  ) ;check
 ) ;let*
 
 ;; 测试流式 tool_calls 增量解析与拼接

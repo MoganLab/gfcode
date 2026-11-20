@@ -19,14 +19,11 @@
 
 (check-set-mode! 'report-failed)
 
-(let* ((obj-a (pi-model-metadata "gemini-2.5-flash" "Gemini 2.5 Flash"
-                "google" "https://generativelanguage.googleapis.com" 1048576
-                65536 #t
+(let* ((obj-a (pi-model-metadata "gemini-2.5-flash" "Gemini 2.5 Flash" "google"
+                "https://generativelanguage.googleapis.com" 1048576 65536 #t
               ) ;pi-model-metadata
        ) ;obj-a
-       (obj-b (pi-model-metadata "deepseek-v4" "DeepSeek V4" "deepseek" #f
-                128000 8192 #f
-              ) ;pi-model-metadata
+       (obj-b (pi-model-metadata "deepseek-v4" "DeepSeek V4" "deepseek" #f 128000 8192 #f)
        ) ;obj-b
       ) ;
   (check (pi-model-metadata-base-url obj-a)

@@ -19,9 +19,7 @@
 
 (check-set-mode! 'report-failed)
 
-(let* ((obj-a (pi-event-agent-settled #f))
-       (obj-b (pi-event-agent-settled #t))
-      ) ;
+(let* ((obj-a (pi-event-agent-settled #f)) (obj-b (pi-event-agent-settled #t)))
   (check (pi-event-agent-settled-aborted obj-a) => #f)
   (check (pi-event-agent-settled-aborted obj-b) => #t)
 ) ;let*

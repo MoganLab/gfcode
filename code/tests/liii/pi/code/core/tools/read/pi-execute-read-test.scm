@@ -166,15 +166,15 @@
 ;; 读取源码文件、offset/limit 与错误路径
 
 (define legacy-test-file
-  (if (file-exists? "liii/pi/code/cli.scm")
-    "liii/pi/code/cli.scm"
-    "tools/pi/liii/pi/code/cli.scm"
+  (if (file-exists? "liii/pi/code/core/tools.scm")
+    "liii/pi/code/core/tools.scm"
+    "tools/pi/liii/pi/code/core/tools.scm"
   ) ;if
 ) ;define
 
 (let ((res (pi-execute-read (list (cons "path" legacy-test-file)))))
   (check-true (string? res))
-  (check-true (string-contains? res "(define-library (liii pi code cli)"))
+  (check-true (string-contains? res "(define-library (liii pi code core tools)"))
 ) ;let
 
 (let ((res (pi-execute-read (list (cons "path" legacy-test-file) (cons "limit" 2)))))

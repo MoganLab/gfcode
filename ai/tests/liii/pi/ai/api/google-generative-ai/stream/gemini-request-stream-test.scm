@@ -43,7 +43,7 @@
   (liii time)
   (scheme time)
   (liii pi ai abort)
- 
+
   (liii pi ai log)
   (liii pi ai api google-generative-ai stream)
 ) ;import
@@ -132,7 +132,9 @@
       (check (reverse deltas) => '("Hello " "stream!"))
       (check
         (cdr
-          (cons 'text (pi-text-block-text (car (pi-assistant-message-content resp-stream))))
+          (cons 'text
+            (pi-text-block-text (car (pi-assistant-message-content resp-stream)))
+          ) ;cons
         ) ;cdr
         =>
         "Hello stream!"
@@ -169,7 +171,9 @@
            ) ;resp-idle
           ) ;
       (check (pi-assistant-message-stop-reason resp-idle) => "error")
-      (check-true (string-contains? (pi-assistant-message-error-message resp-idle) "idle timed out")
+      (check-true (string-contains? (pi-assistant-message-error-message resp-idle)
+                    "idle timed out"
+                  ) ;string-contains?
       ) ;check-true
     ) ;let*
 
@@ -195,8 +199,11 @@
            ) ;resp-400
           ) ;
       (check (pi-assistant-message-stop-reason resp-400) => "error")
-      (check-true (string-contains? (pi-assistant-message-error-message resp-400) "HTTP 400:"))
-      (check-true (string-contains? (pi-assistant-message-error-message resp-400) "system_instruction")
+      (check-true (string-contains? (pi-assistant-message-error-message resp-400) "HTTP 400:")
+      ) ;check-true
+      (check-true (string-contains? (pi-assistant-message-error-message resp-400)
+                    "system_instruction"
+                  ) ;string-contains?
       ) ;check-true
     ) ;let*
 
@@ -371,8 +378,8 @@
                ) ;gemini-request-stream
              ) ;resp-s
             ) ;
-    (check (pi-assistant-message-stop-reason resp-s) => "error")
-    (check (pi-assistant-message-error-message resp-s) => "SAFETY")
+        (check (pi-assistant-message-stop-reason resp-s) => "error")
+        (check (pi-assistant-message-error-message resp-s) => "SAFETY")
         (check-true (< (- (current-second) t0-s) 5))
       ) ;let*
       (gemini-request-stream (mk-cfg "malformed-response-always" #t)
@@ -393,7 +400,8 @@
       (path-rmdir log-base)
     ) ;let*
   ) ;let*
-  (process-kill proc) (process-wait proc)
+  (process-kill proc)
+  (process-wait proc)
 ) ;let*
 
 (check-report)

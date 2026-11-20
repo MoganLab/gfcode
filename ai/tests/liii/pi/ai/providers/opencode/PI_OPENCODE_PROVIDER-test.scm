@@ -20,7 +20,13 @@
 
 (check-true (pair? PI_OPENCODE_PROVIDER))
 (check (cdr (assoc 'api PI_OPENCODE_PROVIDER)) => "openai-completions")
-(check (cdr (assoc 'baseUrl PI_OPENCODE_PROVIDER)) => "https://opencode.ai/zen/go/v1")
-(check (cdr (assoc 'envKeys PI_OPENCODE_PROVIDER)) => '("OPENCODE_API_KEY" "OPENCODE_GO_API_KEY"))
+(check (cdr (assoc 'baseUrl PI_OPENCODE_PROVIDER))
+  =>
+  "https://opencode.ai/zen/go/v1"
+) ;check
+(check (cdr (assoc 'envKeys PI_OPENCODE_PROVIDER))
+  =>
+  '("OPENCODE_API_KEY" "OPENCODE_GO_API_KEY")
+) ;check
 
 (check-report)

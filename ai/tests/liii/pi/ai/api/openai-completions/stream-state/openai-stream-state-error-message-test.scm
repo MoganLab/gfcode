@@ -15,9 +15,7 @@
 ;; string | #f
 ;; 错误描述信息；无错误时为 #f。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -25,7 +23,7 @@
 (let ((state (make-openai-stream-state '() #f '() "stop" #f '())))
   (check (openai-stream-state? state) => #t)
   (check (openai-stream-state-error-message state) => #f)
-) ;let*
+) ;let
 
 
 (check-report)

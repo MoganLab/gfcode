@@ -33,18 +33,16 @@
 
 ;; 2. 发生错误时返回 1
 (let ((msg (list (cons 'role "assistant")
-                 (cons 'stopReason "error")
-                 (cons 'errorMessage "Something broke")
+             (cons 'stopReason "error")
+             (cons 'errorMessage "Something broke")
            ) ;list
-     )) ;msg
+      ) ;msg
+     ) ;
   (check (handle-verbose-result msg) => 1)
 ) ;let
 
 ;; 3. 达到长度截断时返回 1
-(let ((msg (list (cons 'role "assistant")
-                 (cons 'stopReason "length")
-           ) ;list
-     )) ;msg
+(let ((msg (list (cons 'role "assistant") (cons 'stopReason "length"))))
   (check (handle-verbose-result msg) => 1)
 ) ;let
 

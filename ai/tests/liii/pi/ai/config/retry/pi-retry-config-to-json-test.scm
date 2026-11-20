@@ -15,11 +15,7 @@
 ;; alist
 ;; 可由 json->string 序列化的 JSON 对象，且可被 json->pi-retry-config 往返还原。
 
-(import (scheme base)
-  (liii check)
-  (liii json)
-  (liii pi ai config retry)
-) ;import
+(import (scheme base) (liii check) (liii json) (liii pi ai config retry))
 
 (check-set-mode! 'report-failed)
 
@@ -34,7 +30,11 @@
   (check (cdr (assoc "maxRetries" j)) => 5)
   (check (cdr (assoc "baseDelayMs" j)) => 1500)
   (check (cdr (assoc "maxAgentDelayMs" j)) => 30000)
-  (check (cdr (assoc "maxRetries" (cdr (assoc "provider" j)))) => 2)
+  (check
+    (cdr (assoc "maxRetries" (cdr (assoc "provider" j))))
+    =>
+    2
+  ) ;check
   (check-true (pi-retry-config? rt))
   (check (pi-retry-config-enabled rt) => #f)
   (check (pi-retry-config-max-retries rt) => 5)

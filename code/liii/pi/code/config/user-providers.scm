@@ -25,9 +25,9 @@
     pi-providers-json pi-providers-write-writes pi-provider-file-with-models
     make-pi-provider-entry pi-provider-entry? pi-provider-entry-schema
     pi-provider-entry-name pi-provider-entry-base-url pi-provider-entry-api
-    pi-provider-entry-http-proxy pi-provider-entry-models pi-provider-entry-headers
-    pi-provider-entry-extras json->pi-provider-entry pi-provider-entry->json
-    pi-load-provider-entry
+    pi-provider-entry-http-proxy pi-provider-entry-models
+    pi-provider-entry-headers pi-provider-entry-extras json->pi-provider-entry
+    pi-provider-entry->json pi-load-provider-entry
   ) ;export
   (begin
 

@@ -25,6 +25,9 @@
   =>
   "gemini-2.5-pro"
 ) ;check
-(check (pi-web-search-config-model (make-pi-web-search-config "deepseek" #f #f #f)) => #f)
+(check (pi-web-search-config-model (make-pi-web-search-config "deepseek" #f #f #f))
+  =>
+  #f
+) ;check
 
 (check-report)

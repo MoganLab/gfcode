@@ -21,16 +21,13 @@
 
 ;; Gemini 3+ 模型返回 #t
 (let ((cfg-g3 '(("provider-api" . "google-generative-ai")
-                ("model-id" . "gemini-3.8-flash")
-               ) ;list
+                ("model-id" . "gemini-3.8-flash"))
       ) ;cfg-g3
       (cfg-g3-sym '((provider-api . "google-generative-ai")
-                    (model-id . "gemini-3.1-pro-preview")
-                   ) ;list
+                    (model-id . "gemini-3.1-pro-preview"))
       ) ;cfg-g3-sym
       (cfg-live '((provider-api . "google-generative-ai")
-                  (model-id . "gemini-live-3-flash")
-                 ) ;list
+                  (model-id . "gemini-live-3-flash"))
       ) ;cfg-live
      ) ;
   (check (pi-transcript-normalize-tool-call-id? cfg-g3) => #t)
@@ -40,12 +37,10 @@
 
 ;; 非 Gemini 3 模型或非 Google 协议返回 #f
 (let ((cfg-g2 '(("provider-api" . "google-generative-ai")
-                ("model-id" . "gemini-2.5-flash")
-               ) ;list
+                ("model-id" . "gemini-2.5-flash"))
       ) ;cfg-g2
       (cfg-claude '(("provider-api" . "anthropic-messages")
-                    ("model-id" . "claude-3-7-sonnet-20250219")
-                   ) ;list
+                    ("model-id" . "claude-3-7-sonnet-20250219"))
       ) ;cfg-claude
       (cfg-empty '())
      ) ;

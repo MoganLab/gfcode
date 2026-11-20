@@ -15,11 +15,7 @@
 ;; any?
 ;; <pi-tool-result> record 或 #f。
 
-(import (liii check)
-  (liii json)
-  (liii pi ai tools result)
-  (liii pi ai message)
-) ;import
+(import (liii check) (liii json) (liii pi ai tools result) (liii pi ai message))
 
 (check-set-mode! 'report-failed)
 
@@ -32,14 +28,21 @@
 
 ;; 2. JSON round-trip 与 isError 布尔归一
 (let* ((tr1 (pi-tool-result "done" #f))
-       (r1 (json->pi-tool-result (string->json (json->string (pi-tool-result->json tr1)))))
+       (r1
+         (json->pi-tool-result (string->json (json->string (pi-tool-result->json tr1))))
+       ) ;r1
        (tr2 (pi-tool-result (list (pi-text-block "err")) #t))
-       (r2 (json->pi-tool-result (string->json (json->string (pi-tool-result->json tr2)))))
+       (r2
+         (json->pi-tool-result (string->json (json->string (pi-tool-result->json tr2))))
+       ) ;r2
       ) ;
   (check-true (pi-tool-result? r1))
   (check (pi-tool-result-is-error r1) => #f)
   (check-true (pi-text-block? (vector-ref (pi-tool-result-content r1) 0)))
-  (check (pi-text-block-text (vector-ref (pi-tool-result-content r1) 0)) => "done")
+  (check (pi-text-block-text (vector-ref (pi-tool-result-content r1) 0))
+    =>
+    "done"
+  ) ;check
   (check-true (pi-tool-result? r2))
   (check (pi-tool-result-is-error r2) => #t)
   (check (pi-text-block-text (vector-ref (pi-tool-result-content r2) 0)) => "err")

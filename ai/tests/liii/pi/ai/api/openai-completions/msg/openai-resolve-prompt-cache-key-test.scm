@@ -33,8 +33,14 @@
 ) ;check
 
 ;; 2. 第三方端点：不注入（返回 #f）
-(check (openai-resolve-prompt-cache-key "https://api.deepseek.com/v1" "sess-abc") => #f)
-(check (openai-resolve-prompt-cache-key "https://api.moonshot.cn/v1" "sess-abc") => #f)
+(check (openai-resolve-prompt-cache-key "https://api.deepseek.com/v1" "sess-abc")
+  =>
+  #f
+) ;check
+(check (openai-resolve-prompt-cache-key "https://api.moonshot.cn/v1" "sess-abc")
+  =>
+  #f
+) ;check
 (check (openai-resolve-prompt-cache-key "http://127.0.0.1:1" "sess-abc") => #f)
 
 ;; 3. OpenAI 官方端点但无会话标识：不注入
@@ -45,8 +51,10 @@
 (check (openai-resolve-prompt-cache-key #f "sess-abc") => #f)
 
 ;; 5. 超长会话标识：截断到 64 字符
-(let ((long-id (string-append "/home/user/.gf/agent/sessions/" (make-string 100 #\s))))
-  (check (string-length (openai-resolve-prompt-cache-key "https://api.openai.com/v1" long-id))
+(let ((long-id (string-append "/home/user/.gf/agent/sessions/" (make-string 100 #\s)))
+     ) ;
+  (check (string-length (openai-resolve-prompt-cache-key "https://api.openai.com/v1" long-id)
+         ) ;string-length
     =>
     64
   ) ;check

@@ -19,7 +19,8 @@
 
 (check-set-mode! 'report-failed)
 
-(check-true (pi-web-search-config? (make-pi-web-search-config "google" #f #f #f)))
+(check-true (pi-web-search-config? (make-pi-web-search-config "google" #f #f #f))
+) ;check-true
 (check-false (pi-web-search-config? '()))
 (check-false (pi-web-search-config? #f))
 

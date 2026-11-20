@@ -21,12 +21,12 @@
 
 (define (field key entry)
   (case key
-    ((file) (pi-simplify-suggestion-file entry))
-    ((line) (pi-simplify-suggestion-line entry))
-    ((category) (pi-simplify-suggestion-category entry))
-    ((message) (pi-simplify-suggestion-message entry))
-    ((suggestion) (pi-simplify-suggestion-suggestion entry))
-    (else #f)
+   ((file) (pi-simplify-suggestion-file entry))
+   ((line) (pi-simplify-suggestion-line entry))
+   ((category) (pi-simplify-suggestion-category entry))
+   ((message) (pi-simplify-suggestion-message entry))
+   ((suggestion) (pi-simplify-suggestion-suggestion entry))
+   (else #f)
   ) ;case
 ) ;define
 

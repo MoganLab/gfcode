@@ -53,7 +53,9 @@
         obj
         (begin
           (unless (or (json-object? obj) (null? obj))
-            (type-error "json->pi-retry-config: expected json object or pi-retry-config" obj)
+            (type-error "json->pi-retry-config: expected json object or pi-retry-config"
+              obj
+            ) ;type-error
           ) ;unless
           (if (null? obj)
             (pi-retry-config)

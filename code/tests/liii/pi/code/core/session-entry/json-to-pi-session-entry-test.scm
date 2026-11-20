@@ -27,15 +27,38 @@
 
 ;; 1. header / message / compaction / context_edit / state round-trip
 (let* ((h (pi-session-header-entry "h1" "ts0" "/tmp/work"))
-       (rh (json->pi-session-entry (string->json (json->string (pi-session-entry->json h)))))
+       (rh
+         (json->pi-session-entry (string->json (json->string (pi-session-entry->json h)))
+         ) ;json->pi-session-entry
+       ) ;rh
        (m (pi-session-message-entry "m1" "h1" "ts1" (pi-user-message "hi" 100)))
-       (rm (json->pi-session-entry (string->json (json->string (pi-session-entry->json m)))))
-       (c (pi-session-compaction-entry "c1" "m1" "ts2" "sum" "m1" 42 '((mode . "auto"))))
-       (rc (json->pi-session-entry (string->json (json->string (pi-session-entry->json c)))))
+       (rm
+         (json->pi-session-entry (string->json (json->string (pi-session-entry->json m)))
+         ) ;json->pi-session-entry
+       ) ;rm
+       (c (pi-session-compaction-entry "c1" "m1" "ts2" "sum" "m1" 42 '((mode
+                                                                         . "auto")))
+       ) ;c
+       (rc
+         (json->pi-session-entry (string->json (json->string (pi-session-entry->json c)))
+         ) ;json->pi-session-entry
+       ) ;rc
        (e (pi-session-context-edit-entry "e1" "c1" "ts3" "m1" #f))
-       (re (json->pi-session-entry (string->json (json->string (pi-session-entry->json e)))))
-       (s (pi-session-state-entry "thinking_level_change" "s1" "e1" "ts4" '(("thinkingLevel" . "high"))))
-       (rs (json->pi-session-entry (string->json (json->string (pi-session-entry->json s)))))
+       (re
+         (json->pi-session-entry (string->json (json->string (pi-session-entry->json e)))
+         ) ;json->pi-session-entry
+       ) ;re
+       (s (pi-session-state-entry "thinking_level_change"
+            "s1"
+            "e1"
+            "ts4"
+            '(("thinkingLevel" . "high"))
+          ) ;pi-session-state-entry
+       ) ;s
+       (rs
+         (json->pi-session-entry (string->json (json->string (pi-session-entry->json s)))
+         ) ;json->pi-session-entry
+       ) ;rs
       ) ;
   (check-true (pi-session-header-entry? rh))
   (check (pi-session-header-entry-cwd rh) => "/tmp/work")

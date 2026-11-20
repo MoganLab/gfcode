@@ -26,7 +26,10 @@
 (check-true (procedure? pi-session-entry->json))
 
 ;; 1. header entry
-(let ((j (pi-session-entry->json (pi-session-header-entry "h1" "2026-01-01T00:00:00Z" "C:\\work"))))
+(let ((j (pi-session-entry->json (pi-session-header-entry "h1" "2026-01-01T00:00:00Z" "C:\\work")
+         ) ;pi-session-entry->json
+      ) ;j
+     ) ;
   (check (json-ref j "type") => "session")
   (check (json-ref j "version") => 3)
   (check (json-ref j "id") => "h1")
@@ -35,8 +38,11 @@
 ) ;let
 
 ;; 2. message entry 嵌套 pi-user-message
-(let ((j (pi-session-entry->json
-           (pi-session-message-entry "m1" #f "2026-01-01T00:00:01Z" (pi-user-message "hi" 100))
+(let ((j (pi-session-entry->json (pi-session-message-entry "m1"
+                                   #f
+                                   "2026-01-01T00:00:01Z"
+                                   (pi-user-message "hi" 100)
+                                 ) ;pi-session-message-entry
          ) ;pi-session-entry->json
       ) ;j
      ) ;
@@ -48,9 +54,21 @@
 ) ;let
 
 ;; 3. compaction / context_edit / state entry
-(let ((jc (pi-session-entry->json (pi-session-compaction-entry "c1" "m1" "ts" "sum" "m1" 500 '())))
-      (je (pi-session-entry->json (pi-session-context-edit-entry "e1" "c1" "ts" "m1" #f)))
-      (js (pi-session-entry->json (pi-session-state-entry "model_change" "s1" "e1" "ts" '(("provider" . "google") ("modelId" . "gemini")))))
+(let ((jc (pi-session-entry->json (pi-session-compaction-entry "c1" "m1" "ts" "sum" "m1" 500 '())
+          ) ;pi-session-entry->json
+      ) ;jc
+      (je (pi-session-entry->json (pi-session-context-edit-entry "e1" "c1" "ts" "m1" #f))
+      ) ;je
+      (js
+        (pi-session-entry->json (pi-session-state-entry "model_change"
+                                  "s1"
+                                  "e1"
+                                  "ts"
+                                  '(("provider" . "google")
+                                    ("modelId" . "gemini"))
+                                ) ;pi-session-state-entry
+        ) ;pi-session-entry->json
+      ) ;js
      ) ;
   (check (json-ref jc "type") => "compaction")
   (check (json-ref jc "firstKeptEntryId") => "m1")

@@ -26,12 +26,18 @@
 (check-set-mode! 'report-failed)
 
 ;; 正文里含工具调用：写入 toolCall 块并派发事件
-(let* ((stream-state
-         (make-openai-stream-state '()
-           "<tool_call><function=bash><parameter=command>ls</parameter></function></tool_call>"
-           '() "stop" #f '()))
+(let* ((stream-state (make-openai-stream-state '()
+                       "<tool_call><function=bash><parameter=command>ls</parameter></function></tool_call>"
+                       '()
+                       "stop"
+                       #f
+                       '()
+                     ) ;make-openai-stream-state
+       ) ;stream-state
        (events '())
-       (emit (lambda (ev) (set! events (append events (list ev)))))
+       (emit
+         (lambda (ev) (set! events (append events (list ev))))
+       ) ;emit
       ) ;
   (maybe-extract-openai-text-tool-call! stream-state emit)
   (check (length (openai-stream-state-blocks stream-state)) => 1)
@@ -47,18 +53,19 @@
 ) ;let*
 
 ;; 只有思考内容：转成普通文本块
-(let ((stream-state
-        (make-openai-stream-state '() #f '() "stop" #f '() "  thinking hard  ")))
+(let ((stream-state (make-openai-stream-state '() #f '() "stop" #f '() "  thinking hard  ")
+      ) ;stream-state
+     ) ;
   (maybe-extract-openai-text-tool-call! stream-state #f)
   (check (length (openai-stream-state-blocks stream-state)) => 1)
   (check (pi-text-block? (car (openai-stream-state-blocks stream-state))) => #t)
   (check (openai-stream-state-last-text stream-state) => "thinking hard")
-) ;let*
+) ;let
 
 ;; 既没有工具调用也没有思考内容：无操作
 (let ((stream-state (make-openai-stream-state '() #f '() "stop" #f '())))
   (maybe-extract-openai-text-tool-call! stream-state #f)
   (check (length (openai-stream-state-blocks stream-state)) => 0)
-) ;let*
+) ;let
 
 (check-report)

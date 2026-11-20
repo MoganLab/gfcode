@@ -19,10 +19,7 @@
 ;; alist
 ;; Gemini API 请求体 alist，包含 contents 字段。
 
-(import (liii check)
-  (liii pi ai api google-generative-ai core)
- 
-) ;import
+(import (liii check) (liii pi ai api google-generative-ai core))
 
 (check-set-mode! 'report-failed)
 

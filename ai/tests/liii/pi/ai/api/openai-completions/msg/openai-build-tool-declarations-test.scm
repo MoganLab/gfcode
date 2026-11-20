@@ -15,21 +15,32 @@
 ;; list
 ;; OpenAI 格式的 tools 声明列表，每项包含 type="function" 与 function 描述。
 
-(import (liii check) (liii pi ai api openai-completions) (liii pi ai tools definition))
+(import (liii check)
+  (liii pi ai api openai-completions)
+  (liii pi ai tools definition)
+) ;import
 
 (check-set-mode! 'report-failed)
 
-(let* ((defs (list (pi-tool-definition "bash" "Run bash command"
-                     '(("type" . "object")
-                       ("properties" . (("command" . (("type" . "string")))))
-                       ("required" . #("command"))))))
-       (decls (openai-build-tool-declarations defs)))
+(let* ((defs
+         (list
+           (pi-tool-definition "bash"
+             "Run bash command"
+             '(("type" . "object")
+               ("properties" ("command" ("type" . "string")))
+               ("required" . #("command")))
+           ) ;pi-tool-definition
+         ) ;list
+       ) ;defs
+       (decls (openai-build-tool-declarations defs))
+      ) ;
   (check (length decls) => 1)
-  (let* ((item (car decls))
-         (fn (cdr (assoc "function" item))))
+  (let* ((item (car decls)) (fn (cdr (assoc "function" item))))
     (check (cdr (assoc "type" item)) => "function")
     (check (cdr (assoc "name" fn)) => "bash")
     (check (cdr (assoc "description" fn)) => "Run bash command")
-    (check (pair? (cdr (assoc "parameters" fn))) => #t)))
+    (check (pair? (cdr (assoc "parameters" fn))) => #t)
+  ) ;let*
+) ;let*
 
 (check-report)

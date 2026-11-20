@@ -15,17 +15,35 @@
 ;; alist
 ;; 内部 usage alist，包含 input、output、cacheRead、cacheWrite 与 totalTokens。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages stream-state)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages stream-state))
 
 (check-set-mode! 'report-failed)
 
 ;; record 状态
-(let ((state (make-anthropic-stream-state '() #f '((input . 1) (output . 2) (cacheRead . 0) (cacheWrite . 0) (totalTokens . 3)) '() "end_turn" #f #f)))
+(let ((state (make-anthropic-stream-state '()
+               #f
+               '((input . 1)
+                 (output . 2)
+                 (cacheRead . 0)
+                 (cacheWrite . 0)
+                 (totalTokens . 3))
+               '()
+               "end_turn"
+               #f
+               #f
+             ) ;make-anthropic-stream-state
+      ) ;state
+     ) ;
   (check (anthropic-stream-state? state) => #t)
-  (check (anthropic-stream-state-usage state) => '((input . 1) (output . 2) (cacheRead . 0) (cacheWrite . 0) (totalTokens . 3)))
-) ;let*
+  (check (anthropic-stream-state-usage state)
+    =>
+    '((input . 1)
+      (output . 2)
+      (cacheRead . 0)
+      (cacheWrite . 0)
+      (totalTokens . 3))
+  ) ;check
+) ;let
 
 
 (check-report)

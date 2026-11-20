@@ -17,7 +17,8 @@
 
 (import (liii check) (liii pi code core session-entry context-edit))
 (check-set-mode! 'report-failed)
-(let ((e (pi-session-context-edit-entry "e1" "c1" "ts" "m1" '(("content" . "new")))))
+(let ((e (pi-session-context-edit-entry "e1" "c1" "ts" "m1" '(("content"
+                                                               . "new")))))
   (check-true (pi-session-context-edit-entry? e))
   (check (pi-session-context-edit-entry-id e) => "e1")
   (check (pi-session-context-edit-entry-parent-id e) => "c1")

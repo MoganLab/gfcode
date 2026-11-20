@@ -20,8 +20,7 @@
 (check-set-mode! 'report-failed)
 
 (let* ((obj-a (pi-event-tool-execution-end "tc-001" "read" "文件内容" #f 42))
-       (obj-b (pi-event-tool-execution-end "tc-002" "bash" "command not found" #t #f)
-       ) ;obj-b
+       (obj-b (pi-event-tool-execution-end "tc-002" "bash" "command not found" #t #f))
       ) ;
   (check (pi-event-tool-execution-end-result obj-a) => "文件内容")
   (check (pi-event-tool-execution-end-result obj-b) => "command not found")

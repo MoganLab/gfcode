@@ -18,7 +18,8 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-provider-entry-base-url (make-pi-provider-entry #f #f "https://api.example.com"))
+(check (pi-provider-entry-base-url (make-pi-provider-entry #f #f "https://api.example.com")
+       ) ;pi-provider-entry-base-url
   =>
   "https://api.example.com"
 ) ;check

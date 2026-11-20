@@ -30,10 +30,13 @@
 ;; 首个 tool delta：记录并派发 toolcall_start
 (let* ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
        (events '())
-       (emit (lambda (ev) (set! events (append events (list ev)))))
+       (emit
+         (lambda (ev) (set! events (append events (list ev))))
+       ) ;emit
        (tc '(("index" . 0)
              ("id" . "call_1")
-             ("function" . (("name" . "bash") ("arguments" . "{\"command\":")))))
+             ("function" ("name" . "bash") ("arguments" . "{\"command\":")))
+       ) ;tc
       ) ;
   (process-openai-tool-call-delta tc stream-state emit)
   (check (length (openai-stream-state-tools stream-state)) => 1)
@@ -46,12 +49,14 @@
 ;; 后续参数增量：拼接并派发 toolcall_delta
 (let* ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
        (events '())
-       (emit (lambda (ev) (set! events (append events (list ev)))))
+       (emit
+         (lambda (ev) (set! events (append events (list ev))))
+       ) ;emit
        (tc1 '(("index" . 0)
               ("id" . "call_1")
-              ("function" . (("name" . "bash") ("arguments" . "{\"command\":")))))
-       (tc2 '(("index" . 0)
-              ("function" . (("arguments" . "\"ls\"}")))))
+              ("function" ("name" . "bash") ("arguments" . "{\"command\":")))
+       ) ;tc1
+       (tc2 '(("index" . 0) ("function" ("arguments" . "\"ls\"}"))))
       ) ;
   (process-openai-tool-call-delta tc1 stream-state emit)
   (set! events '())
@@ -65,16 +70,21 @@
 ;; 后续分块含 JSON null（符号 'null）时，不得覆盖已有 id / name，也不得因 arguments 为 null 崩溃
 (let* ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
        (events '())
-       (emit (lambda (ev) (set! events (append events (list ev)))))
+       (emit
+         (lambda (ev) (set! events (append events (list ev))))
+       ) ;emit
        (tc1 '(("index" . 0)
               ("id" . "call_1")
-              ("function" . (("name" . "bash") ("arguments" . "{\"command\":")))))
+              ("function" ("name" . "bash") ("arguments" . "{\"command\":")))
+       ) ;tc1
        (tc2 '(("index" . 0)
               ("id" . null)
-              ("function" . (("name" . null) ("arguments" . "\"ls\"}")))))
+              ("function" ("name" . null) ("arguments" . "\"ls\"}")))
+       ) ;tc2
        (tc3 '(("index" . 0)
               ("id" . null)
-              ("function" . (("name" . null) ("arguments" . null)))))
+              ("function" ("name" . null) ("arguments" . null)))
+       ) ;tc3
        (tc4 '(("index" . 0) ("function" . null)))
       ) ;
   (process-openai-tool-call-delta tc1 stream-state emit)
@@ -86,7 +96,11 @@
     (check (length blocks) => 1)
     (check (pi-tool-call-block-id (car blocks)) => "call_1")
     (check (pi-tool-call-block-name (car blocks)) => "bash")
-    (check (cdr (assoc "command" (pi-tool-call-block-arguments (car blocks)))) => "ls")
+    (check
+      (cdr (assoc "command" (pi-tool-call-block-arguments (car blocks))))
+      =>
+      "ls"
+    ) ;check
   ) ;let
 ) ;let*
 
@@ -94,7 +108,8 @@
 (let* ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
        (tc '(("index" . 0)
              ("id" . null)
-             ("function" . (("name" . null) ("arguments" . null)))))
+             ("function" ("name" . null) ("arguments" . null)))
+       ) ;tc
       ) ;
   (process-openai-tool-call-delta tc stream-state #f)
   (check (length (openai-stream-state-tools stream-state)) => 1)

@@ -19,8 +19,7 @@
 
 (check-set-mode! 'report-failed)
 
-(let ((obj (pi-trunc-result "line1\nline2" #t "max-lines" 100 2048 2 16 #t #f))
-     ) ;
+(let ((obj (pi-trunc-result "line1\nline2" #t "max-lines" 100 2048 2 16 #t #f)))
   (check-true (pi-trunc-result? obj))
 ) ;let
 (check-false (pi-trunc-result? '()))

@@ -16,7 +16,10 @@
 ;; input、output、cache-read 与 cache-write 之和。
 ;;
 
-(import (scheme base) (liii check) (liii pi code core session-stats token-stats))
+(import (scheme base)
+  (liii check)
+  (liii pi code core session-stats token-stats)
+) ;import
 
 (check-set-mode! 'report-failed)
 

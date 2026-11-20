@@ -36,12 +36,22 @@
 ;; 首个增量新建文本块并派发 text_start + text_delta
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (append-anthropic-stream-text stream-state "Hello" on-ev)
   (check (length (anthropic-stream-state-blocks stream-state)) => 1)
   (check (pi-text-block-text (car (anthropic-stream-state-blocks stream-state)))
-    => "Hello")
+    =>
+    "Hello"
+  ) ;check
   (check (anthropic-stream-state-last-text stream-state) => "Hello")
   (check (length evs) => 2)
   (check (cdr (assoc 'type (cadr evs))) => "text_start")
@@ -53,35 +63,63 @@
 ;; 后续增量合并到最后一个文本块，不再派发 text_start
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (append-anthropic-stream-text stream-state "Hello" on-ev)
   (set! evs '())
   (append-anthropic-stream-text stream-state " Anthropic" on-ev)
   (check (length (anthropic-stream-state-blocks stream-state)) => 1)
   (check (pi-text-block-text (car (anthropic-stream-state-blocks stream-state)))
-    => "Hello Anthropic")
+    =>
+    "Hello Anthropic"
+  ) ;check
   (check (anthropic-stream-state-last-text stream-state) => "Hello Anthropic")
   (check (length evs) => 1)
   (check (cdr (assoc 'type (car evs))) => "text_delta")
 ) ;let*
 
 ;; 已有其它块时新增文本块，索引指向新块
-(let* ((stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+(let* ((stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
-  (anthropic-stream-state-blocks-set! stream-state
-    (list (pi-text-block "prev")))
+  (anthropic-stream-state-blocks-set! stream-state (list (pi-text-block "prev")))
   (anthropic-stream-state-last-text-set! stream-state #f)
   (append-anthropic-stream-text stream-state "next" #f)
   (check (length (anthropic-stream-state-blocks stream-state)) => 2)
   (check (pi-text-block-text (cadr (anthropic-stream-state-blocks stream-state)))
-    => "next")
+    =>
+    "next"
+  ) ;check
 ) ;let*
 
 ;; 回调为 #f 时不派发事件，但状态仍然更新
-(let ((stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f)))
+(let ((stream-state (make-anthropic-stream-state '()
+                      #f
+                      (anthropic-map-usage '())
+                      '()
+                      "end_turn"
+                      #f
+                      #f
+                    ) ;make-anthropic-stream-state
+      ) ;stream-state
+     ) ;
   (append-anthropic-stream-text stream-state "quiet" #f)
   (check (anthropic-stream-state-last-text stream-state) => "quiet")
-) ;let*
+) ;let
 
 (check-report)

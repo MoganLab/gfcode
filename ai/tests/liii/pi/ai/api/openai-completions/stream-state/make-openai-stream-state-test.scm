@@ -25,9 +25,7 @@
 ;; openai-stream-state
 ;; 流状态记录。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -40,7 +38,7 @@
   (check (openai-stream-state-stop-reason state) => "stop")
   (check (openai-stream-state-error-message state) => #f)
   (check (openai-stream-state-tools state) => '())
-) ;let*
+) ;let
 
 ;; 入参非默认值时同样被保留
 (let ((state (make-openai-stream-state '(blk) "text" '(usage) "length" "err" '(tc))))
@@ -50,6 +48,6 @@
   (check (openai-stream-state-stop-reason state) => "length")
   (check (openai-stream-state-error-message state) => "err")
   (check (openai-stream-state-tools state) => '(tc))
-) ;let*
+) ;let
 
 (check-report)

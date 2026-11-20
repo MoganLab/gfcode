@@ -13,7 +13,9 @@
 ;; ------
 ;; 见各断言场景：按被测函数实际返回值断言。
 
-(set! *load-path* (append (list "code" "agent" "." "../code" "../agent") *load-path*))
+(set! *load-path*
+  (append (list "code" "agent" "." "../code" "../agent") *load-path*)
+) ;set!
 
 (import (liii check)
   (liii string)
@@ -184,13 +186,7 @@
                   "Tool executed successfully!"
                 ) ;string-contains?
     ) ;check-true
-    (let ((tool-results
-            (filter
-              (lambda (m) (pi-tool-result-message? m))
-              res-msgs
-            ) ;filter
-          ) ;tool-results
-         ) ;
+    (let ((tool-results (filter (lambda (m) (pi-tool-result-message? m)) res-msgs)))
       (check (= (length tool-results) 1) => #t)
     ) ;let
   ) ;let*
@@ -237,13 +233,7 @@
                   "Tool executed successfully!"
                 ) ;string-contains?
     ) ;check-true
-    (let ((tool-results
-            (filter
-              (lambda (m) (pi-tool-result-message? m))
-              res-msgs
-            ) ;filter
-          ) ;tool-results
-         ) ;
+    (let ((tool-results (filter (lambda (m) (pi-tool-result-message? m)) res-msgs)))
       (check (= (length tool-results) 1) => #t)
     ) ;let
   ) ;let*
@@ -291,13 +281,7 @@
                   "Tool executed successfully!"
                 ) ;string-contains?
     ) ;check-true
-    (let ((tool-results
-            (filter
-              (lambda (m) (pi-tool-result-message? m))
-              res-msgs
-            ) ;filter
-          ) ;tool-results
-         ) ;
+    (let ((tool-results (filter (lambda (m) (pi-tool-result-message? m)) res-msgs)))
       (check (= (length tool-results) 1) => #t)
     ) ;let
   ) ;let*

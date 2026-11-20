@@ -19,10 +19,14 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-web-search-config-raw-model (make-pi-web-search-config "google" "gemini-2.5-flash" #f #f))
+(check (pi-web-search-config-raw-model (make-pi-web-search-config "google" "gemini-2.5-flash" #f #f)
+       ) ;pi-web-search-config-raw-model
   =>
   "gemini-2.5-flash"
 ) ;check
-(check (pi-web-search-config-raw-model (make-pi-web-search-config "google" #f #f #f)) => #f)
+(check (pi-web-search-config-raw-model (make-pi-web-search-config "google" #f #f #f))
+  =>
+  #f
+) ;check
 
 (check-report)

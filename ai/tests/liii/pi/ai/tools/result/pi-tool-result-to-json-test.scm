@@ -15,11 +15,7 @@
 ;; any?
 ;; 可直接用于 json->string 或 json-ref 的 Scheme-JSON 对象。
 
-(import (liii check)
-  (liii json)
-  (liii pi ai tools result)
-  (liii pi ai message)
-) ;import
+(import (liii check) (liii json) (liii pi ai tools result) (liii pi ai message))
 
 (check-set-mode! 'report-failed)
 
@@ -38,9 +34,8 @@
 ) ;let
 
 ;; 2. 包含 pi-block record 的 tool-result
-(let ((j (pi-tool-result->json
-           (pi-tool-result (list (pi-text-block "err detail")) #t)
-         ) ;pi-tool-result->json
+(let ((j
+        (pi-tool-result->json (pi-tool-result (list (pi-text-block "err detail")) #t))
       ) ;j
      ) ;
   (check (json-ref j "isError") => #t)

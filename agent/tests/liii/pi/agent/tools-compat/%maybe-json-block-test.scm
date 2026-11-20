@@ -19,8 +19,12 @@
 
 (check-set-mode! 'report-failed)
 
-(check-true (pi-text-block? (%maybe-json-block '(("type" . "text") ("text" . "hi")))))
-(check-true (pi-text-block? (%maybe-json-block '((type . "text") (text . "hi")))))
+(check-true
+  (pi-text-block? (%maybe-json-block '(("type" . "text") ("text" . "hi"))))
+) ;check-true
+(check-true
+  (pi-text-block? (%maybe-json-block '((type . "text") (text . "hi"))))
+) ;check-true
 (check (%maybe-json-block "raw") => "raw")
 
 (check-report)

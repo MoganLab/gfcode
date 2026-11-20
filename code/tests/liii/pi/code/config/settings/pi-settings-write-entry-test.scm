@@ -44,7 +44,9 @@
 ) ;path-write-text
 
 (let* ((entry (pi-settings-write-entry AGENT-DIR
-                (list (cons "defaultProvider" "anthropic") (cons "defaultModel" "claude-haiku-4-5"))
+                (list (cons "defaultProvider" "anthropic")
+                  (cons "defaultModel" "claude-haiku-4-5")
+                ) ;list
               ) ;pi-settings-write-entry
        ) ;entry
        (parsed (string->json (cdr entry)))
@@ -52,7 +54,11 @@
   (check (car entry) => "settings.json")
   (check (cdr (assoc "defaultProvider" parsed)) => "anthropic")
   (check (cdr (assoc "defaultModel" parsed)) => "claude-haiku-4-5")
-  (check (cdr (assoc "enabled" (cdr (assoc "compaction" parsed)))) => 'false)
+  (check
+    (cdr (assoc "enabled" (cdr (assoc "compaction" parsed))))
+    =>
+    'false
+  ) ;check
 ) ;let*
 
 ;; 支持直接传入 <pi-settings> record
@@ -63,7 +69,11 @@
   (check (cdr (assoc "defaultProvider" parsed)) => "deepseek")
   (check (cdr (assoc "defaultModel" parsed)) => "deepseek-chat")
   (check (cdr (assoc "defaultThinkingLevel" parsed)) => "high")
-  (check (cdr (assoc "enabled" (cdr (assoc "compaction" parsed)))) => 'false)
+  (check
+    (cdr (assoc "enabled" (cdr (assoc "compaction" parsed))))
+    =>
+    'false
+  ) ;check
 ) ;let*
 
 (rmtree AGENT-DIR #t)

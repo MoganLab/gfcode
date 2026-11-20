@@ -18,7 +18,8 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-provider-entry-models (make-pi-provider-entry #f #f #f #f #f '("m1" "m2")))
+(check (pi-provider-entry-models (make-pi-provider-entry #f #f #f #f #f '("m1"
+                                                                          "m2")))
   =>
   '("m1" "m2")
 ) ;check

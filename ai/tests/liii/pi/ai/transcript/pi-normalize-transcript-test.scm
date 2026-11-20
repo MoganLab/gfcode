@@ -23,25 +23,40 @@
 ;; 3. Gemini 3+ 模型下，assistant 的 toolCall id 与 toolResult 的 toolCallId
 ;;    同步归一化（非法字符转 _，超 64 字符截断）。
 
-(import (liii check)
-  (liii list)
-  (liii pi ai transcript)
-) ;import
+(import (liii check) (liii list) (liii pi ai transcript))
 
 (check-set-mode! 'report-failed)
 
-(define (msg-role m) (cdr (assoc "role" m)))
-(define (msg-content m) (cdr (assoc "content" m)))
-(define (msg-stop m)
-  (let ((p (assoc "stopReason" m))) (and p (cdr p)))
+(define (msg-role m)
+  (cdr (assoc "role" m))
 ) ;define
-(define (blk-type b) (cdr (assoc "type" b)))
-(define (blk-id b) (cdr (assoc "id" b)))
-(define (blk-name b) (cdr (assoc "name" b)))
+
+(define (msg-content m)
+  (cdr (assoc "content" m))
+) ;define
+
+(define (msg-stop m)
+  (let ((p (assoc "stopReason" m)))
+    (and p (cdr p))
+  ) ;let
+) ;define
+
+(define (blk-type b)
+  (cdr (assoc "type" b))
+) ;define
+
+(define (blk-id b)
+  (cdr (assoc "id" b))
+) ;define
+
+(define (blk-name b)
+  (cdr (assoc "name" b))
+) ;define
 
 (define (mk-user text)
   (list (cons "role" "user") (cons "content" text))
 ) ;define
+
 (define (mk-assistant blocks . rest)
   (let ((stop (if (pair? rest) (car rest) "stop")))
     (list (cons "role" "assistant")
@@ -50,12 +65,19 @@
     ) ;list
   ) ;let
 ) ;define
+
 (define (mk-text-blk text)
   (list (cons "type" "text") (cons "text" text))
 ) ;define
+
 (define (mk-tool-call id name)
-  (list (cons "type" "toolCall") (cons "id" id) (cons "name" name) (cons "arguments" '()))
+  (list (cons "type" "toolCall")
+    (cons "id" id)
+    (cons "name" name)
+    (cons "arguments" '())
+  ) ;list
 ) ;define
+
 (define (mk-tool-result id name text . rest)
   (let ((is-err (if (pair? rest) (car rest) #f)))
     (list (cons "role" "toolResult")
@@ -67,20 +89,29 @@
   ) ;let
 ) ;define
 
-(define gemini-cfg '((provider-api . "google-generative-ai") (model-id . "gemini-3-flash-preview")))
-(define openai-cfg '((provider-api . "openai-completions") (model-id . "gpt-5.2")))
+(define gemini-cfg
+  '((provider-api . "google-generative-ai")
+    (model-id . "gemini-3-flash-preview"))
+) ;define
+
+(define openai-cfg
+  '((provider-api . "openai-completions") (model-id . "gpt-5.2"))
+) ;define
 
 (define (tool-result-text m)
-  (let ((p (assoc "text" (car (msg-content m))))) (and p (cdr p)))
+  (let ((p (assoc "text" (car (msg-content m)))))
+    (and p (cdr p))
+  ) ;let
 ) ;define
 
 ;; ============ A：孤儿 toolCall 补合成 toolResult ============
 
 ;; A1 assistant 含 toolCall，后随 user（无结果）→ 之间插入合成 toolResult
-(let* ((msgs (list (mk-user "hi")
-               (mk-assistant (list (mk-tool-call "c1" "read")) "toolUse")
-               (mk-user "next")
-             ) ;list
+(let* ((msgs
+         (list (mk-user "hi")
+           (mk-assistant (list (mk-tool-call "c1" "read")) "toolUse")
+           (mk-user "next")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
@@ -94,12 +125,13 @@
 ) ;let*
 
 ;; A2 两个 toolCall 仅一个有结果 → 只补缺失的那个
-(let* ((msgs (list (mk-assistant (list (mk-tool-call "c1" "read") (mk-tool-call "c2" "bash"))
-                   "toolUse"
+(let* ((msgs
+         (list (mk-assistant (list (mk-tool-call "c1" "read") (mk-tool-call "c2" "bash"))
+                 "toolUse"
                ) ;mk-assistant
-               (mk-tool-result "c1" "read" "ok")
-               (mk-user "next")
-             ) ;list
+           (mk-tool-result "c1" "read" "ok")
+           (mk-user "next")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
@@ -113,9 +145,10 @@
 ) ;let*
 
 ;; A3 所有 toolCall 均有结果 → 原样不变
-(let* ((msgs (list (mk-assistant (list (mk-tool-call "c1" "read")) "toolUse")
-               (mk-tool-result "c1" "read" "ok")
-             ) ;list
+(let* ((msgs
+         (list (mk-assistant (list (mk-tool-call "c1" "read")) "toolUse")
+           (mk-tool-result "c1" "read" "ok")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
@@ -124,7 +157,9 @@
 ) ;let*
 
 ;; A4 列表以未回应 toolCall 结尾 → 末尾补齐
-(let* ((msgs (list (mk-user "hi") (mk-assistant (list (mk-tool-call "c9" "edit")) "toolUse")))
+(let* ((msgs
+         (list (mk-user "hi") (mk-assistant (list (mk-tool-call "c9" "edit")) "toolUse"))
+       ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
   (check (length out) => 3)
@@ -133,9 +168,10 @@
 ) ;let*
 
 ;; A5 孤儿 toolCall 后接另一条 assistant（非 user）→ 同样补全
-(let* ((msgs (list (mk-assistant (list (mk-tool-call "c1" "read")) "toolUse")
-               (mk-assistant (list (mk-text-blk "partial")) "stop")
-             ) ;list
+(let* ((msgs
+         (list (mk-assistant (list (mk-tool-call "c1" "read")) "toolUse")
+           (mk-assistant (list (mk-text-blk "partial")) "stop")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
@@ -147,10 +183,11 @@
 ;; ============ B：error/aborted assistant 消息跳过 ============
 
 ;; B1 stopReason "error" 的 assistant 被移除
-(let* ((msgs (list (mk-user "hi")
-               (mk-assistant (list (mk-text-blk "")) "error")
-               (mk-user "again")
-             ) ;list
+(let* ((msgs
+         (list (mk-user "hi")
+           (mk-assistant (list (mk-text-blk "")) "error")
+           (mk-user "again")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
@@ -159,9 +196,8 @@
 ) ;let*
 
 ;; B2 stopReason "aborted" 的 assistant 被移除
-(let* ((msgs (list (mk-assistant (list (mk-text-blk "partial")) "aborted")
-               (mk-user "next")
-             ) ;list
+(let* ((msgs
+         (list (mk-assistant (list (mk-text-blk "partial")) "aborted") (mk-user "next"))
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
@@ -169,10 +205,11 @@
 ) ;let*
 
 ;; B3 正常 stop/toolUse 消息不受影响
-(let* ((msgs (list (mk-assistant (list (mk-text-blk "hello")) "stop")
-               (mk-assistant (list (mk-tool-call "c1" "read")) "toolUse")
-               (mk-tool-result "c1" "read" "ok")
-             ) ;list
+(let* ((msgs
+         (list (mk-assistant (list (mk-text-blk "hello")) "stop")
+           (mk-assistant (list (mk-tool-call "c1" "read")) "toolUse")
+           (mk-tool-result "c1" "read" "ok")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
@@ -183,9 +220,10 @@
 ;; ============ C：toolCallId 归一化（仅 Gemini 3+） ============
 
 ;; C1 非法字符 → _，toolResult 联动
-(let* ((msgs (list (mk-assistant (list (mk-tool-call "call|abc:1" "read")) "toolUse")
-               (mk-tool-result "call|abc:1" "read" "ok")
-             ) ;list
+(let* ((msgs
+         (list (mk-assistant (list (mk-tool-call "call|abc:1" "read")) "toolUse")
+           (mk-tool-result "call|abc:1" "read" "ok")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
        (a-blk (car (msg-content (list-ref out 0))))
@@ -198,69 +236,107 @@
 
 ;; C2 超 64 字符 → 截断，toolResult 联动
 (let* ((long-id (make-string 70 #\a))
-       (msgs (list (mk-assistant (list (mk-tool-call long-id "read")) "toolUse")
-               (mk-tool-result long-id "read" "ok")
-             ) ;list
+       (msgs
+         (list (mk-assistant (list (mk-tool-call long-id "read")) "toolUse")
+           (mk-tool-result long-id "read" "ok")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
-  (check (string-length (blk-id (car (msg-content (car out))))) => 64)
+  (check
+    (string-length
+      (blk-id (car (msg-content (car out))))
+    ) ;string-length
+    =>
+    64
+  ) ;check
   (check (cdr (assoc "toolCallId" (cadr out))) => (make-string 64 #\a))
 ) ;let*
 
 ;; C3 合法 id → 不变
-(let* ((msgs (list (mk-assistant (list (mk-tool-call "call_OK-123" "read")) "toolUse")
-               (mk-tool-result "call_OK-123" "read" "ok")
-             ) ;list
+(let* ((msgs
+         (list (mk-assistant (list (mk-tool-call "call_OK-123" "read")) "toolUse")
+           (mk-tool-result "call_OK-123" "read" "ok")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
-  (check (blk-id (car (msg-content (car out)))) => "call_OK-123")
+  (check
+    (blk-id (car (msg-content (car out))))
+    =>
+    "call_OK-123"
+  ) ;check
   (check (cdr (assoc "toolCallId" (cadr out))) => "call_OK-123")
 ) ;let*
 
 ;; C4 归一化后碰撞：后者覆盖（沿用上游 map 覆盖语义）
-(let* ((msgs (list (mk-assistant (list (mk-tool-call "a|b" "read") (mk-tool-call "a:b" "bash"))
-                   "toolUse"
+(let* ((msgs
+         (list (mk-assistant (list (mk-tool-call "a|b" "read") (mk-tool-call "a:b" "bash"))
+                 "toolUse"
                ) ;mk-assistant
-               (mk-tool-result "a|b" "read" "r1")
-               (mk-tool-result "a:b" "bash" "r2")
-             ) ;list
+           (mk-tool-result "a|b" "read" "r1")
+           (mk-tool-result "a:b" "bash" "r2")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
   ;; 两个 id 均归一化为 a_b；映射以后注册的为准，此处只要求结果可构造且不报错
-  (check (string? (blk-id (car (msg-content (car out))))) => #t)
+  (check
+    (string?
+      (blk-id (car (msg-content (car out))))
+    ) ;string?
+    =>
+    #t
+  ) ;check
   (check (length out) => 3)
 ) ;let*
 
 ;; C5 非 Gemini 3+（openai）→ 不归一化
-(let* ((msgs (list (mk-assistant (list (mk-tool-call "call|abc" "read")) "toolUse")
-               (mk-tool-result "call|abc" "read" "ok")
-             ) ;list
+(let* ((msgs
+         (list (mk-assistant (list (mk-tool-call "call|abc" "read")) "toolUse")
+           (mk-tool-result "call|abc" "read" "ok")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs openai-cfg))
       ) ;
-  (check (blk-id (car (msg-content (car out)))) => "call|abc")
+  (check
+    (blk-id (car (msg-content (car out))))
+    =>
+    "call|abc"
+  ) ;check
   (check (cdr (assoc "toolCallId" (cadr out))) => "call|abc")
 ) ;let*
 
 ;; C6 Gemini 2.5（major < 3）→ 不归一化
-(let* ((cfg '((provider-api . "google-generative-ai") (model-id . "gemini-2.5-flash")))
-       (msgs (list (mk-assistant (list (mk-tool-call "call|abc" "read")) "toolUse")
-               (mk-tool-result "call|abc" "read" "ok")
-             ) ;list
+(let* ((cfg '((provider-api . "google-generative-ai")
+              (model-id . "gemini-2.5-flash")))
+       (msgs
+         (list (mk-assistant (list (mk-tool-call "call|abc" "read")) "toolUse")
+           (mk-tool-result "call|abc" "read" "ok")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs cfg))
       ) ;
-  (check (blk-id (car (msg-content (car out)))) => "call|abc")
+  (check
+    (blk-id (car (msg-content (car out))))
+    =>
+    "call|abc"
+  ) ;check
 ) ;let*
 
 ;; C7 合成 toolResult 使用归一化后的 id（孤儿 + 非法字符）
-(let* ((msgs (list (mk-assistant (list (mk-tool-call "c|1" "read")) "toolUse") (mk-user "next")))
+(let* ((msgs
+         (list (mk-assistant (list (mk-tool-call "c|1" "read")) "toolUse")
+           (mk-user "next")
+         ) ;list
+       ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
       ) ;
-  (check (blk-id (car (msg-content (list-ref out 0)))) => "c_1")
+  (check
+    (blk-id (car (msg-content (list-ref out 0))))
+    =>
+    "c_1"
+  ) ;check
   (check (cdr (assoc "toolCallId" (list-ref out 1))) => "c_1")
 ) ;let*
 

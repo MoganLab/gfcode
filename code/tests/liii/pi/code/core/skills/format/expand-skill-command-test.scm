@@ -47,8 +47,7 @@
 ) ;path-write-text
 
 (define skills
-  (list (pi-skill "pdf-tools" "提取 PDF" (path->string skill-file) tmp-dir #f)
-  ) ;list
+  (list (pi-skill "pdf-tools" "提取 PDF" (path->string skill-file) tmp-dir #f))
 ) ;define
 
 ;; 非 /skill: 前缀原样返回

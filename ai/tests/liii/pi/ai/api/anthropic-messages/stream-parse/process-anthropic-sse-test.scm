@@ -36,26 +36,35 @@
 
 ;; message_start 初始化 usage
 (let ((stream-state (make-anthropic-stream-state '() #f '() '() "end_turn" #f #f)))
-  (process-anthropic-sse '(("type" . "message_start")
-                           ("message" . (("usage" . (("input_tokens" . 11)
-                                                     ("output_tokens" . 3))))))
+  (process-anthropic-sse
+    '(("type" . "message_start")
+      ("message" ("usage" ("input_tokens" . 11) ("output_tokens" . 3))))
     stream-state
     #f
   ) ;process-anthropic-sse
   (check (cdr (assoc 'input (anthropic-stream-state-usage stream-state))) => 11)
   (check (cdr (assoc 'output (anthropic-stream-state-usage stream-state))) => 3)
-) ;let*
+) ;let
 
 ;; content_block_start 建立工具块并派发 toolcall_start
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (process-anthropic-sse '(("type" . "content_block_start")
                            ("index" . 0)
-                           ("content_block" . (("type" . "tool_use")
-                                               ("id" . "call_1")
-                                               ("name" . "bash"))))
+                           ("content_block"
+                            ("type" . "tool_use")
+                            ("id" . "call_1")
+                            ("name" . "bash")))
     stream-state
     on-ev
   ) ;process-anthropic-sse
@@ -68,11 +77,19 @@
 ;; content_block_start 建立 thinking 块并派发 thinking_start
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (process-anthropic-sse '(("type" . "content_block_start")
                            ("index" . 0)
-                           ("content_block" . (("type" . "thinking"))))
+                           ("content_block" ("type" . "thinking")))
     stream-state
     on-ev
   ) ;process-anthropic-sse
@@ -81,21 +98,39 @@
 ) ;let*
 
 ;; content_block_delta 追加文本增量
-(let ((stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f)))
+(let ((stream-state (make-anthropic-stream-state '()
+                      #f
+                      (anthropic-map-usage '())
+                      '()
+                      "end_turn"
+                      #f
+                      #f
+                    ) ;make-anthropic-stream-state
+      ) ;stream-state
+     ) ;
   (process-anthropic-sse '(("type" . "content_block_delta")
                            ("index" . 0)
-                           ("delta" . (("type" . "text_delta") ("text" . "hey"))))
+                           ("delta" ("type" . "text_delta") ("text" . "hey")))
     stream-state
     #f
   ) ;process-anthropic-sse
   (check (anthropic-stream-state-last-text stream-state) => "hey")
-) ;let*
+) ;let
 
 ;; content_block_stop 结束当前文本块
-(let ((stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f)))
+(let ((stream-state (make-anthropic-stream-state '()
+                      #f
+                      (anthropic-map-usage '())
+                      '()
+                      "end_turn"
+                      #f
+                      #f
+                    ) ;make-anthropic-stream-state
+      ) ;stream-state
+     ) ;
   (process-anthropic-sse '(("type" . "content_block_delta")
                            ("index" . 0)
-                           ("delta" . (("type" . "text_delta") ("text" . "hey"))))
+                           ("delta" ("type" . "text_delta") ("text" . "hey")))
     stream-state
     #f
   ) ;process-anthropic-sse
@@ -104,36 +139,30 @@
     #f
   ) ;process-anthropic-sse
   (check (anthropic-stream-state-last-text stream-state) => #f)
-) ;let*
+) ;let
 
 ;; message_delta 更新 stop_reason 与 usage
 (let ((stream-state (make-anthropic-stream-state '() #f '() '() "end_turn" #f #f)))
   (process-anthropic-sse '(("type" . "message_delta")
-                           ("delta" . (("stop_reason" . "tool_use")))
-                           ("usage" . (("output_tokens" . 42))))
+                           ("delta" ("stop_reason" . "tool_use"))
+                           ("usage" ("output_tokens" . 42)))
     stream-state
     #f
   ) ;process-anthropic-sse
   (check (anthropic-stream-state-stop-reason stream-state) => "tool_use")
   (check (cdr (assoc 'output (anthropic-stream-state-usage stream-state))) => 42)
-) ;let*
+) ;let
 
 ;; error 事件把 stop_reason 置为 error
 (let ((stream-state (make-anthropic-stream-state '() #f '() '() "end_turn" #f #f)))
-  (process-anthropic-sse '(("type" . "error"))
-    stream-state
-    #f
-  ) ;process-anthropic-sse
+  (process-anthropic-sse '(("type" . "error")) stream-state #f)
   (check (anthropic-stream-state-stop-reason stream-state) => "error")
-) ;let*
+) ;let
 
 ;; 未知事件类型被忽略
 (let ((stream-state (make-anthropic-stream-state '() #f '() '() "end_turn" #f #f)))
-  (process-anthropic-sse '(("type" . "ping"))
-    stream-state
-    #f
-  ) ;process-anthropic-sse
+  (process-anthropic-sse '(("type" . "ping")) stream-state #f)
   (check (anthropic-stream-state-stop-reason stream-state) => "end_turn")
-) ;let*
+) ;let
 
 (check-report)

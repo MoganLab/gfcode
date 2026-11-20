@@ -188,13 +188,14 @@
     (define (%msg->alist msg)
       (if (pi-message? msg)
         (let ((j (pi-message->json msg)))
-          (cond ((and (pi-assistant-message? msg) (list? (pi-assistant-message-content msg)))
-                 (%replace-kv j "content" (vector->list (cdr (assoc "content" j))))
-                ) ;
-                ((pi-tool-result-message? msg)
-                 (%replace-kv j "isError" (pi-tool-result-message-is-error msg))
-                ) ;
-                (else j)
+          (cond
+           ((and (pi-assistant-message? msg) (list? (pi-assistant-message-content msg)))
+            (%replace-kv j "content" (vector->list (cdr (assoc "content" j))))
+           ) ;
+           ((pi-tool-result-message? msg)
+            (%replace-kv j "isError" (pi-tool-result-message-is-error msg))
+           ) ;
+           (else j)
           ) ;cond
         ) ;let
         msg

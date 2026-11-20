@@ -15,20 +15,14 @@
 ;; alist
 ;; 可由 json->string 序列化的 JSON 对象，且可被 json->pi-web-search-config 往返还原。
 
-(import (scheme base)
-  (liii check)
-  (liii json)
-  (liii pi web-search types)
-) ;import
+(import (scheme base) (liii check) (liii json) (liii pi web-search types))
 
 (check-set-mode! 'report-failed)
 
 (check-true (procedure? pi-web-search-config->json))
 
-(let* ((orig (make-pi-web-search-config "deepseek"
-               "deepseek-chat"
-               "https://api.deepseek.com"
-               "http://127.0.0.1:7890"
+(let* ((orig (make-pi-web-search-config "deepseek" "deepseek-chat"
+               "https://api.deepseek.com" "http://127.0.0.1:7890"
              ) ;make-pi-web-search-config
        ) ;orig
        (j (pi-web-search-config->json orig))
@@ -54,7 +48,9 @@
   (check (assoc "httpProxy" j) => #f)
 ) ;let*
 
-(check-catch 'type-error (pi-web-search-config->json '(("provider" . "google"))))
+(check-catch 'type-error
+  (pi-web-search-config->json '(("provider" . "google")))
+) ;check-catch
 (check-catch 'type-error (pi-web-search-config->json "invalid"))
 
 (check-report)

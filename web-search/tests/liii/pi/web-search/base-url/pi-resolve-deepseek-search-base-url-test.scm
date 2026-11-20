@@ -21,10 +21,7 @@
 ;; string?
 ;; 生效的基础 URL 字符串。
 
-(import (liii check)
-  (liii pi web-search types)
-  (liii pi web-search base-url)
-) ;import
+(import (liii check) (liii pi web-search types) (liii pi web-search base-url))
 
 (check-set-mode! 'report-failed)
 
@@ -61,11 +58,10 @@
 ) ;check
 
 ;; web-search.json 覆盖
-(check
-  (pi-resolve-deepseek-search-base-url '()
-    #f
-    (make-pi-web-search-config "deepseek" #f "http://ws-deepseek:8080/anthropic" #f)
-  ) ;pi-resolve-deepseek-search-base-url
+(check (pi-resolve-deepseek-search-base-url '()
+         #f
+         (make-pi-web-search-config "deepseek" #f "http://ws-deepseek:8080/anthropic" #f)
+       ) ;pi-resolve-deepseek-search-base-url
   =>
   "http://ws-deepseek:8080"
 ) ;check
@@ -74,8 +70,9 @@
 (check
   (pi-resolve-deepseek-search-base-url
     '((provider . "kimi-coding")
-      (models-store ("deepseek" ("name" . "DeepSeek")
-                                ("baseUrl" . "http://ds-store:8080/anthropic"))))
+      (models-store ("deepseek"
+                     ("name" . "DeepSeek")
+                     ("baseUrl" . "http://ds-store:8080/anthropic"))))
     #f
   ) ;pi-resolve-deepseek-search-base-url
   =>

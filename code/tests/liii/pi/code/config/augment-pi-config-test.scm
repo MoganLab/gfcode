@@ -23,10 +23,9 @@
 
 ;; 无 augmenter 时原样返回
 (let ((cfg (make-pi-config :provider "google")))
-  (check
-    (with-extension-registry (make-extension-api)
-      (lambda () (augment-pi-config cfg '()))
-    ) ;with-extension-registry
+  (check (with-extension-registry (make-extension-api)
+           (lambda () (augment-pi-config cfg '()))
+         ) ;with-extension-registry
     =>
     cfg
   ) ;check

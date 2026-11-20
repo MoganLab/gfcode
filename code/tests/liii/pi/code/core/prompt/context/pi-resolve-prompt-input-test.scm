@@ -25,7 +25,9 @@
 ;; 解析直接字符串输入或文件引用输入。
 
 (define TEST_FILE
-  (cond ((file-exists? "code/tests/fixtures/sample.txt") "code/tests/fixtures/sample.txt")
+  (cond ((file-exists? "code/tests/fixtures/sample.txt")
+         "code/tests/fixtures/sample.txt"
+        ) ;
         ((file-exists? "tests/fixtures/sample.txt") "tests/fixtures/sample.txt")
         (else "../code/tests/fixtures/sample.txt")
   ) ;cond

@@ -55,12 +55,15 @@
 ) ;define
 
 ;; 读取 stub server 端口：python 启动慢时 PORT 行可能延后，重试读取避免偶发失败
+
 (define (read-stub-port proc)
-  (let loop ((n 0) (port #f))
-    (cond ((and (not port) (< n 10))
-           (loop (+ n 1) (parse-port-line (process-read-line proc)))
-          ) ;
-          (else port)
+  (let loop
+    ((n 0) (port #f))
+    (cond
+     ((and (not port) (< n 10))
+      (loop (+ n 1) (parse-port-line (process-read-line proc)))
+     ) ;
+     (else port)
     ) ;cond
   ) ;let
 ) ;define
@@ -77,6 +80,7 @@
 
 ;; 延迟发送 abort 信号的 worker：0.5s 后向通道发中止信号。
 ;; 顶层 define + (go (fn ch)) 传参形式（闭包变量无法跨 go 会话传输）
+
 (define (delay-abort-signal ch)
   (sleep 0.5)
   (chan-send! ch 'abort 0)
@@ -84,24 +88,25 @@
 
 (let* ((proc (process-spawn (list "python3" stub-server-file) :stdout 'pipe))
        (port (read-stub-port proc))
-       (base-url (string-append "http://127.0.0.1:" (number->string port) "/mk-kimi-plain"))
-       (abort-hang-url (string-append "http://127.0.0.1:" (number->string port) "/chat-abort-hang"))
+       (base-url (string-append "http://127.0.0.1:" (number->string port) "/mk-kimi-plain")
+       ) ;base-url
+       (abort-hang-url (string-append "http://127.0.0.1:" (number->string port) "/chat-abort-hang")
+       ) ;abort-hang-url
       ) ;
   (check-true (number? port))
 
   ;; 1. 请求发起前已中止：流式 cb 收到首个 chunk 即返回 #f 中止 HTTP，
   ;;    最终返回 stop-reason 为 "aborted" 的 assistant 消息
   (let* ((ch (make-chan 1))
-         (cfg (list (cons 'model-id "kimi-mk")
-                (cons 'model-meta
-                  (list (cons 'base-url base-url) (cons 'max-tokens 1024))
-                ) ;list
-                (cons 'api-key "mk-kimi-key-1-x")
-                (cons 'proxy-url #f)
-                (cons 'tools '())
-                (cons 'settings '((retry . ((enabled . #f)))))
-              ) ;list
-             )
+         (cfg
+           (list (cons 'model-id "kimi-mk")
+             (cons 'model-meta (list (cons 'base-url base-url) (cons 'max-tokens 1024)))
+             (cons 'api-key "mk-kimi-key-1-x")
+             (cons 'proxy-url #f)
+             (cons 'tools '())
+             (cons 'settings '((retry (enabled . #f))))
+           ) ;list
+         ) ;cfg
          (msgs (list (pi-user-message "ping")))
         ) ;
     (pi-abort-arm-chan! ch)
@@ -115,16 +120,15 @@
   ;; 2. 流式过程中中止：首个流事件到达时触发中止信号，
   ;;    后续 chunk 被 cb 拒收，最终 stop-reason 为 "aborted"
   (let* ((ch (make-chan 1))
-         (cfg (list (cons 'model-id "kimi-mk")
-                (cons 'model-meta
-                  (list (cons 'base-url base-url) (cons 'max-tokens 1024))
-                ) ;list
-                (cons 'api-key "mk-kimi-key-1-x")
-                (cons 'proxy-url #f)
-                (cons 'tools '())
-                (cons 'settings '((retry . ((enabled . #f)))))
-              ) ;list
-             )
+         (cfg
+           (list (cons 'model-id "kimi-mk")
+             (cons 'model-meta (list (cons 'base-url base-url) (cons 'max-tokens 1024)))
+             (cons 'api-key "mk-kimi-key-1-x")
+             (cons 'proxy-url #f)
+             (cons 'tools '())
+             (cons 'settings '((retry (enabled . #f))))
+           ) ;list
+         ) ;cfg
          (msgs (list (pi-user-message "ping")))
          (on-event (lambda (ev) (chan-send! ch 'abort 0)))
         ) ;
@@ -137,16 +141,15 @@
 
   ;; 3. 未中止时流式行为不变：正常返回 stop
   (let* ((ch (make-chan 1))
-         (cfg (list (cons 'model-id "kimi-mk")
-                (cons 'model-meta
-                  (list (cons 'base-url base-url) (cons 'max-tokens 1024))
-                ) ;list
-                (cons 'api-key "mk-kimi-key-1-x")
-                (cons 'proxy-url #f)
-                (cons 'tools '())
-                (cons 'settings '((retry . ((enabled . #f)))))
-              ) ;list
-             )
+         (cfg
+           (list (cons 'model-id "kimi-mk")
+             (cons 'model-meta (list (cons 'base-url base-url) (cons 'max-tokens 1024)))
+             (cons 'api-key "mk-kimi-key-1-x")
+             (cons 'proxy-url #f)
+             (cons 'tools '())
+             (cons 'settings '((retry (enabled . #f))))
+           ) ;list
+         ) ;cfg
          (msgs (list (pi-user-message "ping")))
         ) ;
     (pi-abort-arm-chan! ch)
@@ -162,16 +165,17 @@
   ;;    接入 :progress 后约 1s 节拍内中止并结算 aborted（绿灯）
   (let* ((ch (make-chan 1))
          (t0 (current-second))
-         (cfg (list (cons 'model-id "chat-abort-hang")
-                (cons 'model-meta
-                  (list (cons 'base-url abort-hang-url) (cons 'max-tokens 1024))
-                ) ;list
-                (cons 'api-key "mk-kimi-key-1-x")
-                (cons 'proxy-url #f)
-                (cons 'tools '())
-                (cons 'settings '((retry . ((enabled . #f)))))
-              ) ;list
-             )
+         (cfg
+           (list (cons 'model-id "chat-abort-hang")
+             (cons 'model-meta
+               (list (cons 'base-url abort-hang-url) (cons 'max-tokens 1024))
+             ) ;cons
+             (cons 'api-key "mk-kimi-key-1-x")
+             (cons 'proxy-url #f)
+             (cons 'tools '())
+             (cons 'settings '((retry (enabled . #f))))
+           ) ;list
+         ) ;cfg
          (msgs (list (pi-user-message "ping")))
         ) ;
     (pi-abort-arm-chan! ch)
@@ -185,10 +189,7 @@
   ) ;let*
 
   (pi-abort-reset!)
-  (catch #t
-    (lambda () (process-kill proc))
-    (lambda args #f)
-  ) ;catch
+  (catch #t (lambda () (process-kill proc)) (lambda args #f))
 ) ;let*
 
 (check-report)

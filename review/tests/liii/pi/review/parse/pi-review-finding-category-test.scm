@@ -19,6 +19,10 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-review-finding-category (make-pi-review-finding "HIGH" "a.scm" 1 "security" "msg" #f)) => "security")
+(check (pi-review-finding-category (make-pi-review-finding "HIGH" "a.scm" 1 "security" "msg" #f)
+       ) ;pi-review-finding-category
+  =>
+  "security"
+) ;check
 
 (check-report)

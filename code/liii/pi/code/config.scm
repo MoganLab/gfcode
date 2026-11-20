@@ -41,9 +41,8 @@
     pi-model-available-thinking-levels pi-cfg-provider-api
     pi-load-compaction-settings pi-resolve-proxy-url pi-load-auth
     pi-resolve-provider-key pi-resolve-model-metadata pi-resolve-request-headers
-    resolve-pi-config
-    resolve-goldpi-config resolve-active-tools pi-missing-credential-msg
-    augment-pi-config
+    resolve-pi-config resolve-goldpi-config resolve-active-tools
+    pi-missing-credential-msg augment-pi-config
   ) ;export
   (begin
     ;; pi-get-agent-dir 已下沉至 (liii pi code core tools read)，此处经 import 再导出
@@ -227,14 +226,18 @@
     (define (%resolve-provider-api models-store provider model-id)
       (let* ((p-entry (pi-user-provider-config models-store provider))
              (provider-api (and p-entry (json-dict-ref p-entry "api" #f)))
-             (entry (and p-entry
-                      (find (lambda (m) (equal? (json-dict-ref m "id" #f) model-id))
-                        (json-dict-ref p-entry "models" '())
-                      ) ;find
-                    ) ;and
+             (entry
+               (and p-entry
+                 (find (lambda (m) (equal? (json-dict-ref m "id" #f) model-id))
+                   (json-dict-ref p-entry "models" '())
+                 ) ;find
+               ) ;and
              ) ;entry
-             (model-api (and entry (json-dict-ref entry "api" #f))))
-        (or model-api provider-api)))
+             (model-api (and entry (json-dict-ref entry "api" #f)))
+            ) ;
+        (or model-api provider-api)
+      ) ;let*
+    ) ;define
 
     (define (resolve-pi-config parsed-args . opt-env)
       (let* ((env-agent-dir (lookup-env-var "PI_CODING_AGENT_DIR" opt-env))
@@ -334,38 +337,43 @@
                  ) ;thinking-level
                  (supports-thinking (%model-supports-thinking? models-store provider model-id))
                  (headers (if (pair? opt-env)
-                            (pi-resolve-request-headers models-store provider model-id api-key (car opt-env))
+                            (pi-resolve-request-headers models-store
+                              provider
+                              model-id
+                              api-key
+                              (car opt-env)
+                            ) ;pi-resolve-request-headers
                             (pi-resolve-request-headers models-store provider model-id api-key)
                           ) ;if
                  ) ;headers
                 ) ;
-            (pi-cfg-set
-              (make-pi-config
-                :agent-dir  agent-dir
-                :config-dir config-dir
-                :provider   provider
-                :provider-api
-                ;; 模型文件里可声明 api（如 deepseek 走 openai-completions）；
-                ;; 未声明时回退 provider 级配置。provider 文件的 baseUrl 与
-                ;; models/<provider>/<model>.json 的 baseUrl 由 user-models.scm 的
-                ;; %compose-model 按字段合并，模型文件优先。
-                (%resolve-provider-api models-store provider model-id)
-                :api-key                  api-key
-                :model-id                 model-id
-                :model-meta               meta
-                :models-store             models-store
-                :thinking-level           thinking-level
-                :thinking-level-explicit? cli-thinking-explicit?
-                :thinking-level-source (if cli-thinking-explicit? 'cli 'default)
-                :supports-thinking     supports-thinking
-                :cli-proxy             cli-proxy
-                :proxy-url             proxy-url
-                :tools                 tools
-                :tool-resolver         get-tool-definition
-                :execute-tool-call     execute-tool-call
-                :emit-extension-event  (%make-extension-emitter)
-                :settings              settings
-              ) ;make-pi-config
+            (pi-cfg-set (make-pi-config
+                          :agent-dir  agent-dir
+                          :config-dir config-dir
+                          :provider   provider
+                          :provider-api
+                          ;; 模型文件里可声明 api（如 deepseek 走 openai-completions）；
+                          ;; 未声明时回退 provider 级配置。provider 文件的 baseUrl 与
+                          ;; models/<provider>/<model>.json 的 baseUrl 由 user-models.scm 的
+                          ;; %compose-model 按字段合并，模型文件优先。
+                          (%resolve-provider-api models-store provider model-id)
+                          :api-key                  api-key
+                          :model-id                 model-id
+                          :model-meta               meta
+                          :models-store             models-store
+                          :thinking-level           thinking-level
+                          :thinking-level-explicit? cli-thinking-explicit?
+                          :thinking-level-source
+                          (if cli-thinking-explicit? 'cli 'default)
+                          :supports-thinking    supports-thinking
+                          :cli-proxy            cli-proxy
+                          :proxy-url            proxy-url
+                          :tools                tools
+                          :tool-resolver        get-tool-definition
+                          :execute-tool-call    execute-tool-call
+                          :emit-extension-event (%make-extension-emitter)
+                          :settings             settings
+                        ) ;make-pi-config
               'headers
               headers
             ) ;pi-cfg-set

@@ -16,9 +16,7 @@
 ;; 长度为 1 的 content block 数组，块含 type/text/cache_control 字段，
 ;; cache_control 为 {"type": "ephemeral"} 断点。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages cache)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages cache))
 
 (check-set-mode! 'report-failed)
 
@@ -34,6 +32,7 @@
 
 ;; 多行提示词原样保留
 (let ((blocks (anthropic-system-blocks "line1\nline2")))
-  (check (cdr (assoc "text" (vector-ref blocks 0))) => "line1\nline2"))
+  (check (cdr (assoc "text" (vector-ref blocks 0))) => "line1\nline2")
+) ;let
 
 (check-report)

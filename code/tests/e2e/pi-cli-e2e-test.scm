@@ -13,7 +13,9 @@
 ;; ------
 ;; 见各断言场景：按被测函数实际返回值断言。
 
-(set! *load-path* (append (list "code" "agent" "." "../code" "../agent") *load-path*))
+(set! *load-path*
+  (append (list "code" "agent" "." "../code" "../agent") *load-path*)
+) ;set!
 
 (import (scheme process-context)
   (scheme load)
@@ -110,7 +112,10 @@
           ) ;let*
 
           ;; 4. 报错 SAFETY（mode text 时退出码 1，stdout 无输出，stderr 提示错误）
-          (let* ((cmd (list GF_BIN "pi" "--model" "safety" "--mode" "text" "--print" "Run safety check"))
+          (let* ((cmd (list GF_BIN "pi" "--model" "safety" "--mode" "text"
+                        "--print" "Run safety check"
+                      ) ;list
+                 ) ;cmd
                  (res (safe-exec cmd test-env 10000))
                  (code (car res))
                  (out (cadr res))
@@ -285,7 +290,9 @@
             (check-true (string-contains? err "Session timeout exceeded"))
           ) ;let*
           ;; 14. 多条 prompt 必须在同一会话中依次执行，text mode 只输出最终回复
-          (let* ((cmd (list GF_BIN "pi" "--model" "multi-prompt" "--mode" "text" "--print" "I am a frog" "who am I")
+          (let* ((cmd (list GF_BIN "pi" "--model" "multi-prompt" "--mode" "text"
+                        "--print" "I am a frog" "who am I"
+                      ) ;list
                  ) ;cmd
                  (res (safe-exec cmd test-env 15000))
                  (code (car res))
@@ -323,8 +330,8 @@
           ) ;let*
 
           ;; 17. --mode verbose 输出结构化人眼可读文本与 emoji
-          (let* ((cmd (list GF_BIN "pi" "--mode" "verbose" "--model" "multi-turn"
-                        "--print" "Run multi turn steps"
+          (let* ((cmd (list GF_BIN "pi" "--mode" "verbose" "--model"
+                        "multi-turn" "--print" "Run multi turn steps"
                       ) ;list
                  ) ;cmd
                  (res (safe-exec cmd test-env 15000))

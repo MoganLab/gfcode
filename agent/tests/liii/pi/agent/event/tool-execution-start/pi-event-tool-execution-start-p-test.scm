@@ -19,10 +19,7 @@
 
 (check-set-mode! 'report-failed)
 
-(let ((obj (pi-event-tool-execution-start "tc-001" "read" '(("path"
-                                                                   . "foo.txt")))
-      ) ;obj
-     ) ;
+(let ((obj (pi-event-tool-execution-start "tc-001" "read" '(("path" . "foo.txt")))))
   (check-true (pi-event-tool-execution-start? obj))
 ) ;let
 (check-false (pi-event-tool-execution-start? '()))

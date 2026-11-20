@@ -17,19 +17,29 @@
 ;; list?
 ;; 规范化后的消息列表：异构思维链被丢弃，工具调用块上的 thoughtSignature 被剥离。
 
-(import (liii check)
-  (liii list)
-  (liii pi ai message)
-  (liii pi ai transcript)
-) ;import
+(import (liii check) (liii list) (liii pi ai message) (liii pi ai transcript))
 
 (check-set-mode! 'report-failed)
 
-(define (msg-role m) (cdr (assoc "role" m)))
-(define (msg-content m) (cdr (assoc "content" m)))
-(define (blk-type b) (cdr (assoc "type" b)))
-(define (blk-id b) (cdr (assoc "id" b)))
-(define (blk-name b) (cdr (assoc "name" b)))
+(define (msg-role m)
+  (cdr (assoc "role" m))
+) ;define
+
+(define (msg-content m)
+  (cdr (assoc "content" m))
+) ;define
+
+(define (blk-type b)
+  (cdr (assoc "type" b))
+) ;define
+
+(define (blk-id b)
+  (cdr (assoc "id" b))
+) ;define
+
+(define (blk-name b)
+  (cdr (assoc "name" b))
+) ;define
 
 (define (mk-user text)
   (list (cons "role" "user") (cons "content" text))
@@ -86,32 +96,31 @@
 (define gemini-cfg
   '((provider . "google")
     (model-id . "gemini-2.5-flash")
-    (provider-api . "google-generative-ai")
-   )
+    (provider-api . "google-generative-ai"))
 ) ;define
 
 (define gemini-3-cfg
   '((provider . "google")
     (model-id . "gemini-3-flash-preview")
-    (provider-api . "google-generative-ai")
-   )
+    (provider-api . "google-generative-ai"))
 ) ;define
 
 ;; ============ 1. 同模型保留 thinking 与 thoughtSignature ============
 
-(let* ((msgs (list (mk-user "计算 1+1")
-               (mk-assistant
-                 (list (mk-thinking "正在思考 1+1..." "SIG_GEMINI_1234")
-                   (mk-text "1+1 等于 2" "SIG_TEXT_1234")
-                   (mk-tool-call "call_calc_1" "calc" '(("expr" . "1+1")) "SIG_TC_1234")
-                 ) ;list
-                 "toolUse"
-                 "google"
-                 "gemini-2.5-flash"
-                 "google-generative-ai"
-               ) ;mk-assistant
-               (mk-tool-result "call_calc_1" "calc" "2")
+(let* ((msgs
+         (list (mk-user "计算 1+1")
+           (mk-assistant
+             (list (mk-thinking "正在思考 1+1..." "SIG_GEMINI_1234")
+               (mk-text "1+1 等于 2" "SIG_TEXT_1234")
+               (mk-tool-call "call_calc_1" "calc" '(("expr" . "1+1")) "SIG_TC_1234")
              ) ;list
+             "toolUse"
+             "google"
+             "gemini-2.5-flash"
+             "google-generative-ai"
+           ) ;mk-assistant
+           (mk-tool-result "call_calc_1" "calc" "2")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
        (asst (list-ref out 1))
@@ -140,19 +149,22 @@
 ;; ============ 2. 异构模型丢弃 thinking 并剥离 thoughtSignature ============
 
 ;; 历史消息来自 MiniMax，当前请求发往 Gemini
-(let* ((msgs (list (mk-user "查找文件")
-               (mk-assistant
-                 (list (mk-thinking "MiniMax 内部推理：先用 bash ls 查看" "SIG_MINIMAX_THINKING")
-                   (mk-text "我将为您执行命令" "SIG_MINIMAX_TEXT")
-                   (mk-tool-call "call_ls_1" "bash" '(("cmd" . "ls")) "SIG_MINIMAX_TC")
-                 ) ;list
-                 "toolUse"
-                 "minimax-cn"
-                 "MiniMax-M2.7"
-                 "anthropic-messages"
-               ) ;mk-assistant
-               (mk-tool-result "call_ls_1" "bash" "a.txt\nb.txt")
+(let* ((msgs
+         (list (mk-user "查找文件")
+           (mk-assistant
+             (list (mk-thinking "MiniMax 内部推理：先用 bash ls 查看"
+                     "SIG_MINIMAX_THINKING"
+                   ) ;mk-thinking
+               (mk-text "我将为您执行命令" "SIG_MINIMAX_TEXT")
+               (mk-tool-call "call_ls_1" "bash" '(("cmd" . "ls")) "SIG_MINIMAX_TC")
              ) ;list
+             "toolUse"
+             "minimax-cn"
+             "MiniMax-M2.7"
+             "anthropic-messages"
+           ) ;mk-assistant
+           (mk-tool-result "call_ls_1" "bash" "a.txt\nb.txt")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
        (asst (list-ref out 1))
@@ -180,17 +192,17 @@
 
 ;; ============ 3. 缺失模型元数据兜底按跨模型安全剥离 ============
 
-(let* ((msgs (list (mk-assistant
-                     (list (mk-thinking "无元数据思考" "SIG_UNKNOWN")
-                       (mk-tool-call "call_1" "read" '() "SIG_UNKNOWN_TC")
-                     ) ;list
-                     "toolUse"
-                     #f
-                     #f
-                     #f
-                   ) ;mk-assistant
-                   (mk-tool-result "call_1" "read" "file content")
-                 ) ;list
+(let* ((msgs
+         (list (mk-assistant (list (mk-thinking "无元数据思考" "SIG_UNKNOWN")
+                               (mk-tool-call "call_1" "read" '() "SIG_UNKNOWN_TC")
+                             ) ;list
+                 "toolUse"
+                 #f
+                 #f
+                 #f
+               ) ;mk-assistant
+           (mk-tool-result "call_1" "read" "file content")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
        (content (msg-content (list-ref out 0)))
@@ -205,29 +217,28 @@
 
 ;; ============ 4. 多轮混合模型接力对话 ============
 
-(let* ((msgs (list (mk-user "第1轮问答")
-               ;; 第1轮：MiniMax
-               (mk-assistant
-                 (list (mk-thinking "MiniMax 第1轮思考" "MM_SIG")
-                   (mk-text "MiniMax 第1轮回复" #f)
-                 ) ;list
-                 "stop"
-                 "minimax-cn"
-                 "MiniMax-M2.7"
-                 "anthropic-messages"
-               ) ;mk-assistant
-               (mk-user "第2轮问答")
-               ;; 第2轮：Gemini
-               (mk-assistant
-                 (list (mk-thinking "Gemini 第2轮思考" "GEMINI_SIG")
-                   (mk-text "Gemini 第2轮回复" #f)
-                 ) ;list
-                 "stop"
-                 "google"
-                 "gemini-2.5-flash"
-                 "google-generative-ai"
-               ) ;mk-assistant
-             ) ;list
+(let* ((msgs
+         (list (mk-user "第1轮问答")
+           ;; 第1轮：MiniMax
+           (mk-assistant (list (mk-thinking "MiniMax 第1轮思考" "MM_SIG")
+                           (mk-text "MiniMax 第1轮回复" #f)
+                         ) ;list
+             "stop"
+             "minimax-cn"
+             "MiniMax-M2.7"
+             "anthropic-messages"
+           ) ;mk-assistant
+           (mk-user "第2轮问答")
+           ;; 第2轮：Gemini
+           (mk-assistant (list (mk-thinking "Gemini 第2轮思考" "GEMINI_SIG")
+                           (mk-text "Gemini 第2轮回复" #f)
+                         ) ;list
+             "stop"
+             "google"
+             "gemini-2.5-flash"
+             "google-generative-ai"
+           ) ;mk-assistant
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
        (c1 (msg-content (list-ref out 1)))
@@ -256,10 +267,11 @@
            :api         "anthropic-messages"
          ) ;pi-assistant-message
        ) ;rec-assistant
-       (msgs (list (pi-user-message "编辑文件")
-               rec-assistant
-               (pi-tool-result-message "tc_rec_1" "edit" (list (pi-text-block "ok")))
-             ) ;list
+       (msgs
+         (list (pi-user-message "编辑文件")
+           rec-assistant
+           (pi-tool-result-message "tc_rec_1" "edit" (list (pi-text-block "ok")))
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-cfg))
        (asst (list-ref out 1))
@@ -277,17 +289,17 @@
 
 ;; ============ 6. 跨模型同时触发 Gemini 3+ toolCall id 归一化 ============
 
-(let* ((msgs (list (mk-assistant
-                     (list (mk-thinking "MiniMax 思考" "SIG")
-                       (mk-tool-call "call|strange:id" "read" '() "MM_SIGNATURE")
-                     ) ;list
-                     "toolUse"
-                     "minimax-cn"
-                     "MiniMax-M2.7"
-                     "anthropic-messages"
-                   ) ;mk-assistant
-                   (mk-tool-result "call|strange:id" "read" "content")
-                 ) ;list
+(let* ((msgs
+         (list (mk-assistant (list (mk-thinking "MiniMax 思考" "SIG")
+                               (mk-tool-call "call|strange:id" "read" '() "MM_SIGNATURE")
+                             ) ;list
+                 "toolUse"
+                 "minimax-cn"
+                 "MiniMax-M2.7"
+                 "anthropic-messages"
+               ) ;mk-assistant
+           (mk-tool-result "call|strange:id" "read" "content")
+         ) ;list
        ) ;msgs
        (out (pi-normalize-transcript msgs gemini-3-cfg))
        (tc (car (msg-content (list-ref out 0))))

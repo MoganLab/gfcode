@@ -25,13 +25,8 @@
 
 (check-true (procedure? pi-model-metadata->json))
 
-(let* ((m (pi-model-metadata "gemini-3.8-flash"
-            "Gemini 3.8 Flash"
-            "google"
-            "https://generativelanguage.googleapis.com"
-            1000000
-            8192
-            #t
+(let* ((m (pi-model-metadata "gemini-3.8-flash" "Gemini 3.8 Flash" "google"
+            "https://generativelanguage.googleapis.com" 1000000 8192 #t
           ) ;pi-model-metadata
        ) ;m
        (j (pi-model-metadata->json m))
@@ -40,13 +35,17 @@
   (check (cdr (assoc "id" parsed)) => "gemini-3.8-flash")
   (check (cdr (assoc "name" parsed)) => "Gemini 3.8 Flash")
   (check (cdr (assoc "provider" parsed)) => "google")
-  (check (cdr (assoc "baseUrl" parsed)) => "https://generativelanguage.googleapis.com")
+  (check (cdr (assoc "baseUrl" parsed))
+    =>
+    "https://generativelanguage.googleapis.com"
+  ) ;check
   (check (cdr (assoc "matched" parsed)) => 'true)
   (check (cdr (assoc "contextWindow" parsed)) => 1000000)
   (check (cdr (assoc "maxTokens" parsed)) => 8192)
 ) ;let*
 
-(let* ((m (pi-model-metadata "custom" "Custom" 'openai "https://api.openai.com" #f #f #f))
+(let* ((m (pi-model-metadata "custom" "Custom" 'openai "https://api.openai.com" #f #f #f)
+       ) ;m
        (j (pi-model-metadata->json m))
       ) ;
   (check (cdr (assoc "provider" j)) => "openai")

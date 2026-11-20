@@ -1,0 +1,88 @@
+name: Check on Debian trixie
+
+# 静态检查 CI：只跑格式化检查（gf fmt --check）与代码度量检查（gf check），
+# 不执行测试（测试在 test-debian.yml 中独立运行）。
+# 与 liii 固定 GOLDFISH_VERSION 不同，这里通过 releases/latest API 取最新 tag，
+# 始终用最新发布的 Goldfish（参考 liii/cd-debian13.yml 的取最新版做法）。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ai/**'
+      - 'agent/**'
+      - 'code/**'
+      - 'extensions/**'
+      - 'review/**'
+      - 'simplify/**'
+      - 'tests/**'
+      - 'tui/**'
+      - 'web-search/**'
+      - 'gfproject.json'
+      - 'gf_check.json'
+      - 'gf_fmt.json'
+      - '.github/workflows/check-debian.yml'
+  pull_request:
+    paths:
+      - 'ai/**'
+      - 'agent/**'
+      - 'code/**'
+      - 'extensions/**'
+      - 'review/**'
+      - 'simplify/**'
+      - 'tests/**'
+      - 'tui/**'
+      - 'web-search/**'
+      - 'gfproject.json'
+      - 'gf_check.json'
+      - 'gf_fmt.json'
+      - '.github/workflows/check-debian.yml'
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  check:
+    container: debian:trixie
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y git curl ca-certificates python3
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: git add safe directory
+        run: git config --global --add safe.directory '*'
+
+      - name: Install Goldfish (latest)
+        run: |
+          TAG=$(curl -fsSL -H "User-Agent: gfcode-ci" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            https://api.github.com/repos/MoganLab/goldfish/releases/latest \
+            | python3 -c "import sys, json; print(json.load(sys.stdin)['tag_name'])")
+          echo "Latest goldfish release: $TAG"
+          curl -fsSL -o /tmp/goldfish.deb \
+            "https://github.com/MoganLab/goldfish/releases/download/$TAG/goldfish-scheme-x86_64-$TAG.deb"
+          apt-get install -y /tmp/goldfish.deb
+          gf version
+
+      - name: Format Check
+        run: |
+          gf fmt --check ai
+          gf fmt --check agent
+          gf fmt --check code
+          gf fmt --check extensions
+          gf fmt --check review
+          gf fmt --check simplify
+          gf fmt --check tui
+          gf fmt --check web-search
+          gf fmt --check tests
+
+      - name: Run code metrics check
+        run: gf check

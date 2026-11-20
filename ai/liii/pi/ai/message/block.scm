@@ -94,10 +94,9 @@
         ) ;let
        ) ;
        ((pi-thinking-block? blk)
-        (let ((base
-                (list (cons "type" "thinking")
-                  (cons "thinking" (pi-thinking-block-thinking blk))
-                ) ;list
+        (let ((base (list (cons "type" "thinking")
+                      (cons "thinking" (pi-thinking-block-thinking blk))
+                    ) ;list
               ) ;base
               (sig (pi-thinking-block-thinking-signature blk))
              ) ;
@@ -110,7 +109,8 @@
                   (cons "id" (pi-tool-call-block-id blk))
                   (cons "name" (pi-tool-call-block-name blk))
                   (cons "arguments"
-                    (%normalize-json-value (%normalize-tool-args (pi-tool-call-block-arguments blk)))
+                    (%normalize-json-value (%normalize-tool-args (pi-tool-call-block-arguments blk))
+                    ) ;%normalize-json-value
                   ) ;cons
                 ) ;list
               ) ;base
@@ -130,7 +130,12 @@
 
     (define (%string-key-json-object? obj)
       (and (json-object? obj)
-        (or (equal? obj '(())) (every (lambda (p) (and (pair? p) (string? (car p)))) obj))
+        (or (equal? obj '(()))
+          (every
+            (lambda (p) (and (pair? p) (string? (car p))))
+            obj
+          ) ;every
+        ) ;or
       ) ;and
     ) ;define
 
@@ -157,7 +162,9 @@
             ) ;let
            ) ;
            ((equal? btype "toolCall")
-            (let ((raw-args (json-ref obj "arguments")) (raw-sig (json-ref obj "thoughtSignature")))
+            (let ((raw-args (json-ref obj "arguments"))
+                  (raw-sig (json-ref obj "thoughtSignature"))
+                 ) ;
               (pi-tool-call-block (json-ref-string obj "id" "")
                 (json-ref-string obj "name" "")
                 (%normalize-tool-args (if (null? raw-args) '() raw-args))

@@ -25,7 +25,11 @@
 
 (check-set-mode! 'report-failed)
 
-(let ((cfg (make-pi-web-search-config "deepseek" "deepseek-chat" "https://api.deepseek.com" "http://127.0.0.1:7890")))
+(let ((cfg (make-pi-web-search-config "deepseek" "deepseek-chat"
+             "https://api.deepseek.com" "http://127.0.0.1:7890"
+           ) ;make-pi-web-search-config
+      ) ;cfg
+     ) ;
   (check-true (pi-web-search-config? cfg))
   (check-false (pi-web-search-config? '()))
   (check (pi-web-search-config-provider cfg) => "deepseek")

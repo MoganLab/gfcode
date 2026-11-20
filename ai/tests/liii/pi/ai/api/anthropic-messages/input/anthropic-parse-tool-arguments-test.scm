@@ -15,9 +15,7 @@
 ;; alist
 ;; 内部 arguments alist；空值或无法解析时返回空列表。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages input)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages input))
 
 (check-set-mode! 'report-failed)
 

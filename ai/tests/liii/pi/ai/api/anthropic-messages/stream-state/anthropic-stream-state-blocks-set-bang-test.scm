@@ -18,9 +18,7 @@
 ;; 通过副作用更新流状态。
 
 
-(import (liii check)
-  (liii pi ai api anthropic-messages stream-state)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -28,7 +26,7 @@
 (let ((state (make-anthropic-stream-state '() #f '() '() "end_turn" #f #f)))
   (anthropic-stream-state-blocks-set! state '())
   (check (anthropic-stream-state-blocks state) => '())
-) ;let*
+) ;let
 
 
 (check-report)

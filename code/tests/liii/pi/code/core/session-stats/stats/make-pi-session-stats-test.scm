@@ -27,7 +27,11 @@
 ;; pi-session-stats
 ;; 完整的会话统计 record。
 
-(import (scheme base) (liii check) (liii pi code core session-stats token-stats) (liii pi code core session-stats stats))
+(import (scheme base)
+  (liii check)
+  (liii pi code core session-stats token-stats)
+  (liii pi code core session-stats stats)
+) ;import
 
 (check-set-mode! 'report-failed)
 

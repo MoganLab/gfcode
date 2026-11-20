@@ -15,9 +15,7 @@
 ;; any
 ;; 当前 thinking 块状态；没有活动 thinking 块时为 #f。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages stream-state)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -25,7 +23,7 @@
 (let ((state (make-anthropic-stream-state '() #f '() '() "end_turn" #f #f)))
   (check (anthropic-stream-state? state) => #t)
   (check (anthropic-stream-state-current-thinking state) => #f)
-) ;let*
+) ;let
 
 
 (check-report)

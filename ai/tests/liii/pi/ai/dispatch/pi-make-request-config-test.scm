@@ -43,7 +43,10 @@
   (check (cdr (assoc 'provider-api cfg)) => "anthropic-messages")
   (check (cdr (assoc 'model-id cfg)) => "deepseek-chat")
   (check (cdr (assoc 'api-key cfg)) => "sk-test")
-  (check (pi-model-metadata-base-url meta) => "https://api.deepseek.com/anthropic")
+  (check (pi-model-metadata-base-url meta)
+    =>
+    "https://api.deepseek.com/anthropic"
+  ) ;check
   (check (pi-model-metadata-max-tokens meta) => 4096)
   (check (cdr (assoc 'tools cfg)) => '())
   (check (cdr (assoc 'proxy-url cfg)) => #f)
@@ -88,8 +91,13 @@
 ) ;let*
 
 ;; 5. 传入 headers 参数
-(let ((cfg (pi-make-request-config "deepseek" "deepseek-chat" "k"
-             :headers '(("x-goog-api-key" . "my-key")))))
+(let ((cfg (pi-make-request-config "deepseek"
+             "deepseek-chat"
+             "k"
+             :headers '(("x-goog-api-key" . "my-key"))
+           ) ;pi-make-request-config
+      ) ;cfg
+     ) ;
   (check (cdr (assoc 'headers cfg)) => '(("x-goog-api-key" . "my-key")))
 ) ;let
 

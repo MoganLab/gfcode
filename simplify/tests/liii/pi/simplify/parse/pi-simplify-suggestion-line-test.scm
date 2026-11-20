@@ -19,7 +19,15 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-simplify-suggestion-line (make-pi-simplify-suggestion "a.scm" 12 "cat" "msg" #f)) => 12)
-(check (pi-simplify-suggestion-line (make-pi-simplify-suggestion "a.scm" #f "cat" "msg" #f)) => #f)
+(check (pi-simplify-suggestion-line (make-pi-simplify-suggestion "a.scm" 12 "cat" "msg" #f)
+       ) ;pi-simplify-suggestion-line
+  =>
+  12
+) ;check
+(check (pi-simplify-suggestion-line (make-pi-simplify-suggestion "a.scm" #f "cat" "msg" #f)
+       ) ;pi-simplify-suggestion-line
+  =>
+  #f
+) ;check
 
 (check-report)

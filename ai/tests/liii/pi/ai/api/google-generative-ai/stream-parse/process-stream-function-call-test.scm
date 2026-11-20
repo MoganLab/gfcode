@@ -34,7 +34,16 @@
 (check-set-mode! 'report-failed)
 
 ;; 带 id 的函数调用
-(let* ((stream-state (make-gemini-stream-state '() #f '((input . 10) (output . 5)) '() "STOP" #f "" ""))
+(let* ((stream-state (make-gemini-stream-state '()
+                       #f
+                       '((input . 10) (output . 5))
+                       '()
+                       "STOP"
+                       #f
+                       ""
+                       ""
+                     ) ;make-gemini-stream-state
+       ) ;stream-state
        (events '())
        (emit
          (lambda (ev) (set! events (append events (list ev))))

@@ -25,52 +25,59 @@
 (define cfg
   '((provider . "google")
     (model-id . "gemini-2.5-flash")
-    (provider-api . "google-generative-ai")
-   )
+    (provider-api . "google-generative-ai"))
 ) ;define
 
 (define (mk-msg prov model api)
-  (append
-    (list (cons "role" "assistant") (cons "content" '()))
+  (append (list (cons "role" "assistant") (cons "content" '()))
     (if prov (list (cons "provider" prov)) '())
     (if model (list (cons "model" model)) '())
     (if api (list (cons "api" api)) '())
-  )
+  ) ;append
 ) ;define
 
 ;; 三者全部匹配 → 同模型
-(check (pi-transcript-same-model?
-         (mk-msg "google" "gemini-2.5-flash" "google-generative-ai")
+(check (pi-transcript-same-model? (mk-msg "google" "gemini-2.5-flash" "google-generative-ai")
          cfg
-       ) => #t)
+       ) ;pi-transcript-same-model?
+  =>
+  #t
+) ;check
 
 ;; 字符串键形式的消息字段同样可识别
-(check (pi-transcript-same-model?
-         '(("role" . "assistant")
-           ("provider" . "google")
-           ("model" . "gemini-2.5-flash")
-           ("api" . "google-generative-ai")
-          )
+(check (pi-transcript-same-model? '(("role" . "assistant")
+                                    ("provider" . "google")
+                                    ("model" . "gemini-2.5-flash")
+                                    ("api" . "google-generative-ai"))
          cfg
-       ) => #t)
+       ) ;pi-transcript-same-model?
+  =>
+  #t
+) ;check
 
 ;; provider 不同 → 跨模型
-(check (pi-transcript-same-model?
-         (mk-msg "minimax-cn" "gemini-2.5-flash" "google-generative-ai")
+(check (pi-transcript-same-model? (mk-msg "minimax-cn" "gemini-2.5-flash" "google-generative-ai")
          cfg
-       ) => #f)
+       ) ;pi-transcript-same-model?
+  =>
+  #f
+) ;check
 
 ;; model 不同 → 跨模型
-(check (pi-transcript-same-model?
-         (mk-msg "google" "gemini-3-flash-preview" "google-generative-ai")
+(check (pi-transcript-same-model? (mk-msg "google" "gemini-3-flash-preview" "google-generative-ai")
          cfg
-       ) => #f)
+       ) ;pi-transcript-same-model?
+  =>
+  #f
+) ;check
 
 ;; api 不同 → 跨模型
-(check (pi-transcript-same-model?
-         (mk-msg "google" "gemini-2.5-flash" "anthropic-messages")
+(check (pi-transcript-same-model? (mk-msg "google" "gemini-2.5-flash" "anthropic-messages")
          cfg
-       ) => #f)
+       ) ;pi-transcript-same-model?
+  =>
+  #f
+) ;check
 
 ;; 缺少模型元数据 → 不视为同模型
 (check (pi-transcript-same-model? (mk-msg #f #f #f) cfg) => #f)
@@ -80,9 +87,11 @@
 (check (pi-transcript-same-model? (mk-msg #f "gemini-2.5-flash" #f) cfg) => #t)
 
 ;; 配置缺少目标模型 → 不视为同模型
-(check (pi-transcript-same-model?
-         (mk-msg "google" "gemini-2.5-flash" "google-generative-ai")
+(check (pi-transcript-same-model? (mk-msg "google" "gemini-2.5-flash" "google-generative-ai")
          '((provider . "google") (provider-api . "google-generative-ai"))
-       ) => #f)
+       ) ;pi-transcript-same-model?
+  =>
+  #f
+) ;check
 
 (check-report)

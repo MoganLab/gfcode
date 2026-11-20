@@ -19,6 +19,10 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-review-finding-message (make-pi-review-finding "HIGH" "a.scm" 1 "security" "bad" #f)) => "bad")
+(check (pi-review-finding-message (make-pi-review-finding "HIGH" "a.scm" 1 "security" "bad" #f)
+       ) ;pi-review-finding-message
+  =>
+  "bad"
+) ;check
 
 (check-report)

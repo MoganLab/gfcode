@@ -16,7 +16,11 @@
 ;; 会话标识，缺失时为 #f。
 ;;
 
-(import (scheme base) (liii check) (liii pi code core session-stats token-stats) (liii pi code core session-stats stats))
+(import (scheme base)
+  (liii check)
+  (liii pi code core session-stats token-stats)
+  (liii pi code core session-stats stats)
+) ;import
 
 (check-set-mode! 'report-failed)
 

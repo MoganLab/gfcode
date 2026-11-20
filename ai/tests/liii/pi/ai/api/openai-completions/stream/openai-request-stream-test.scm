@@ -77,12 +77,17 @@
       ) ;
   (check (pi-assistant-message? resp) => #t)
   (check (pi-assistant-message-stop-reason resp) => "error")
-  (check (pi-assistant-message-error-message resp) => "Request timed out after 0.2s")
+  (check (pi-assistant-message-error-message resp)
+    =>
+    "Request timed out after 0.2s"
+  ) ;check
 ) ;let*
 
 ;; openai-request-stream 超时纳入与 HTTP 429/0 一样的退避重试
 (let* ((retry-logs '())
-       (_ (set-pi-retry-logger! (lambda (msg) (set! retry-logs (cons msg retry-logs)))))
+       (_
+         (set-pi-retry-logger! (lambda (msg) (set! retry-logs (cons msg retry-logs))))
+       ) ;_
        (cfg
          (list (cons 'model-id "kimi-for-coding")
            (cons 'model-meta '(("base-url" . "http://192.0.2.1")
@@ -90,7 +95,9 @@
            (cons 'api-key "dummy-key")
            (cons 'proxy-url #f)
            (cons 'tools '())
-           (cons 'settings '((retry (enabled . #t) (max-retries . 2) (base-delay-ms . 10))))
+           (cons 'settings
+             '((retry (enabled . #t) (max-retries . 2) (base-delay-ms . 10)))
+           ) ;cons
          ) ;list
        ) ;cfg
        (msgs (list (pi-user-message "ping")))
@@ -99,7 +106,10 @@
   (set-pi-retry-logger! #f)
   (check (pi-assistant-message? resp) => #t)
   (check (pi-assistant-message-stop-reason resp) => "error")
-  (check (pi-assistant-message-error-message resp) => "Request timed out after 0.2s")
+  (check (pi-assistant-message-error-message resp)
+    =>
+    "Request timed out after 0.2s"
+  ) ;check
   ;; 验证发生了 2 次重试，且日志明确携带超时秒数
   (check (length retry-logs) => 2)
   (check-true (string-contains? (car (reverse retry-logs))

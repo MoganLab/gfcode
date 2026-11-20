@@ -23,7 +23,7 @@
 ;; finishReason 缺省时按 STOP 处理。
 
 (import (liii check)
- 
+
   (liii pi ai message)
   (liii pi ai api google-generative-ai stream-result)
   (liii pi ai api google-generative-ai stream-state)
@@ -46,11 +46,7 @@
   (let ((msg (gemini-finalize-stream-success stream-state #f)))
     (check (pi-assistant-message-role msg) => "assistant")
     (check (pi-assistant-message-stop-reason msg) => "stop")
-    (check
-      (cdr (assoc 'input (pi-assistant-message-usage msg)))
-      =>
-      1
-    ) ;check
+    (check (cdr (assoc 'input (pi-assistant-message-usage msg))) => 1)
   ) ;let
 ) ;let
 

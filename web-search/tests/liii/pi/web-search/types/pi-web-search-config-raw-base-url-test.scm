@@ -19,10 +19,15 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-web-search-config-raw-base-url (make-pi-web-search-config "google" #f "https://example.com" #f))
+(check (pi-web-search-config-raw-base-url (make-pi-web-search-config "google" #f "https://example.com" #f)
+       ) ;pi-web-search-config-raw-base-url
   =>
   "https://example.com"
 ) ;check
-(check (pi-web-search-config-raw-base-url (make-pi-web-search-config "google" #f #f #f)) => #f)
+(check (pi-web-search-config-raw-base-url (make-pi-web-search-config "google" #f #f #f)
+       ) ;pi-web-search-config-raw-base-url
+  =>
+  #f
+) ;check
 
 (check-report)

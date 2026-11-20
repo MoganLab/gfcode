@@ -19,7 +19,8 @@
 
 (check-set-mode! 'report-failed)
 
-(check-true (pi-review-finding? (make-pi-review-finding "INFO" "a.scm" 1 "cat" "msg" #f)))
+(check-true (pi-review-finding? (make-pi-review-finding "INFO" "a.scm" 1 "cat" "msg" #f))
+) ;check-true
 (check-false (pi-review-finding? '()))
 (check-false (pi-review-finding? #f))
 

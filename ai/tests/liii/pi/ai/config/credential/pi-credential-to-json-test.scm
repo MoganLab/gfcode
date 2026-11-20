@@ -15,11 +15,7 @@
 ;; alist
 ;; 包含 provider、type 与 key 字段的 JSON 对象。
 
-(import (scheme base)
-  (liii check)
-  (liii json)
-  (liii pi ai config credential)
-) ;import
+(import (scheme base) (liii check) (liii json) (liii pi ai config credential))
 
 (check-set-mode! 'report-failed)
 

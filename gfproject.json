@@ -16,24 +16,31 @@
       ],
       "mode": "r7rs"
     },
+    "tui": {
+      "root": "tui/",
+      "depends-on": [
+        "code", "agent", "ai"
+      ],
+      "mode": "r7rs"
+    },
     "simplify": {
       "root": "simplify/",
       "depends-on": [
-        "agent", "code", "pi"
+        "agent", "code"
       ],
       "mode": "r7rs"
     },
     "web-search": {
       "root": "web-search/",
       "depends-on": [
-        "agent", "code", "pi"
+        "agent", "code"
       ],
       "mode": "r7rs"
     },
     "review": {
       "root": "review/",
       "depends-on": [
-        "agent", "code", "pi"
+        "agent", "code"
       ],
       "mode": "r7rs"
     }
@@ -41,9 +48,9 @@
   "tools": {
     "pi": {
       "tools_dir": ".",
-      "tool": "code",
+      "tool": "tui",
       "organization": "liii",
-      "module": "pi/code/cli",
+      "module": "pi/tui/cli",
       "description": {
         "en_US": "gf pi subcommand",
         "zh_CN": "gf pi 子命令"

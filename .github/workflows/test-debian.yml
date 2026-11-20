@@ -1,0 +1,85 @@
+name: Test on Debian trixie
+
+# 测试 CI：只跑单元测试（gf test 各 domain 的 tests），
+# 不执行格式化与代码度量检查（静态检查在 check-debian.yml 中独立运行）。
+# 与 liii 固定 GOLDFISH_VERSION 不同，这里通过 releases/latest API 取最新 tag，
+# 始终用最新发布的 Goldfish（参考 liii/cd-debian13.yml 的取最新版做法）。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ai/**'
+      - 'agent/**'
+      - 'code/**'
+      - 'extensions/**'
+      - 'review/**'
+      - 'simplify/**'
+      - 'tests/**'
+      - 'tui/**'
+      - 'web-search/**'
+      - 'gfproject.json'
+      - '.github/workflows/test-debian.yml'
+  pull_request:
+    paths:
+      - 'ai/**'
+      - 'agent/**'
+      - 'code/**'
+      - 'extensions/**'
+      - 'review/**'
+      - 'simplify/**'
+      - 'tests/**'
+      - 'tui/**'
+      - 'web-search/**'
+      - 'gfproject.json'
+      - '.github/workflows/test-debian.yml'
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  test:
+    container: debian:trixie
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        domain:
+          - ai
+          - agent
+          - code
+          - review
+          - simplify
+          - tui
+          - web-search
+          - tests
+    name: test (${{ matrix.domain }})
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y git curl ca-certificates python3
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: git add safe directory
+        run: git config --global --add safe.directory '*'
+
+      - name: Install Goldfish (latest)
+        run: |
+          TAG=$(curl -fsSL -H "User-Agent: gfcode-ci" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            https://api.github.com/repos/MoganLab/goldfish/releases/latest \
+            | python3 -c "import sys, json; print(json.load(sys.stdin)['tag_name'])")
+          echo "Latest goldfish release: $TAG"
+          curl -fsSL -o /tmp/goldfish.deb \
+            "https://github.com/MoganLab/goldfish/releases/download/$TAG/goldfish-scheme-x86_64-$TAG.deb"
+          apt-get install -y /tmp/goldfish.deb
+          gf version
+
+      - name: Run tests
+        run: gf test ${{ matrix.domain }}/tests/liii

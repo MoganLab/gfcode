@@ -19,7 +19,15 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-review-finding-line (make-pi-review-finding "HIGH" "a.scm" 42 "cat" "msg" #f)) => 42)
-(check (pi-review-finding-line (make-pi-review-finding "HIGH" "a.scm" #f "cat" "msg" #f)) => #f)
+(check (pi-review-finding-line (make-pi-review-finding "HIGH" "a.scm" 42 "cat" "msg" #f)
+       ) ;pi-review-finding-line
+  =>
+  42
+) ;check
+(check (pi-review-finding-line (make-pi-review-finding "HIGH" "a.scm" #f "cat" "msg" #f)
+       ) ;pi-review-finding-line
+  =>
+  #f
+) ;check
 
 (check-report)

@@ -19,7 +19,15 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-review-finding-suggestion (make-pi-review-finding "HIGH" "a.scm" 1 "security" "bad" "fix")) => "fix")
-(check (pi-review-finding-suggestion (make-pi-review-finding "HIGH" "a.scm" 1 "security" "bad" #f)) => #f)
+(check (pi-review-finding-suggestion (make-pi-review-finding "HIGH" "a.scm" 1 "security" "bad" "fix")
+       ) ;pi-review-finding-suggestion
+  =>
+  "fix"
+) ;check
+(check (pi-review-finding-suggestion (make-pi-review-finding "HIGH" "a.scm" 1 "security" "bad" #f)
+       ) ;pi-review-finding-suggestion
+  =>
+  #f
+) ;check
 
 (check-report)

@@ -18,9 +18,7 @@
 ;; 通过副作用更新流状态。
 
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -28,7 +26,7 @@
 (let ((state (make-openai-stream-state '() #f '() "stop" #f '())))
   (openai-stream-state-tools-set! state '())
   (check (openai-stream-state-tools state) => '())
-) ;let*
+) ;let
 
 
 (check-report)

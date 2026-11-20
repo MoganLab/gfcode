@@ -28,7 +28,9 @@
 
 (check-set-mode! 'report-failed)
 
-(let* ((stream-state (make-gemini-stream-state '() #f '((input . 10) (output . 5)) '() #f #f #f #f))
+(let* ((stream-state (make-gemini-stream-state '() #f '((input . 10)
+                                                        (output . 5)) '() #f #f #f #f)
+       ) ;stream-state
        (events '())
        (emit
          (lambda (ev) (set! events (append events (list ev))))

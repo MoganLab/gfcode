@@ -15,16 +15,16 @@
 ;; boolean
 ;; 是流状态记录返回 #t，否则返回 #f。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages stream-state)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages stream-state))
 
 (check-set-mode! 'report-failed)
 
 ;; 流状态记录
-(check (anthropic-stream-state?
-         (make-anthropic-stream-state '() #f '() '() "end_turn" #f #f))
-  => #t)
+(check (anthropic-stream-state? (make-anthropic-stream-state '() #f '() '() "end_turn" #f #f)
+       ) ;anthropic-stream-state?
+  =>
+  #t
+) ;check
 
 ;; 其它对象
 (check (anthropic-stream-state? '()) => #f)

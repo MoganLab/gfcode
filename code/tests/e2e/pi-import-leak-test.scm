@@ -52,12 +52,8 @@
 ) ;define
 
 (define (pi-import-leak-load-path-args)
-  (let ((code-dir
-          (if (path-dir? (path "code")) (path "code") (path "../code"))
-        ) ;code-dir
-        (agent-dir
-          (if (path-dir? (path "agent")) (path "agent") (path "../agent"))
-        ) ;agent-dir
+  (let ((code-dir (if (path-dir? (path "code")) (path "code") (path "../code")))
+        (agent-dir (if (path-dir? (path "agent")) (path "agent") (path "../agent")))
        ) ;
     (list "-I" (path->string code-dir) "-I" (path->string agent-dir))
   ) ;let

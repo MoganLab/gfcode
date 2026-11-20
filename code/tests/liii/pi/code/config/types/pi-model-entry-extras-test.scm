@@ -18,7 +18,10 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-model-entry-extras (make-pi-model-entry #f #f #f #f 'unset #f #f '(("k" . 1))))
+(check
+  (pi-model-entry-extras (make-pi-model-entry #f #f #f #f 'unset #f #f '(("k"
+                                                                          . 1)))
+  ) ;pi-model-entry-extras
   =>
   '(("k" . 1))
 ) ;check

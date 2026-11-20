@@ -32,7 +32,9 @@
 
 (check-set-mode! 'report-failed)
 
-(let* ((stream-state (make-gemini-stream-state '() #f '((input . 10) (output . 5)) '() #f #f #f #f))
+(let* ((stream-state (make-gemini-stream-state '() #f '((input . 10)
+                                                        (output . 5)) '() #f #f #f #f)
+       ) ;stream-state
        (events '())
        (emit
          (lambda (ev) (set! events (append events (list ev))))
@@ -47,7 +49,10 @@
   (check (cdr (assoc 'type (cadr events))) => "thinking_delta")
 
   (gemini-append-thinking-block! stream-state " and more" #f emit)
-  (check (gemini-stream-state-thinking-text stream-state) => "Thinking 1 and more")
+  (check (gemini-stream-state-thinking-text stream-state)
+    =>
+    "Thinking 1 and more"
+  ) ;check
   (check (length (gemini-stream-state-blocks stream-state)) => 1)
   (check (length events) => 3)
   (check (cdr (assoc 'type (caddr events))) => "thinking_delta")

@@ -31,10 +31,8 @@
 (check-set-mode! 'report-failed)
 
 ;; 1. 传入技能列表时渲染包含 <skills> 区块
-(let* ((s1 (pi-skill "pdf-tools" "PDF 提取" "/path/pdf/SKILL.md" "/path/pdf" #f)
-       ) ;s1
-       (s2 (pi-skill "secret" "私有" "/path/secret/SKILL.md" "/path/secret" #t)
-       ) ;s2
+(let* ((s1 (pi-skill "pdf-tools" "PDF 提取" "/path/pdf/SKILL.md" "/path/pdf" #f))
+       (s2 (pi-skill "secret" "私有" "/path/secret/SKILL.md" "/path/secret" #t))
        (sp (pi-build-system-prompt :skills (list s1 s2)))
       ) ;
   (check-true (string-contains? sp "<skills>"))

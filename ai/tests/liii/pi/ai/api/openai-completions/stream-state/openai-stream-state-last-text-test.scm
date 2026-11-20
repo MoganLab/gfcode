@@ -15,9 +15,7 @@
 ;; string | #f
 ;; 当前累积的文本；没有活动文本块时为 #f。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -25,7 +23,7 @@
 (let ((state (make-openai-stream-state '() "partial" '() "stop" #f '())))
   (check (openai-stream-state? state) => #t)
   (check (openai-stream-state-last-text state) => "partial")
-) ;let*
+) ;let
 
 
 (check-report)
