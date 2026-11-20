@@ -15,4 +15,4 @@
 
 ## 结构约束
 
-`library-structure-test.scm` 逐一导入各库路径并验证代表性导出，防止结构回退。
+各库路径已由 `gf check` 的 `no-glue`/`type-hint` 等规则守护，防止结构回退。
