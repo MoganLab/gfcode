@@ -43,6 +43,19 @@ jobs:
     container: debian:trixie
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        domain:
+          - ai
+          - agent
+          - code
+          - review
+          - simplify
+          - tui
+          - web-search
+          - tests
+    name: test (${{ matrix.domain }})
     steps:
       - name: Install dependencies
         run: |
@@ -69,12 +82,4 @@ jobs:
           gf version
 
       - name: Run tests
-        run: |
-          gf test ai/tests/liii
-          gf test agent/tests/liii
-          gf test code/tests/liii
-          gf test review/tests/liii
-          gf test simplify/tests/liii
-          gf test tui/tests/liii
-          gf test web-search/tests/liii
-          gf test tests/liii
+        run: gf test ${{ matrix.domain }}/tests/liii
