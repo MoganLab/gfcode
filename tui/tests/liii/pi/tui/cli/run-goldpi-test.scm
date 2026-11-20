@@ -15,18 +15,17 @@
 ;; integer?
 ;; 进程退出码：成功为 0，错误为 1。
 
-(import (liii check)
-  (liii string)
-  (liii pi tui cli)
-) ;import
+(import (liii check) (liii string) (liii pi tui cli))
 
 (check-set-mode! 'report-failed)
 
 ;; run-goldpi 与 run-pi 行为一致：--help 输出帮助并返回 0
 (let ((status #f))
-  (let ((out (with-output-to-string
-               (lambda () (set! status (run-goldpi '("gf" "pi" "--help")))))
-         ) ;with-output-to-string
+  (let ((out
+          (with-output-to-string
+            (lambda () (set! status (run-goldpi '("gf" "pi" "--help"))))
+          ) ;with-output-to-string
+        ) ;out
        ) ;
     (check status => 0)
     (check-true (string-contains? out "Usage:"))

@@ -15,18 +15,17 @@
 ;; integer?
 ;; 进程退出码：成功为 0，错误为 1。
 
-(import (liii check)
-  (liii string)
-  (liii pi tui cli)
-) ;import
+(import (liii check) (liii string) (liii pi tui cli))
 
 (check-set-mode! 'report-failed)
 
 ;; 1. --help：输出帮助并返回 0
 (let ((status #f))
-  (let ((out (with-output-to-string
-               (lambda () (set! status (run-pi '("gf" "pi" "--help")))))
-         ) ;with-output-to-string
+  (let ((out
+          (with-output-to-string
+            (lambda () (set! status (run-pi '("gf" "pi" "--help"))))
+          ) ;with-output-to-string
+        ) ;out
        ) ;
     (check status => 0)
     (check-true (string-contains? out "Usage:"))
@@ -38,8 +37,8 @@
 (let ((status #f))
   (with-output-to-string
     (lambda ()
-      (with-input-from-string ""
-        (lambda () (set! status (run-pi '("gf" "pi"))))))
+      (with-input-from-string "" (lambda () (set! status (run-pi '("gf" "pi")))))
+    ) ;lambda
   ) ;with-output-to-string
   (check status => 0)
 ) ;let
@@ -51,11 +50,12 @@
             (define (capture-thunk)
               (let ((orig *stderr*))
                 (dynamic-wind (lambda () (set! *stderr* p))
-                  (lambda () (set! status (run-pi '("gf" "pi" "--provider" "google"))))
+                  (lambda () (set! status (run-pi '("gf" "pi" "--provider"
+                                                    "google"))))
                   (lambda () (set! *stderr* orig))
                 ) ;dynamic-wind
               ) ;let
-            ) ;capture-thunk
+            ) ;define
             (capture-thunk)
             (get-output-string p)
           ) ;let
