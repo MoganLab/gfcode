@@ -43,7 +43,14 @@
 (let* ((vterm (make-virtual-terminal :width 80 :height 24))
        (app (make-pi-app :terminal vterm))
        (q (pi-app-queue app))
-       (huge-log (string-join (map (lambda (i) (string-append "backend log line " (number->string i))) (iota 200)) "\n"))
+       (huge-log
+         (string-join
+           (map (lambda (i) (string-append "backend log line " (number->string i)))
+             (iota 200)
+           ) ;map
+           "\n"
+         ) ;string-join
+       ) ;huge-log
       ) ;
   (pi-queue-set-busy! q)
   (pi-app-queue-steering! app huge-log)
@@ -63,7 +70,10 @@
        (q (pi-app-queue app))
       ) ;
   (pi-queue-set-busy! q)
-  (for-each (lambda (i) (pi-app-queue-steering! app (string-append "queued item " (number->string i))))
+  (for-each
+    (lambda (i)
+      (pi-app-queue-steering! app (string-append "queued item " (number->string i)))
+    ) ;lambda
     (iota 30)
   ) ;for-each
   (let-values (((lines cur) (pi-app-frame-lines app)))

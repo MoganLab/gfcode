@@ -71,13 +71,11 @@
   (check (length fs) => 1)
   (check (pi-review-finding-severity (car fs)) => "INFO")
   (check (pi-review-finding-category (car fs)) => "parse-error")
-  (check-true
-    (string-contains? (pi-review-finding-message (car fs))
-      "Could not parse structured review"
-    ) ;string-contains?
+  (check-true (string-contains? (pi-review-finding-message (car fs))
+                "Could not parse structured review"
+              ) ;string-contains?
   ) ;check-true
-  (check-true
-    (string-contains? (pi-review-finding-message (car fs)) "this is not json")
+  (check-true (string-contains? (pi-review-finding-message (car fs)) "this is not json")
   ) ;check-true
 ) ;let*
 

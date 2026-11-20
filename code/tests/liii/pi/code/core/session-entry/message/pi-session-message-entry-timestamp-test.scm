@@ -15,7 +15,10 @@
 ;; any?
 ;; 对应的会话条目 record、谓词布尔值或字段值。
 
-(import (liii check) (liii pi ai message) (liii pi code core session-entry message))
+(import (liii check)
+  (liii pi ai message)
+  (liii pi code core session-entry message)
+) ;import
 (check-set-mode! 'report-failed)
 (let ((e (pi-session-message-entry "m1" "h1" "ts" (pi-user-message "hi" 1))))
   (check-true (pi-session-message-entry? e))

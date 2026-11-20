@@ -18,8 +18,11 @@
 ;; values
 ;; 多值返回：max-retries base-delay-ms max-agent-delay-ms provider-max-retries。
 
-(import (liii check) (liii pi ai config retry)
-    (liii pi ai config settings) (liii pi ai retry))
+(import (liii check)
+  (liii pi ai config retry)
+  (liii pi ai config settings)
+  (liii pi ai retry)
+) ;import
 
 (check-set-mode! 'report-failed)
 

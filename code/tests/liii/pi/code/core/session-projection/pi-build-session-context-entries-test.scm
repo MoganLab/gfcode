@@ -29,6 +29,7 @@
 (check-set-mode! 'report-failed)
 
 ;; 用户消息条目
+
 (define (make-entry id parent-id)
   (list (cons "type" "message")
     (cons "id" id)
@@ -38,6 +39,7 @@
 ) ;define
 
 ;; 压缩条目
+
 (define (make-compaction id parent-id summary kept-id)
   (list (cons "type" "compaction")
     (cons "id" id)
@@ -53,8 +55,7 @@
 
 ;; 1. 无压缩线性会话：条目全部保留，顺序为根到叶
 (let*-values (((entries _state _diag)
-               (pi-build-session-context-entries
-                 (list (make-entry "a" 'null) (make-entry "b" "a") (make-entry "c" "b"))
+               (pi-build-session-context-entries (list (make-entry "a" 'null) (make-entry "b" "a") (make-entry "c" "b"))
                ) ;pi-build-session-context-entries
               ) ;
              ) ;
@@ -63,12 +64,11 @@
 
 ;; 2. 有压缩会话：压缩条目在首位，其后为保留条目与压缩点之后的条目
 (let*-values (((entries _state _diag)
-               (pi-build-session-context-entries
-                 (list (make-entry "m1" 'null)
-                   (make-entry "m2" "m1")
-                   (make-compaction "c1" "m2" "摘要" "m2")
-                   (make-entry "m3" "c1")
-                 ) ;list
+               (pi-build-session-context-entries (list (make-entry "m1" 'null)
+                                                   (make-entry "m2" "m1")
+                                                   (make-compaction "c1" "m2" "摘要" "m2")
+                                                   (make-entry "m3" "c1")
+                                                 ) ;list
                ) ;pi-build-session-context-entries
               ) ;
              ) ;
@@ -77,19 +77,17 @@
 
 ;; 3. 分叉会话：默认叶子取文件最后一条带 id 的条目
 (let*-values (((entries-all _s1 _d1)
-               (pi-build-session-context-entries
-                 (append (list (make-entry "root" 'null))
-                   (list (make-entry "b1" "root") (make-entry "b1-leaf" "b1"))
-                   (list (make-entry "b2" "root") (make-entry "b2-leaf" "b2"))
-                 ) ;append
+               (pi-build-session-context-entries (append (list (make-entry "root" 'null))
+                                                   (list (make-entry "b1" "root") (make-entry "b1-leaf" "b1"))
+                                                   (list (make-entry "b2" "root") (make-entry "b2-leaf" "b2"))
+                                                 ) ;append
                ) ;pi-build-session-context-entries
               ) ;
               ((entries-b1 _s2 _d2)
-               (pi-build-session-context-entries
-                 (append (list (make-entry "root" 'null))
-                   (list (make-entry "b1" "root") (make-entry "b1-leaf" "b1"))
-                   (list (make-entry "b2" "root") (make-entry "b2-leaf" "b2"))
-                 ) ;append
+               (pi-build-session-context-entries (append (list (make-entry "root" 'null))
+                                                   (list (make-entry "b1" "root") (make-entry "b1-leaf" "b1"))
+                                                   (list (make-entry "b2" "root") (make-entry "b2-leaf" "b2"))
+                                                 ) ;append
                  "b1-leaf"
                ) ;pi-build-session-context-entries
               ) ;
@@ -100,12 +98,13 @@
 
 ;; 4. 诊断信息与消息投影入口一致：断链与裁剪降级都记录原因
 (let*-values (((_entries _state diag)
-               (pi-build-session-context-entries
-                 (list (make-entry "a" 'null) (make-entry "b" "ghost"))
+               (pi-build-session-context-entries (list (make-entry "a" 'null) (make-entry "b" "ghost"))
                ) ;pi-build-session-context-entries
               ) ;
              ) ;
-  (check-true (string-contains? (cdr (or (assoc 'path-reason diag) '(#f . ""))) "ghost"))
+  (check-true
+    (string-contains? (cdr (or (assoc 'path-reason diag) '(#f . ""))) "ghost")
+  ) ;check-true
 ) ;let*-values
 
 (check-report)

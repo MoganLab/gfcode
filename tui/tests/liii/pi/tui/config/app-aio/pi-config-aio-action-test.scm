@@ -73,7 +73,8 @@
   =>
   '(delete-slot "coding-fast" 1)
 ) ;check
-(check (car (pi-config-aio-action st '((tab . 1) (chain . 0) (node . 0)) 1 "t"))
+(check
+  (car (pi-config-aio-action st '((tab . 1) (chain . 0) (node . 0)) 1 "t"))
   =>
   'edit-thinking
 ) ;check

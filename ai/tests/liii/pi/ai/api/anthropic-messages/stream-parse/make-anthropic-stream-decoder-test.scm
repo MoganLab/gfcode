@@ -34,7 +34,15 @@
 ;; 1. 文本流式增量与结束
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
        (decoder (make-anthropic-stream-decoder stream-state on-ev))
       ) ;
   (decoder "event: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}}\n\n"
@@ -56,7 +64,15 @@
 ;; 2. 普通 tool_use 流式参数拼接
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
        (decoder (make-anthropic-stream-decoder stream-state on-ev))
       ) ;
   (decoder "event: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"tool_use\",\"id\":\"call_1\",\"name\":\"bash\",\"input\":{}}}\n\n"
@@ -80,7 +96,15 @@
 ;; 3. 关键测试：tool_use 无参数 delta（如直接 stop），参数归一化为 '() 且不崩溃
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
        (decoder (make-anthropic-stream-decoder stream-state on-ev))
       ) ;
   (decoder "event: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"tool_use\",\"id\":\"call_empty\",\"name\":\"ls\",\"input\":{}}}\n\n"

@@ -15,9 +15,7 @@
 ;; alist
 ;; 包含 http 与 https 代理的 alist；无代理时返回空列表。
 
-(import (liii check)
-  (liii pi ai api openai-completions request)
-) ;import
+(import (liii check) (liii pi ai api openai-completions request))
 
 (check-set-mode! 'report-failed)
 

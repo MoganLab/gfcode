@@ -15,9 +15,7 @@
 ;; list
 ;; 已完成的 pi 消息块列表。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages stream-state)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -25,7 +23,7 @@
 (let ((state (make-anthropic-stream-state '() #f '() '() "end_turn" #f #f)))
   (check (anthropic-stream-state? state) => #t)
   (check (anthropic-stream-state-blocks state) => '())
-) ;let*
+) ;let
 
 
 (check-report)

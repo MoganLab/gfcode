@@ -6,12 +6,11 @@
 
 (define-library (liii pi ai message assistant)
   (import (scheme base) (liii base) (liii pi ai time))
-  (export pi-assistant-message pi-assistant-message?
-    pi-assistant-message-role pi-assistant-message-content
-    pi-assistant-message-stop-reason pi-assistant-message-error-message
-    pi-assistant-message-usage pi-assistant-message-timestamp
-    pi-assistant-message-provider pi-assistant-message-model
-    pi-assistant-message-api
+  (export pi-assistant-message pi-assistant-message? pi-assistant-message-role
+    pi-assistant-message-content pi-assistant-message-stop-reason
+    pi-assistant-message-error-message pi-assistant-message-usage
+    pi-assistant-message-timestamp pi-assistant-message-provider
+    pi-assistant-message-model pi-assistant-message-api
   ) ;export
   (begin
 

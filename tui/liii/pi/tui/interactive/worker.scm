@@ -97,7 +97,9 @@
         (pi-cfg-merge cfg
           (list (cons 'provider provider)
             (cons 'provider-api (pi-cfg-provider-api cfg provider model-id))
-            (cons 'headers (pi-resolve-request-headers models-store provider model-id api-key))
+            (cons 'headers
+              (pi-resolve-request-headers models-store provider model-id api-key)
+            ) ;cons
             (cons 'model-id model-id)
             (cons 'model-meta meta)
             (cons 'api-key api-key)

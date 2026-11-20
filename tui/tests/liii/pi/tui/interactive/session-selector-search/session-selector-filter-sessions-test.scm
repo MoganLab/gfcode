@@ -36,15 +36,28 @@
              "2026-10-20T08:00:00.000Z" 1 "hi" "hi"
            ) ;make-pi-session-info
        ) ;s1
-       (s2 (make-pi-session-info "/s2.jsonl" "id2" "/work" #f "c"
-             "2026-10-21T08:00:00.000Z" 1 "hi"
-             (string-append (string #\a #\l (integer->char #x80) #\p #\h #\a)
-               " alpha in body"
-             ) ;string-append
-           ) ;make-pi-session-info
+       (s2
+         (make-pi-session-info "/s2.jsonl"
+           "id2"
+           "/work"
+           #f
+           "c"
+           "2026-10-21T08:00:00.000Z"
+           1
+           "hi"
+           (string-append (string #\a #\l (integer->char 128) #\p #\h #\a)
+             " alpha in body"
+           ) ;string-append
+         ) ;make-pi-session-info
        ) ;s2
-       (bad (make-pi-session-info "/bad.jsonl" "bad" "/work" #f "c"
-              "2026-10-22T08:00:00.000Z" 1 "hi"
+       (bad (make-pi-session-info "/bad.jsonl"
+              "bad"
+              "/work"
+              #f
+              "c"
+              "2026-10-22T08:00:00.000Z"
+              1
+              "hi"
               (lambda () (error 'value-error "broken"))
             ) ;make-pi-session-info
        ) ;bad

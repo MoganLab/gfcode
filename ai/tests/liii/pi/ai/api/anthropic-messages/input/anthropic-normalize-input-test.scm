@@ -16,46 +16,56 @@
 ;; alist
 ;; 归一化后的参数 alist；空值统一返回 (())，可安全序列化为 {}。
 
-(import (liii check)
-  (liii json)
-  (liii pi ai api anthropic-messages input)
-) ;import
+(import (liii check) (liii json) (liii pi ai api anthropic-messages input))
 
 (check-set-mode! 'report-failed)
 
 ;; 1. 空值形态归一化为 (quote (()))，且序列化为 {}
 (check (anthropic-normalize-input '()) => '(()))
-(check (json->string (list (cons "input" (anthropic-normalize-input '()))))
-  => "{\"input\":{}}"
+(check
+  (json->string (list (cons "input" (anthropic-normalize-input '()))))
+  =>
+  "{\"input\":{}}"
 ) ;check
 
 (check (anthropic-normalize-input '(())) => '(()))
-(check (json->string (list (cons "input" (anthropic-normalize-input '(())))))
-  => "{\"input\":{}}"
+(check
+  (json->string
+    (list (cons "input" (anthropic-normalize-input '(()))))
+  ) ;json->string
+  =>
+  "{\"input\":{}}"
 ) ;check
 
 (check (anthropic-normalize-input #f) => '(()))
-(check (json->string (list (cons "input" (anthropic-normalize-input #f))))
-  => "{\"input\":{}}"
+(check
+  (json->string (list (cons "input" (anthropic-normalize-input #f))))
+  =>
+  "{\"input\":{}}"
 ) ;check
 
 (check (anthropic-normalize-input 'null) => '(()))
-(check (json->string (list (cons "input" (anthropic-normalize-input 'null))))
-  => "{\"input\":{}}"
+(check
+  (json->string (list (cons "input" (anthropic-normalize-input 'null))))
+  =>
+  "{\"input\":{}}"
 ) ;check
 
 ;; 2. 字符串形态解析与归一化
 (check (anthropic-normalize-input "") => '(()))
 (check (anthropic-normalize-input "   ") => '(()))
 (check (anthropic-normalize-input "{}") => '(()))
-(check (json->string (list (cons "input" (anthropic-normalize-input "{}"))))
-  => "{\"input\":{}}"
+(check
+  (json->string (list (cons "input" (anthropic-normalize-input "{}"))))
+  =>
+  "{\"input\":{}}"
 ) ;check
 
 (let ((res (anthropic-normalize-input "{\"path\":\"foo.txt\"}")))
   (check (cdr (assoc "path" res)) => "foo.txt")
   (check (json->string (list (cons "input" res)))
-    => "{\"input\":{\"path\":\"foo.txt\"}}"
+    =>
+    "{\"input\":{\"path\":\"foo.txt\"}}"
   ) ;check
 ) ;let
 
@@ -63,21 +73,21 @@
 (let ((res (anthropic-normalize-input '(("command" . "ls")))))
   (check (cdr (assoc "command" res)) => "ls")
   (check (json->string (list (cons "input" res)))
-    => "{\"input\":{\"command\":\"ls\"}}"
+    =>
+    "{\"input\":{\"command\":\"ls\"}}"
   ) ;check
 ) ;let
 
 ;; 4. 畸形 entry 兼容：如 (("path")) 不报错且能安全序列化
 (let ((res (anthropic-normalize-input '(("path")))))
-  (check (json->string (list (cons "input" res)))
-    => "{\"input\":{\"path\":{}}}"
-  ) ;check
+  (check (json->string (list (cons "input" res))) => "{\"input\":{\"path\":{}}}")
 ) ;let
 
 ;; 5. 嵌套畸形 entry
 (let ((res (anthropic-normalize-input '(("options" ("verbose"))))))
   (check (json->string (list (cons "input" res)))
-    => "{\"input\":{\"options\":{\"verbose\":{}}}}"
+    =>
+    "{\"input\":{\"options\":{\"verbose\":{}}}}"
   ) ;check
 ) ;let
 

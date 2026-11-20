@@ -33,9 +33,13 @@
 (check-set-mode! 'report-failed)
 
 ;; 聊天区卡片的纯文本
+
 (define (chat-text app)
   (string-join
-    (map (lambda (child) (string-join (map strip-ansi (component-render child 100)) "\n"))
+    (map
+      (lambda (child)
+        (string-join (map strip-ansi (component-render child 100)) "\n")
+      ) ;lambda
       (pi-app-chat app)
     ) ;map
     "\n"
@@ -43,7 +47,10 @@
 ) ;define
 
 ;; 临时会话目录
-(define %tmp-dir (path->string (path-join (path-temp-dir) "test-pi-app-history-1323")))
+
+(define %tmp-dir
+  (path->string (path-join (path-temp-dir) "test-pi-app-history-1323"))
+) ;define
 
 (define (make-session-file name)
   (let ((dir (path->string (path-join %tmp-dir name))))
@@ -53,6 +60,7 @@
 ) ;define
 
 ;; 写入一个含用户消息、助手回复与工具调用的会话
+
 (define (write-sample-session! file)
   (save-session-header! file "sess-1323" "2026-11-04T08:00:00.000Z" %tmp-dir)
   (save-session-message! file
@@ -60,21 +68,23 @@
     "2026-11-04T08:00:01.000Z"
   ) ;save-session-message!
   (save-session-message! file
-    (string-append
-      "{\"role\":\"assistant\",\"content\":["
+    (string-append "{\"role\":\"assistant\",\"content\":["
       "{\"type\":\"thinking\",\"thinking\":\"历史推理\"},"
       "{\"type\":\"text\",\"text\":\"历史回答暗号\"},"
       "{\"type\":\"toolCall\",\"id\":\"call-1\",\"name\":\"mytool\",\"arguments\":{}}"
       "]}"
     ) ;string-append
-    "m2" "m1" "2026-11-04T08:00:02.000Z"
+    "m2"
+    "m1"
+    "2026-11-04T08:00:02.000Z"
   ) ;save-session-message!
   (save-session-message! file
-    (string-append
-      "{\"role\":\"toolResult\",\"toolCallId\":\"call-1\",\"toolName\":\"mytool\","
+    (string-append "{\"role\":\"toolResult\",\"toolCallId\":\"call-1\",\"toolName\":\"mytool\","
       "\"content\":[{\"type\":\"text\",\"text\":\"历史工具输出\"}],\"isError\":false}"
     ) ;string-append
-    "m3" "m2" "2026-11-04T08:00:03.000Z"
+    "m3"
+    "m2"
+    "2026-11-04T08:00:03.000Z"
   ) ;save-session-message!
   file
 ) ;define
@@ -98,7 +108,10 @@
   (check-true (string-contains? text "历史工具输出"))
   ;; 工具卡片索引按 toolCallId 重建
   (check (length (%pi-app-tool-cards app)) => 1)
-  (check (assoc "call-1" (%pi-app-tool-cards app)) => (assoc "call-1" (%pi-app-tool-cards app)))
+  (check (assoc "call-1" (%pi-app-tool-cards app))
+    =>
+    (assoc "call-1" (%pi-app-tool-cards app))
+  ) ;check
 ) ;let*
 
 ;; 2. 重复重建幂等：不产生重复卡片
@@ -151,7 +164,8 @@
       ) ;
   (pi-app-rebuild-history! app file)
   (let ((before (length (pi-app-chat app))))
-    (check-false (pi-app-rebuild-history! app (path->string (path-join %tmp-dir "nope.jsonl"))))
+    (check-false (pi-app-rebuild-history! app (path->string (path-join %tmp-dir "nope.jsonl")))
+    ) ;check-false
     (check (length (pi-app-chat app)) => before)
   ) ;let
 ) ;let*
@@ -166,7 +180,10 @@
   (pi-app-rebuild-history! app file)
   (check (pi-app-thinking-card app) => #f)
   (check (assoc "old" (%pi-app-tool-cards app)) => #f)
-  (check (assoc "call-1" (%pi-app-tool-cards app)) => (assoc "call-1" (%pi-app-tool-cards app)))
+  (check (assoc "call-1" (%pi-app-tool-cards app))
+    =>
+    (assoc "call-1" (%pi-app-tool-cards app))
+  ) ;check
 ) ;let*
 
 ;; 7. 恢复的历史进入退出 transcript
@@ -199,7 +216,10 @@
   (check-true (pi-app-rebuild-history! app file))
   (check-true (string-contains? (chat-text app) "损坏之前的消息"))
   ;; 原 JSONL 不被改写
-  (check-true (string-contains? (string-join (path-read-lines file) "\n") "{ this is not json"))
+  (check-true (string-contains? (string-join (path-read-lines file) "\n")
+                "{ this is not json"
+              ) ;string-contains?
+  ) ;check-true
 ) ;let*
 
 ;; 9. 压缩会话：显示摘要与压缩点保留的消息，不重铺被裁掉的旧消息
@@ -217,8 +237,7 @@
     "m2" "m1" "2026-11-04T12:00:02.000Z"
   ) ;save-session-message!
   (append-session-entry! file
-    (string-append
-      "{\"type\":\"compaction\",\"id\":\"c1\",\"parentId\":\"m2\","
+    (string-append "{\"type\":\"compaction\",\"id\":\"c1\",\"parentId\":\"m2\","
       "\"timestamp\":\"2026-11-04T12:00:03.000Z\","
       "\"summary\":\"早期对话摘要\",\"firstKeptEntryId\":\"m2\"}"
     ) ;string-append

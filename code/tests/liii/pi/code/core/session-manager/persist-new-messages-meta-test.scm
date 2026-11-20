@@ -33,19 +33,22 @@
 (check-set-mode! 'report-failed)
 
 ;; 助手消息持久化为裸消息 alist，读回时 role 在第一层且元数据完整
-(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-pi-persist-meta")))
-      ) ;
-  (when (file-exists? tmp-dir) (path-rmdir tmp-dir))
+(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-pi-persist-meta"))))
+  (when (file-exists? tmp-dir)
+    (path-rmdir tmp-dir)
+  ) ;when
   (path-mkdir tmp-dir :parents #t :exist-ok #t)
   (let ((session-file (path->string (path-join tmp-dir "meta.jsonl"))))
-    (save-session-header! session-file "sess-meta" "2026-11-10T08:00:00.000Z" tmp-dir)
+    (save-session-header! session-file "sess-meta" "2026-11-10T08:00:00.000Z"
+      tmp-dir
+    ) ;save-session-header!
     (persist-new-messages! session-file
       '()
       (list (pi-assistant-message (list (pi-text-block "hi"))
               :stop-reason "stop"
-              :provider "google"
-              :model "gemini-2.5-flash"
-              :api "google-generative-ai"
+              :provider    "google"
+              :model       "gemini-2.5-flash"
+              :api         "google-generative-ai"
             ) ;pi-assistant-message
       ) ;list
     ) ;persist-new-messages!
@@ -67,24 +70,28 @@
 ;; （跨模型切换后 /resume 恢复会话的判定依据）
 (let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-pi-persist-meta-proj")))
       ) ;
-  (when (file-exists? tmp-dir) (path-rmdir tmp-dir))
+  (when (file-exists? tmp-dir)
+    (path-rmdir tmp-dir)
+  ) ;when
   (path-mkdir tmp-dir :parents #t :exist-ok #t)
   (let ((session-file (path->string (path-join tmp-dir "meta-proj.jsonl"))))
-    (save-session-header! session-file "sess-meta-proj" "2026-11-10T08:00:00.000Z" tmp-dir)
+    (save-session-header! session-file "sess-meta-proj"
+      "2026-11-10T08:00:00.000Z" tmp-dir
+    ) ;save-session-header!
     (persist-new-messages! session-file
       '()
       (list (pi-assistant-message (list (pi-text-block "hi"))
               :stop-reason "stop"
-              :provider "minimax-cn"
-              :model "MiniMax-M2.7"
-              :api "anthropic-messages"
+              :provider    "minimax-cn"
+              :model       "MiniMax-M2.7"
+              :api         "anthropic-messages"
             ) ;pi-assistant-message
       ) ;list
     ) ;persist-new-messages!
     (let-values (((msgs state diagnostics)
                   (pi-build-session-projection (pi-read-session-entries session-file))
+                 ) ;
                 ) ;
-               ) ;
       (check (length msgs) => 1)
       (let ((back (car msgs)))
         (check (pi-assistant-message-provider back) => "minimax-cn")

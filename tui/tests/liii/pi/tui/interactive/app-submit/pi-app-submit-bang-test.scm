@@ -17,11 +17,7 @@
 ;; any
 ;; 执行消息入队或命令派发的副作用。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

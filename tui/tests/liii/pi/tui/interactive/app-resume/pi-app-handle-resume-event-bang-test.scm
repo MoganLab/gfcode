@@ -34,9 +34,13 @@
 (check-set-mode! 'report-failed)
 
 ;; 聊天区卡片的纯文本
+
 (define (chat-text app)
   (string-join
-    (map (lambda (child) (string-join (map strip-ansi (component-render child 100)) "\n"))
+    (map
+      (lambda (child)
+        (string-join (map strip-ansi (component-render child 100)) "\n")
+      ) ;lambda
       (pi-app-chat app)
     ) ;map
     "\n"
@@ -116,7 +120,10 @@
   (pi-app-add-user-message! app "原有会话的消息")
   (let ((before (length (pi-app-chat app))))
     (pi-app-handle-resume-event! app
-      (list 'session_resumed (path->string (path-join (path-temp-dir) "missing-1323.jsonl")) #f)
+      (list 'session_resumed
+        (path->string (path-join (path-temp-dir) "missing-1323.jsonl"))
+        #f
+      ) ;list
     ) ;pi-app-handle-resume-event!
     (check (length (pi-app-chat app)) => (+ before 1))
     (check-true (string-contains? (chat-text app) "原有会话的消息"))

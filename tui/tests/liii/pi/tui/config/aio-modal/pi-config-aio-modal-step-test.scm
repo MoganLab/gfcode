@@ -76,17 +76,32 @@
   (check (cdr (assoc 'mode m2)) => 'pick-thinking)
   (check (cdr (assoc 'modal r4)) => #f)
   (check (pair? (cdr (assoc 'writes r4))) => #t)
-  (check (string-contains? (cdar (cdr (assoc 'writes r4))) "gemini-3.8-flash") => #t)
-  (check (string-contains? (cdar (cdr (assoc 'writes r4))) "\"thinkingLevel\": \"high\"") => #t)
+  (check
+    (string-contains? (cdar (cdr (assoc 'writes r4))) "gemini-3.8-flash")
+    =>
+    #t
+  ) ;check
+  (check
+    (string-contains? (cdar (cdr (assoc 'writes r4))) "\"thinkingLevel\": \"high\"")
+    =>
+    #t
+  ) ;check
 ) ;let*
 
 ;; 3. thinking-picker 调整已有槽位思考强度
-(let* ((m0 (pi-config-aio-modal-thinking-picker "coding-fast" 0 "google" "gemini-3.8-flash" "medium"))
+(let* ((m0 (pi-config-aio-modal-thinking-picker "coding-fast" 0 "google"
+             "gemini-3.8-flash" "medium"
+           ) ;pi-config-aio-modal-thinking-picker
+       ) ;m0
        (r1 (pi-config-aio-modal-step st m0 'up))
        (r2 (pi-config-aio-modal-step st (cdr (assoc 'modal r1)) 'enter))
       ) ;
   (check (cdr (assoc 'modal r2)) => #f)
-  (check (string-contains? (cdar (cdr (assoc 'writes r2))) "\"thinkingLevel\": \"low\"") => #t)
+  (check
+    (string-contains? (cdar (cdr (assoc 'writes r2))) "\"thinkingLevel\": \"low\"")
+    =>
+    #t
+  ) ;check
 ) ;let*
 
 (rmtree (path->string TMP-DIR))

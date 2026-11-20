@@ -34,7 +34,7 @@
 
 (import (liii check)
   (liii string)
- 
+
   (liii pi ai message)
   (liii pi ai api google-generative-ai stream-result)
   (liii pi ai api google-generative-ai stream-state)
@@ -75,7 +75,9 @@
         ) ;msg
        ) ;
     (check (pi-assistant-message-stop-reason msg) => "error")
-    (check-true (string-contains? (pi-assistant-message-error-message msg) "Stream idle timed out")
+    (check-true (string-contains? (pi-assistant-message-error-message msg)
+                  "Stream idle timed out"
+                ) ;string-contains?
     ) ;check-true
   ) ;let
 ) ;let
@@ -119,7 +121,10 @@
         ) ;msg
        ) ;
     (check (pi-assistant-message-stop-reason msg) => "error")
-    (check (pi-assistant-message-error-message msg) => "Request failed: connection refused")
+    (check (pi-assistant-message-error-message msg)
+      =>
+      "Request failed: connection refused"
+    ) ;check
   ) ;let
 ) ;let
 

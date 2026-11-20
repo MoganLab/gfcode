@@ -15,11 +15,7 @@
 ;; any
 ;; 供应商名称（string 或 #f）。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

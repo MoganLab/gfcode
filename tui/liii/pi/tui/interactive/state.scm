@@ -45,10 +45,7 @@
     %pi-app-tool-timer-last-tick-set! pi-app-tool-timer-last-tick-set!
     pi-app-pending-model-switch %pi-app-pending-model-switch-set!
   ) ;export
-  (import (scheme base)
-    (liii date-time)
-    (liii pi tui interactive selection)
-  ) ;import
+  (import (scheme base) (liii date-time) (liii pi tui interactive selection))
   (begin
 
     ;; 编辑器顶边框：开启时占 1 行，渲染时光标行需跳过该行

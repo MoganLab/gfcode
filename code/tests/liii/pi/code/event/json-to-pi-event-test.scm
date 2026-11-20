@@ -33,10 +33,24 @@
 
 ;; 2. session / agent_start / turn_start / agent_settled
 (let* ((s (pi-event-session "/tmp/work" "id-1" "2026-01-01T00:00:00Z"))
-       (rs (json->pi-event (string->json (json->string (pi-event->json s)))))
-       (ra (json->pi-event (string->json (json->string (pi-event->json (pi-event-agent-start))))))
-       (rt (json->pi-event (string->json (json->string (pi-event->json (pi-event-turn-start))))))
-       (rset (json->pi-event (string->json (json->string (pi-event->json (pi-event-agent-settled #t))))))
+       (rs
+         (json->pi-event (string->json (json->string (pi-event->json s))))
+       ) ;rs
+       (ra
+         (json->pi-event
+           (string->json (json->string (pi-event->json (pi-event-agent-start))))
+         ) ;json->pi-event
+       ) ;ra
+       (rt
+         (json->pi-event
+           (string->json (json->string (pi-event->json (pi-event-turn-start))))
+         ) ;json->pi-event
+       ) ;rt
+       (rset
+         (json->pi-event
+           (string->json (json->string (pi-event->json (pi-event-agent-settled #t))))
+         ) ;json->pi-event
+       ) ;rset
       ) ;
   (check-true (pi-event-session? rs))
   (check (pi-event-session-id rs) => "id-1")
@@ -50,13 +64,14 @@
 ;; 3. message_end 嵌套 message 与 block
 (let* ((msg (pi-assistant-message (list (pi-text-block "done")) :timestamp 123))
        (ev (pi-event-message-end msg))
-       (r (json->pi-event (string->json (json->string (pi-event->json ev)))))
+       (r
+         (json->pi-event (string->json (json->string (pi-event->json ev))))
+       ) ;r
       ) ;
   (check-true (pi-event-message-end? r))
   (check-true (pi-assistant-message? (pi-event-message-end-message r)))
   (check-true
-    (pi-text-block?
-      (vector-ref (pi-assistant-message-content (pi-event-message-end-message r)) 0)
+    (pi-text-block? (vector-ref (pi-assistant-message-content (pi-event-message-end-message r)) 0)
     ) ;pi-text-block?
   ) ;check-true
 ) ;let*
@@ -64,7 +79,9 @@
 ;; 4. tool_execution_end 嵌套 pi-tool-result
 (let* ((res (pi-tool-result "ok" #f))
        (ev (pi-event-tool-execution-end "c1" "bash" res #f 42))
-       (r (json->pi-event (string->json (json->string (pi-event->json ev)))))
+       (r
+         (json->pi-event (string->json (json->string (pi-event->json ev))))
+       ) ;r
       ) ;
   (check-true (pi-event-tool-execution-end? r))
   (check (pi-event-tool-execution-end-tool-call-id r) => "c1")
@@ -76,7 +93,9 @@
 ;; 5. agent_end 嵌套消息列表
 (let* ((msg (pi-user-message "hi" 100))
        (ev (pi-event-agent-end (list msg) #t '(("total" . 0.01))))
-       (r (json->pi-event (string->json (json->string (pi-event->json ev)))))
+       (r
+         (json->pi-event (string->json (json->string (pi-event->json ev))))
+       ) ;r
       ) ;
   (check-true (pi-event-agent-end? r))
   (check (pi-event-agent-end-will-retry r) => #t)

@@ -63,28 +63,69 @@
 (rmtree (path->string TMP-DIR))
 
 ;; 端到端：在 all-in-one 子标签页创建新伪模型、添加槽位、调整思考强度、置顶与删除
+
 (define (make-e2e-dir name)
-  (let ((d (path-join (path-temp-dir) (string-append "pi-cfg-e2e-" name "-" (number->string (getpid))))))
-    (when (file-exists? (path->string d)) (rmtree (path->string d)))
+  (let ((d
+          (path-join (path-temp-dir)
+            (string-append "pi-cfg-e2e-" name "-" (number->string (getpid)))
+          ) ;path-join
+        ) ;d
+       ) ;
+    (when (file-exists? (path->string d))
+      (rmtree (path->string d))
+    ) ;when
     (path-mkdir (path-join d "models") :parents #t :exist-ok #t)
-    (path-write-text (path-join d "models" "providers.json") "[\"kimi-coding\",\"google\",\"minimax-cn\"]")
+    (path-write-text (path-join d "models" "providers.json")
+      "[\"kimi-coding\",\"google\",\"minimax-cn\"]"
+    ) ;path-write-text
     (path->string d)
   ) ;let
 ) ;define
 
-(let ((dir (make-e2e-dir "create-and-slot")) (vt (make-virtual-terminal :width 120 :height 24)))
+(let ((dir (make-e2e-dir "create-and-slot"))
+      (vt (make-virtual-terminal :width 120 :height 24))
+     ) ;
   (for-each (lambda (k) (virtual-terminal-push-key! vt k))
-    (list "2" "a" "m" "y" "-" "c" "h" 'enter 'down 'down 'right 'enter 'enter 'enter 'enter
-      "1" "g" 'down 'down 'down 'q
+    (list "2"
+      "a"
+      "m"
+      "y"
+      "-"
+      "c"
+      "h"
+      'enter
+      'down
+      'down
+      'right
+      'enter
+      'enter
+      'enter
+      'enter
+      "1"
+      "g"
+      'down
+      'down
+      'down
+      'q
     ) ;list
   ) ;for-each
   (check (pi-config-run dir :terminal vt :env '()) => 'chat)
-  (check (string-contains? (path-read-text (path-join dir "all-in-one.json")) "\"id\": \"my-ch\"") => #t)
-  (check (string-contains? (string-join (virtual-terminal-screen vt) "\n") "my-ch") => #t)
+  (check (string-contains? (path-read-text (path-join dir "all-in-one.json"))
+           "\"id\": \"my-ch\""
+         ) ;string-contains?
+    =>
+    #t
+  ) ;check
+  (check (string-contains? (string-join (virtual-terminal-screen vt) "\n") "my-ch")
+    =>
+    #t
+  ) ;check
   (rmtree dir)
 ) ;let
 
-(let ((dir (make-e2e-dir "edit-del-promote")) (vt (make-virtual-terminal :width 120 :height 24)))
+(let ((dir (make-e2e-dir "edit-del-promote"))
+      (vt (make-virtual-terminal :width 120 :height 24))
+     ) ;
   (for-each (lambda (k) (virtual-terminal-push-key! vt k))
     (list "2" 'right 'down " " "t" 'down 'enter "d" 'left "d" 'q)
   ) ;for-each

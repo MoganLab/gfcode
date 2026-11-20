@@ -15,11 +15,7 @@
 ;; boolean
 ;; 成功出队并渲染消息时返回 #t，队列空或忙碌未处理时返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

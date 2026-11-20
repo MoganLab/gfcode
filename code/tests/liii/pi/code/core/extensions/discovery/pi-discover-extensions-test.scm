@@ -33,7 +33,9 @@
 
 
 (define (get-fixtures-dir)
-  (cond ((file-exists? "code/tests/fixtures/extensions") "code/tests/fixtures/extensions")
+  (cond ((file-exists? "code/tests/fixtures/extensions")
+         "code/tests/fixtures/extensions"
+        ) ;
         ((file-exists? "tests/fixtures/extensions") "tests/fixtures/extensions")
         (else "../code/tests/fixtures/extensions")
   ) ;cond
@@ -51,8 +53,7 @@
     (string-replace (json->string (string-replace p "\\" "/")) "\\/" "/")
   ) ;define
   (path-write-text (path (string-append dir "/gfproject.json"))
-    (string-append
-      "{\"domains\":{"
+    (string-append "{\"domains\":{"
       "\"agent\":{\"root\":"
       (path-json (string-append PROJECT_ROOT "/agent/"))
       ",\"depends-on\":[],\"mode\":\"r7rs\"},"

@@ -26,7 +26,7 @@
   (liii check)
   (liii path)
   (liii shutil)
-  
+
   (liii pi code cli args)
   (liii pi code config)
   (liii pi code session-state)
@@ -170,10 +170,7 @@
                ) ;
               ) ;
     (check (pi-cfg-ref merged 'provider) => "minimax-cn")
-    (check (pi-cfg-ref merged 'thinking-level)
-      =>
-      (pi-cfg-ref cfg 'thinking-level)
-    ) ;check
+    (check (pi-cfg-ref merged 'thinking-level) => (pi-cfg-ref cfg 'thinking-level))
     (check warnings => '())
   ) ;let-values
 ) ;let*

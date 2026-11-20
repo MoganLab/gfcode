@@ -15,10 +15,7 @@
 ;; list?
 ;; 匹配到的命令 alist 列表；若无匹配或已进入参数输入则返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive slash-command-menu)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive slash-command-menu))
 
 (check-set-mode! 'report-failed)
 

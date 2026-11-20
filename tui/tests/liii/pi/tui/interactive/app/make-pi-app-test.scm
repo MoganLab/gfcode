@@ -45,7 +45,8 @@
 ) ;let*
 
 ;; 3. 带 session-file 创建应用：恢复该会话的可见历史
-(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-make-pi-app-history-1323")))
+(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-make-pi-app-history-1323"))
+       ) ;tmp-dir
        (file (path->string (path-join tmp-dir "session.jsonl")))
        (vt (make-virtual-terminal :width 80 :height 24))
        (app #f)
@@ -63,7 +64,9 @@
     "{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"启动前的历史回答\"}]}"
     "m2" "m1" "2026-11-04T08:00:02.000Z"
   ) ;save-session-message!
-  (set! app (make-pi-app :terminal vt :handler (lambda (a msg) #t) :session-file file))
+  (set! app
+    (make-pi-app :terminal vt :handler (lambda (a msg) #t) :session-file file)
+  ) ;set!
   (let ((plain (string-join (map strip-ansi (pi-app-transcript-lines app)) "\n")))
     (check-true (string-contains? plain "启动前的历史提问"))
     (check-true (string-contains? plain "启动前的历史回答"))

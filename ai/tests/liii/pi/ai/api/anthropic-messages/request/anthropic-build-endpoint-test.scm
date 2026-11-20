@@ -15,30 +15,35 @@
 ;; string
 ;; 形如 <base-url>/v1/messages 的请求 URL。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages request)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages request))
 
 (check-set-mode! 'report-failed)
 
 ;; 官方端点
 (check (anthropic-build-endpoint "https://api.anthropic.com")
-  => "https://api.anthropic.com/v1/messages")
+  =>
+  "https://api.anthropic.com/v1/messages"
+) ;check
 
 ;; 缺省值
-(check (anthropic-build-endpoint #f)
-  => "https://api.anthropic.com/v1/messages")
+(check (anthropic-build-endpoint #f) => "https://api.anthropic.com/v1/messages")
 
 ;; 带尾斜杠
 (check (anthropic-build-endpoint "https://api.anthropic.com/")
-  => "https://api.anthropic.com/v1/messages")
+  =>
+  "https://api.anthropic.com/v1/messages"
+) ;check
 
 ;; glm 的 Anthropic 兼容端点
 (check (anthropic-build-endpoint "https://open.bigmodel.cn/api/anthropic")
-  => "https://open.bigmodel.cn/api/anthropic/v1/messages")
+  =>
+  "https://open.bigmodel.cn/api/anthropic/v1/messages"
+) ;check
 
 ;; deepseek 的 Anthropic 兼容端点
 (check (anthropic-build-endpoint "https://api.deepseek.com/anthropic")
-  => "https://api.deepseek.com/anthropic/v1/messages")
+  =>
+  "https://api.deepseek.com/anthropic/v1/messages"
+) ;check
 
 (check-report)

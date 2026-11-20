@@ -27,63 +27,79 @@
 (let* ((raw '(("prompt_tokens" . 120)
               ("completion_tokens" . 45)
               ("total_tokens" . 165)
-              ("prompt_tokens_details" . (("cached_tokens" . 80)
-                                          ("cache_write_tokens" . 0)))))
-       (u (openai-map-usage raw)))
+              ("prompt_tokens_details"
+               ("cached_tokens" . 80)
+               ("cache_write_tokens" . 0)))
+       ) ;raw
+       (u (openai-map-usage raw))
+      ) ;
   (check (cdr (assoc 'input u)) => 40)
   (check (cdr (assoc 'output u)) => 45)
   (check (cdr (assoc 'cacheRead u)) => 80)
   (check (cdr (assoc 'cacheWrite u)) => 0)
-  (check (cdr (assoc 'totalTokens u)) => 165))
+  (check (cdr (assoc 'totalTokens u)) => 165)
+) ;let*
 
 ;; 2. DeepSeek 风格格式 (prompt_cache_hit_tokens)
 (let* ((raw '(("prompt_tokens" . 200)
               ("completion_tokens" . 50)
               ("total_tokens" . 250)
               ("prompt_cache_hit_tokens" . 150)
-              ("prompt_cache_miss_tokens" . 50)))
-       (u (openai-map-usage raw)))
+              ("prompt_cache_miss_tokens" . 50))
+       ) ;raw
+       (u (openai-map-usage raw))
+      ) ;
   (check (cdr (assoc 'input u)) => 50)
   (check (cdr (assoc 'output u)) => 50)
   (check (cdr (assoc 'cacheRead u)) => 150)
   (check (cdr (assoc 'cacheWrite u)) => 0)
-  (check (cdr (assoc 'totalTokens u)) => 250))
+  (check (cdr (assoc 'totalTokens u)) => 250)
+) ;let*
 
 ;; 3. Moonshot / Kimi 顶层 cached_tokens 格式
 (let* ((raw '(("prompt_tokens" . 100)
               ("completion_tokens" . 30)
               ("total_tokens" . 130)
-              ("cached_tokens" . 60)))
-       (u (openai-map-usage raw)))
+              ("cached_tokens" . 60))
+       ) ;raw
+       (u (openai-map-usage raw))
+      ) ;
   (check (cdr (assoc 'input u)) => 40)
   (check (cdr (assoc 'output u)) => 30)
   (check (cdr (assoc 'cacheRead u)) => 60)
   (check (cdr (assoc 'cacheWrite u)) => 0)
-  (check (cdr (assoc 'totalTokens u)) => 130))
+  (check (cdr (assoc 'totalTokens u)) => 130)
+) ;let*
 
 ;; 4. 同时包含 cacheRead 与 cacheWrite (prompt_tokens_details)
 (let* ((raw '(("prompt_tokens" . 150)
               ("completion_tokens" . 50)
               ("total_tokens" . 200)
-              ("prompt_tokens_details" . (("cached_tokens" . 80)
-                                          ("cache_write_tokens" . 20)))))
-       (u (openai-map-usage raw)))
+              ("prompt_tokens_details"
+               ("cached_tokens" . 80)
+               ("cache_write_tokens" . 20)))
+       ) ;raw
+       (u (openai-map-usage raw))
+      ) ;
   (check (cdr (assoc 'input u)) => 50)
   (check (cdr (assoc 'output u)) => 50)
   (check (cdr (assoc 'cacheRead u)) => 80)
   (check (cdr (assoc 'cacheWrite u)) => 20)
-  (check (cdr (assoc 'totalTokens u)) => 200))
+  (check (cdr (assoc 'totalTokens u)) => 200)
+) ;let*
 
 ;; 5. 无任何缓存活动（首轮普通调用，或符号 key）
 (let* ((raw '((prompt_tokens . 100)
               (completion_tokens . 25)
               (total_tokens . 125)))
-       (u (openai-map-usage raw)))
+       (u (openai-map-usage raw))
+      ) ;
   (check (cdr (assoc 'input u)) => 100)
   (check (cdr (assoc 'output u)) => 25)
   (check (cdr (assoc 'cacheRead u)) => 0)
   (check (cdr (assoc 'cacheWrite u)) => 0)
-  (check (cdr (assoc 'totalTokens u)) => 125))
+  (check (cdr (assoc 'totalTokens u)) => 125)
+) ;let*
 
 ;; 6. 空 usage 边界防御
 (let ((u (openai-map-usage '())))
@@ -91,15 +107,18 @@
   (check (cdr (assoc 'output u)) => 0)
   (check (cdr (assoc 'cacheRead u)) => 0)
   (check (cdr (assoc 'cacheWrite u)) => 0)
-  (check (cdr (assoc 'totalTokens u)) => 0))
+  (check (cdr (assoc 'totalTokens u)) => 0)
+) ;let
 
 (check-report)
 
 ;; 7. reasoning 字段：completion_tokens_details.reasoning_tokens 单列
 (let* ((raw '(("prompt_tokens" . 100)
               ("completion_tokens" . 50)
-              ("completion_tokens_details" . (("reasoning_tokens" . 30)))))
-       (u (openai-map-usage raw)))
+              ("completion_tokens_details" ("reasoning_tokens" . 30)))
+       ) ;raw
+       (u (openai-map-usage raw))
+      ) ;
   (check (cdr (assoc 'reasoning u)) => 30)
   (check (cdr (assoc 'output u)) => 50)
 ) ;let*
@@ -115,8 +134,10 @@
               ("prompt_tokens_details" . null)
               ("completion_tokens_details" . null)
               ("cached_tokens" . null)
-              ("prompt_cache_hit_tokens" . null)))
-       (u (openai-map-usage raw)))
+              ("prompt_cache_hit_tokens" . null))
+       ) ;raw
+       (u (openai-map-usage raw))
+      ) ;
   (check (cdr (assoc 'input u)) => 100)
   (check (cdr (assoc 'output u)) => 20)
   (check (cdr (assoc 'cacheRead u)) => 0)

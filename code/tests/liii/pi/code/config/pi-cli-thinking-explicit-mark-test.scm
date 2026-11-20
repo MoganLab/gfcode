@@ -43,7 +43,9 @@
   (rmtree TMP-DIR #t)
 ) ;when
 (path-mkdir (path (path-join TMP-DIR "models" "stub")) :parents #t :exist-ok #t)
-(path-write-text (path->string (path-join TMP-DIR "models" "providers.json")) "[\"stub\"]")
+(path-write-text (path->string (path-join TMP-DIR "models" "providers.json"))
+  "[\"stub\"]"
+) ;path-write-text
 (path-write-text (path->string (path-join TMP-DIR "auth.json"))
   "{\"stub\":{\"type\":\"api_key\",\"key\":\"k\"}}"
 ) ;path-write-text
@@ -64,14 +66,10 @@
 ) ;define
 
 ;; 1. 显式 --thinking high：标记为 #t，来源为 cli，生效值 high
-(let ((cfg (resolve-pi-config
-             (make-pi-cli-args :provider "stub"
-               :model "one"
-               :thinking-level "high"
-             ) ;make-pi-cli-args
+(let ((cfg (resolve-pi-config (make-pi-cli-args :provider "stub" :model "one" :thinking-level "high")
              ENV
            ) ;resolve-pi-config
-          ) ;
+      ) ;cfg
      ) ;
   (check (cfg-ref cfg 'thinking-level) => "high")
   (check (cfg-ref cfg 'thinking-level-explicit?) => #t)
@@ -79,23 +77,17 @@
 ) ;let
 
 ;; 2. 无 --thinking：settings 默认值 low 不得被标为显式覆盖
-(let ((cfg (resolve-pi-config
-             (make-pi-cli-args :provider "stub" :model "one")
-             ENV
-           ) ;resolve-pi-config
-          ) ;
-     ) ;
+(let ((cfg (resolve-pi-config (make-pi-cli-args :provider "stub" :model "one") ENV)))
   (check (cfg-ref cfg 'thinking-level) => "low")
   (check (cfg-ref cfg 'thinking-level-explicit?) => #f)
   (check (cfg-ref cfg 'thinking-level-source) => 'default)
 ) ;let
 
 ;; 3. --thinking 为空串或空白串：同样不视为显式
-(let ((cfg (resolve-pi-config
-             (make-pi-cli-args :provider "stub" :model "one" :thinking-level "  ")
+(let ((cfg (resolve-pi-config (make-pi-cli-args :provider "stub" :model "one" :thinking-level "  ")
              ENV
            ) ;resolve-pi-config
-          ) ;
+      ) ;cfg
      ) ;
   (check (cfg-ref cfg 'thinking-level-explicit?) => #f)
 ) ;let

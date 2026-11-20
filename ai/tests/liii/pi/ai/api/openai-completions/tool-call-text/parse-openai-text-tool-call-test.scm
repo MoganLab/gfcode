@@ -15,36 +15,33 @@
 ;; pair | #f
 ;; 解析出的 (工具名 . 参数 alist)；没有工具调用时返回 #f。
 
-(import (liii check)
-  (liii pi ai api openai-completions tool-call-text)
-) ;import
+(import (liii check) (liii pi ai api openai-completions tool-call-text))
 
 (check-set-mode! 'report-failed)
 
 ;; XML 形式优先
-(check (parse-openai-text-tool-call
-         "<tool_call><function=bash><parameter=command>ls</parameter></function></tool_call>")
+(check (parse-openai-text-tool-call "<tool_call><function=bash><parameter=command>ls</parameter></function></tool_call>"
+       ) ;parse-openai-text-tool-call
   =>
   (cons "bash" '(("command" . "ls")))
 ) ;check
 
 ;; JSON 形式：arguments 已是 alist
-(check (parse-openai-text-tool-call
-         "{\"name\":\"bash\",\"arguments\":{\"command\":\"ls\"}}")
+(check (parse-openai-text-tool-call "{\"name\":\"bash\",\"arguments\":{\"command\":\"ls\"}}"
+       ) ;parse-openai-text-tool-call
   =>
   (cons "bash" '(("command" . "ls")))
 ) ;check
 
 ;; JSON 形式：arguments 是字符串时解析为 alist
-(check (parse-openai-text-tool-call
-         "{\"name\":\"bash\",\"arguments\":\"{\\\"command\\\":\\\"ls\\\"}\"}")
+(check (parse-openai-text-tool-call "{\"name\":\"bash\",\"arguments\":\"{\\\"command\\\":\\\"ls\\\"}\"}"
+       ) ;parse-openai-text-tool-call
   =>
   (cons "bash" '(("command" . "ls")))
 ) ;check
 
 ;; bash 工具的字符串参数归一为 command
-(check (parse-openai-text-tool-call
-         "{\"name\":\"bash\",\"arguments\":\"ls -l\"}")
+(check (parse-openai-text-tool-call "{\"name\":\"bash\",\"arguments\":\"ls -l\"}")
   =>
   (cons "bash" '(("command" . "ls -l")))
 ) ;check

@@ -15,11 +15,7 @@
 ;; any
 ;; 终端对象。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

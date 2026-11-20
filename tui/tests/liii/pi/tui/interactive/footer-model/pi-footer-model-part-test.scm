@@ -96,13 +96,20 @@
 ) ;check
 
 ;; 7. 缺少供应商时节点只显示 model 与等级
-(check (pi-footer-model-part "all-in-one" "coding-fast" "medium" #t '(#f "model-only" "high"))
+(check (pi-footer-model-part "all-in-one"
+         "coding-fast"
+         "medium"
+         #t
+         '(#f "model-only" "high")
+       ) ;pi-footer-model-part
   =>
   "all-in-one/coding-fast -> model-only • high"
 ) ;check
 
 ;; 8. 节点模型缺失时不追加后缀
-(check (pi-footer-model-part "all-in-one" "coding-fast" "medium" #t '("p" #f "high"))
+(check (pi-footer-model-part "all-in-one" "coding-fast" "medium" #t '("p"
+                                                                      #f
+                                                                      "high"))
   =>
   "all-in-one/coding-fast"
 ) ;check

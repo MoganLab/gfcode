@@ -29,11 +29,10 @@
 (let ((cfg (json->pi-web-search-config '(("provider" . "google")
                                          ("model" . "gemini-2.5-flash")
                                          ("baseUrl" . "https://example.com")
-                                         ("httpProxy" . "http://127.0.0.1:7890")
-                                        )
-           )
-      )
-     )
+                                         ("httpProxy" . "http://127.0.0.1:7890"))
+           ) ;json->pi-web-search-config
+      ) ;cfg
+     ) ;
   (check-true (pi-web-search-config? cfg))
   (check (pi-web-search-config-provider cfg) => "google")
   (check (pi-web-search-config-raw-model cfg) => "gemini-2.5-flash")
@@ -42,12 +41,12 @@
   (check-true (eq? (json->pi-web-search-config cfg) cfg))
 ) ;let
 
-(let ((cfg (json->pi-web-search-config '(("baseUrl" . "https://dash.example.com")
-                                         ("httpProxy" . "http://proxy:8080")
-                                        )
-           )
-      )
-     )
+(let ((cfg (json->pi-web-search-config '(("baseUrl"
+                                          . "https://dash.example.com")
+                                         ("httpProxy" . "http://proxy:8080"))
+           ) ;json->pi-web-search-config
+      ) ;cfg
+     ) ;
   (check-true (pi-web-search-config? cfg))
   (check (pi-web-search-config-provider cfg) => #f)
   (check (pi-web-search-config-raw-model cfg) => #f)
@@ -61,12 +60,15 @@
   (check-catch 'web-search-config-error
     (json->pi-web-search-config '(("provider" . "openai")))
   ) ;check-catch
-  (check-catch 'web-search-config-error (json->pi-web-search-config '(("model" . ""))))
+  (check-catch 'web-search-config-error
+    (json->pi-web-search-config '(("model" . "")))
+  ) ;check-catch
   (check-catch 'web-search-config-error
     (json->pi-web-search-config '(("unknownKey" . "val")))
   ) ;check-catch
   (let ((content (path-read-text (pi-log-file-path))))
-    (check-true (string-contains? content "web-search.json schema validation error"))
+    (check-true (string-contains? content "web-search.json schema validation error")
+    ) ;check-true
     (check-true (string-contains? content "web-search.schema.json"))
     (check-true (string-contains? content "$.provider"))
     (check-true (string-contains? content "$.model"))

@@ -29,9 +29,13 @@
 (check-set-mode! 'report-failed)
 
 ;; 聊天区卡片的纯文本（去掉 ANSI 颜色码）
+
 (define (chat-text app)
   (string-join
-    (map (lambda (child) (string-join (map strip-ansi (component-render child 100)) "\n"))
+    (map
+      (lambda (child)
+        (string-join (map strip-ansi (component-render child 100)) "\n")
+      ) ;lambda
       (pi-app-chat app)
     ) ;map
     "\n"
@@ -39,7 +43,8 @@
 ) ;define
 
 ;; 1. 恢复历史后发送新消息：历史只出现一次，新消息接在历史之后
-(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-pi-resume-followup-1323")))
+(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-pi-resume-followup-1323"))
+       ) ;tmp-dir
        (file-a (path->string (path-join tmp-dir "a.jsonl")))
        (vterm (make-virtual-terminal :width 100 :height 40))
        (app (make-pi-app :terminal vterm :handler (lambda (a msg) #t)))

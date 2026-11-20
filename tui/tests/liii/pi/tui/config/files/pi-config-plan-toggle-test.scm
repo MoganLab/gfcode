@@ -44,13 +44,18 @@
 (define FIXTURE
   (if (file-exists? "tools/pi/tests/fixtures/user-config")
     "tools/pi/tests/fixtures/user-config"
-    "tests/fixtures/user-config"))
+    "tests/fixtures/user-config"
+  ) ;if
+) ;define
 
 (define (ref alist key)
-  (let ((pair (assoc key alist))) (and pair (cdr pair)))
+  (let ((pair (assoc key alist)))
+    (and pair (cdr pair))
+  ) ;let
 ) ;define
 
 ;; writes 是 ((相对路径 . 文本) ...)：取某个文件将要写入的文本
+
 (define (p-index st id)
   (list-index (lambda (p) (string=? (pi-config-provider-id p) id))
     (pi-config-state-providers st)
@@ -58,26 +63,34 @@
 ) ;define
 
 (define (wtext plan rel)
-  (let ((pair (assoc rel (ref plan "writes")))) (and pair (cdr pair)))
+  (let ((pair (assoc rel (ref plan "writes"))))
+    (and pair (cdr pair))
+  ) ;let
 ) ;define
 
 ;; 每个用例在独立的临时目录副本上跑，避免相互污染
+
 (define %dir-counter 0)
 
 (define (make-dir name)
   (set! %dir-counter (+ %dir-counter 1))
   (let* ((src (path-join (path FIXTURE) (path "config-tui")))
-         (dst (path-join (path-temp-dir)
-                (string-append "pi-config-files-" name "-"
-                  (number->string (current-second))
-                  "-"
-                  (number->string %dir-counter)
-                ) ;string-append
-              ) ;path-join
+         (dst
+           (path-join (path-temp-dir)
+             (string-append "pi-config-files-"
+               name
+               "-"
+               (number->string (current-second))
+               "-"
+               (number->string %dir-counter)
+             ) ;string-append
+           ) ;path-join
          ) ;dst
         ) ;
     (define (copy-tree s d)
-      (unless (path-exists? d) (path-mkdir d :parents #t :exist-ok #t))
+      (unless (path-exists? d)
+        (path-mkdir d :parents #t :exist-ok #t)
+      ) ;unless
       (for-each
         (lambda (name)
           (let ((sp (path-join s (path name))) (dp (path-join d (path name))))
@@ -131,7 +144,8 @@
 
 ;; 4. 只读：取视图不改变文件
 (let* ((dir (make-dir "view-readonly"))
-       (target (path->string (path-join dir (path "models") (path "kimi-coding.json"))))
+       (target (path->string (path-join dir (path "models") (path "kimi-coding.json")))
+       ) ;target
        (before (path-read-text (path target)))
        (st (pi-config-state (path->string dir) :env '()))
       ) ;
@@ -144,7 +158,8 @@
 ;; 5. 禁用 provider：从白名单移除
 (let* ((dir (make-dir "toggle-provider-off"))
        (st (pi-config-state (path->string dir) :env '()))
-       (plan (pi-config-plan-toggle st (pi-config-cursor (p-index st "kimi-coding") 0) 0))
+       (plan (pi-config-plan-toggle st (pi-config-cursor (p-index st "kimi-coding") 0) 0)
+       ) ;plan
        (text (wtext plan "models/providers.json"))
       ) ;
   (check (ref plan "ok") => #t)
@@ -156,19 +171,23 @@
 ;; 6. 禁用最后一个 provider：拒绝
 (let* ((dir (make-dir "toggle-last-provider"))
        (st (pi-config-state (path->string dir) :env '()))
-       (disabled (map pi-config-provider-id
-                    (filter (lambda (p) (not (pi-config-provider-enabled? p)))
-                      (pi-config-state-providers st)
-                    ))) ;filter
-                   ;map
+       (disabled
+         (map pi-config-provider-id
+           (filter (lambda (p) (not (pi-config-provider-enabled? p)))
+             (pi-config-state-providers st)
+           ) ;filter
+         ) ;map
+       ) ;disabled
       ) ;
   ;; 夹具里启用 3 个 provider，未启用 7 个（all-in-one, anthropic, deepseek, minimax-cn, ollama,
   ;; opencode, zai-coding-cn）
   (check (length disabled) => 7)
   (let* ((st1 (pi-config-state (path->string dir) :env '()))
          (plan (pi-config-plan-toggle (pi-config-state (path->string dir) :env '())
-                 (pi-config-cursor 1 0) 0
-               )) ;pi-config-plan-toggle
+                 (pi-config-cursor 1 0)
+                 0
+               ) ;pi-config-plan-toggle
+         ) ;plan
         ) ;
     (check (ref plan "ok") => #t)
     ;; 应用后 google/custom-kimi 仍启用，kimi 已关闭；再关剩下两个到最后一个时必须拒绝
@@ -192,10 +211,11 @@
 (let* ((dir (make-dir "toggle-provider-on"))
        (st (pi-config-state (path->string dir) :env '()))
        ;; fixture 白名单为 google/kimi-coding/custom-kimi，deepseek 是否启用取决于夹具
-       (index (list-index (lambda (p) (not (pi-config-provider-enabled? p)))
-                (pi-config-state-providers st)
-              ) ;list-index
-       ) ;
+       (index
+         (list-index (lambda (p) (not (pi-config-provider-enabled? p)))
+           (pi-config-state-providers st)
+         ) ;list-index
+       ) ;index
       ) ;
   (check (number? index) => #t)
   (let* ((provider (list-ref (pi-config-state-providers st) index))
@@ -207,7 +227,10 @@
     (check (ref plan "ok") => #t)
     (check (and (member "models/providers.json" rels) #t) => #t)
     (check (and (member (string-append "models/" p-id ".json") rels) #t) => #t)
-    (check (ref plan "message") => (string-append "enabled " p-id " · created models/" p-id ".json"))
+    (check (ref plan "message")
+      =>
+      (string-append "enabled " p-id " · created models/" p-id ".json")
+    ) ;check
   ) ;let*
 ) ;let*
 
@@ -216,20 +239,30 @@
        (st (pi-config-state (path->string dir) :env '()))
        ;; kimi-coding 白名单只有 k3.1-pro，其余内置模型为 ×
        (models (pi-config-provider-models (pi-config-provider st "kimi-coding")))
-       (disabled-index (list-index (lambda (m) (not (pi-config-model-enabled? m))) models))
-       (plan (pi-config-plan-toggle st (pi-config-cursor (p-index st "kimi-coding") disabled-index) 1))
+       (disabled-index
+         (list-index (lambda (m) (not (pi-config-model-enabled? m))) models)
+       ) ;disabled-index
+       (plan (pi-config-plan-toggle st
+               (pi-config-cursor (p-index st "kimi-coding") disabled-index)
+               1
+             ) ;pi-config-plan-toggle
+       ) ;plan
        (text (wtext plan "models/kimi-coding.json"))
       ) ;
   (check (ref plan "ok") => #t)
   (check (string-contains text "\"k3.1-pro\"") => #t)
   ;; 被启用的模型 id 也写进去了
-  (check (string-contains text (pi-config-model-id (list-ref models disabled-index))) => #t)
+  (check (string-contains text (pi-config-model-id (list-ref models disabled-index)))
+    =>
+    #t
+  ) ;check
 ) ;let*
 
 ;; 9. 模型禁用：从白名单移除；移除唯一模型后白名单为空数组
 (let* ((dir (make-dir "toggle-model-off"))
        (st (pi-config-state (path->string dir) :env '()))
-       (plan (pi-config-plan-toggle st (pi-config-cursor (p-index st "kimi-coding") 0) 1))
+       (plan (pi-config-plan-toggle st (pi-config-cursor (p-index st "kimi-coding") 0) 1)
+       ) ;plan
        (text (wtext plan "models/kimi-coding.json"))
       ) ;
   (check (ref plan "ok") => #t)
@@ -241,10 +274,12 @@
 ;; 10. provider 被禁用时模型行的空格：拒绝
 (let* ((dir (make-dir "toggle-model-disabled-provider"))
        (st (pi-config-state (path->string dir) :env '()))
-       (index (list-index (lambda (p) (not (pi-config-provider-enabled? p)))
-                (pi-config-state-providers st)
-              ) ;list-index
-       )) ;
+       (index
+         (list-index (lambda (p) (not (pi-config-provider-enabled? p)))
+           (pi-config-state-providers st)
+         ) ;list-index
+       ) ;index
+      ) ;
   (let ((plan (pi-config-plan-toggle st (pi-config-cursor index 0) 1)))
     (check (ref plan "ok") => #f)
     (check (string-contains (ref plan "message") "enable it first") => #t)
@@ -256,12 +291,14 @@
        ;; google 无 models/google.json，但把它启用并加一个只含空内容的 provider 文件
        (rel "models/google.json")
        (abs (path->string (path-join dir (path "models") (path "google.json"))))
-       (_ (path-write-text (path abs)
-            (string-append (json->string (list (cons "$schema" "https://case-lambda.org/agent/provider.schema.json")))
-              "\n"
-            ) ;string-append
-          ) ;path-write-text
-       ) ;
+       (_
+         (path-write-text (path abs)
+           (string-append (json->string (list (cons "$schema" "https://case-lambda.org/agent/provider.schema.json"))
+                          ) ;json->string
+             "\n"
+           ) ;string-append
+         ) ;path-write-text
+       ) ;_
        (st (pi-config-state (path->string dir) :env '()))
        (plan (pi-config-plan-toggle st (pi-config-cursor (p-index st "google") 0) 1))
        (text (wtext plan rel))
@@ -269,12 +306,10 @@
   (check (ref plan "ok") => #t)
   (check (string-contains (ref plan "message") "whitelist created") => #t)
   ;; 只含当前这一个模型
-  (let* ((model-id (pi-config-model-id (car (pi-config-provider-models
-                                               (pi-config-provider st "google"))))
-                                              ;pi-config-provider-models
-                                         ;car
-                     ;pi-config-model-id
-         ) ;
+  (let* ((model-id
+           (pi-config-model-id (car (pi-config-provider-models (pi-config-provider st "google")))
+           ) ;pi-config-model-id
+         ) ;model-id
         ) ;
     (check (string-contains text (string-append "\"" model-id "\"")) => #t)
   ) ;let*
@@ -285,7 +320,8 @@
 ;; 12. apply-writes 后文件内容与计划一致
 (let* ((dir (make-dir "apply"))
        (st (pi-config-state (path->string dir) :env '()))
-       (plan (pi-config-plan-toggle st (pi-config-cursor (p-index st "kimi-coding") 0) 0))
+       (plan (pi-config-plan-toggle st (pi-config-cursor (p-index st "kimi-coding") 0) 0)
+       ) ;plan
        (res (pi-config-apply-writes st (ref plan "writes")))
        (abs (path->string (path-join dir (path "models") (path "providers.json"))))
        (text (path-read-text (path abs)))
@@ -302,7 +338,8 @@
        (st (pi-config-state (path->string dir) :env '()))
        (writes (list (cons "models/newp/newm.json" "{\"id\": \"newm\"}\n")))
        (res (pi-config-apply-writes st writes))
-       (abs (path->string (path-join dir (path "models") (path "newp") (path "newm.json"))))
+       (abs (path->string (path-join dir (path "models") (path "newp") (path "newm.json")))
+       ) ;abs
       ) ;
   (check (ref res "ok") => #t)
   (check (path-exists? (path abs)) => #t)
@@ -312,12 +349,16 @@
 (let* ((dir (make-dir "set-default"))
        (st (pi-config-state (path->string dir) :env '()))
        ;; google 的第一个模型（默认 provider 是 kimi-coding）
-       (plan (pi-config-plan-set-default st (pi-config-cursor (p-index st "google") 0) 1))
+       (plan (pi-config-plan-set-default st (pi-config-cursor (p-index st "google") 0) 1)
+       ) ;plan
        (text (wtext plan "settings.json"))
       ) ;
   (check (ref plan "ok") => #t)
   (check (string-contains text "\"defaultProvider\": \"google\"") => #t)
-  (check (string-contains text "\"defaultModel\": \"deep-research-max-preview-04-2026\"") => #t)
+  (check (string-contains text "\"defaultModel\": \"deep-research-max-preview-04-2026\"")
+    =>
+    #t
+  ) ;check
   ;; 其余键保留
   (check (string-contains text "\"httpProxy\"") => #t)
 ) ;let*
@@ -326,8 +367,14 @@
 (let* ((dir (make-dir "set-default-disabled"))
        (st (pi-config-state (path->string dir) :env '()))
        (models (pi-config-provider-models (pi-config-provider st "kimi-coding")))
-       (index (list-index (lambda (m) (not (pi-config-model-enabled? m))) models))
-       (plan (pi-config-plan-set-default st (pi-config-cursor (p-index st "kimi-coding") index) 1))
+       (index
+         (list-index (lambda (m) (not (pi-config-model-enabled? m))) models)
+       ) ;index
+       (plan (pi-config-plan-set-default st
+               (pi-config-cursor (p-index st "kimi-coding") index)
+               1
+             ) ;pi-config-plan-set-default
+       ) ;plan
       ) ;
   (check (ref plan "ok") => #f)
   (check (string-contains (ref plan "message") "not enabled") => #t)
@@ -336,7 +383,11 @@
 ;; 17. 设默认：provider 列拒绝（Enter 在 provider 列是"进入"）
 (let* ((dir (make-dir "set-default-provider-col"))
        (st (pi-config-state (path->string dir) :env '()))
-       (plan (pi-config-plan-set-default st (pi-config-cursor (p-index st "kimi-coding") 0) 0))
+       (plan (pi-config-plan-set-default st
+               (pi-config-cursor (p-index st "kimi-coding") 0)
+               0
+             ) ;pi-config-plan-set-default
+       ) ;plan
       ) ;
   (check (ref plan "ok") => #f)
 ) ;let*
@@ -345,11 +396,14 @@
 
 ;; 14. 2 空格缩进、保序、数组逐元素展开
 (check (pi-config-json-pretty (vector "a" "b")) => "[\n  \"a\",\n  \"b\"\n]")
-(check (pi-config-json-pretty (list (cons "k" (vector "a"))))
-  => "{\n  \"k\": [\n    \"a\"\n  ]\n}"
+(check
+  (pi-config-json-pretty (list (cons "k" (vector "a"))))
+  =>
+  "{\n  \"k\": [\n    \"a\"\n  ]\n}"
 ) ;check
 (check (pi-config-json-pretty (list (cons "n" #t) (cons "m" 1)))
-  => "{\n  \"n\": true,\n  \"m\": 1\n}"
+  =>
+  "{\n  \"n\": true,\n  \"m\": 1\n}"
 ) ;check
 
 (check-report)

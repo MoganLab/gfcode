@@ -81,9 +81,7 @@
           (openai-stream-state-last-reasoning-set! stream-state new-reasoning)
           (if idx
             (let* ((blk (list-ref blocks idx))
-                   (new-blk (pi-thinking-block new-reasoning
-                              (pi-thinking-block-thinking-signature blk)
-                            ) ;pi-thinking-block
+                   (new-blk (pi-thinking-block new-reasoning (pi-thinking-block-thinking-signature blk))
                    ) ;new-blk
                   ) ;
               (openai-stream-state-blocks-set! stream-state
@@ -128,9 +126,7 @@
                (usage (openai-stream-state-usage stream-state))
               ) ;
           (if (not (string? last-text))
-            (let ((cur-idx (length blocks))
-                  (think-idx (%thinking-block-index blocks))
-                 ) ;
+            (let ((cur-idx (length blocks)) (think-idx (%thinking-block-index blocks)))
               ;; 正文开始前关闭思考卡片，避免思考与正文卡片粘在一起
               (when (and think-idx (procedure? on-event))
                 (on-event (list (cons 'type "thinking_end")
@@ -319,8 +315,7 @@
              ) ;choice
              (choice-usage (if (json-object? choice) (json-ref choice "usage") #f))
              (eff-usage (if (json-object? top-usage) top-usage choice-usage))
-             (raw-stop
-               (if (json-object? choice) (json-ref-string choice "finish_reason" #f) #f)
+             (raw-stop (if (json-object? choice) (json-ref-string choice "finish_reason" #f) #f)
              ) ;raw-stop
              (delta (if (json-object? choice) (json-ref choice "delta") '()))
             ) ;
@@ -334,10 +329,9 @@
         ) ;when
         (when (json-object? delta)
           (let ((content (json-ref-string delta "content" #f))
-                (reasoning
-                  (or (json-ref-string delta "reasoning" #f)
-                    (json-ref-string delta "reasoning_content" #f)
-                  ) ;or
+                (reasoning (or (json-ref-string delta "reasoning" #f)
+                             (json-ref-string delta "reasoning_content" #f)
+                           ) ;or
                 ) ;reasoning
                 (raw-tc (json-ref delta "tool_calls"))
                ) ;

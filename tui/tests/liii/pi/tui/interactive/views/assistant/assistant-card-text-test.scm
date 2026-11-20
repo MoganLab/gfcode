@@ -15,10 +15,7 @@
 ;; string?
 ;; 卡片当前的文本内容。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive views assistant)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive views assistant))
 
 (check-set-mode! 'report-failed)
 

@@ -15,15 +15,16 @@
 ;; string | #f
 ;; 错误信息；无法解析或没有 error 字段时返回 #f。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-parse)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-parse))
 
 (check-set-mode! 'report-failed)
 
 ;; error 对象中的 message
-(check (extract-openai-stream-error-message "{\"error\":{\"message\":\"invalid key\"}}")
-  => "invalid key")
+(check (extract-openai-stream-error-message "{\"error\":{\"message\":\"invalid key\"}}"
+       ) ;extract-openai-stream-error-message
+  =>
+  "invalid key"
+) ;check
 
 ;; error 为字符串
 (check (extract-openai-stream-error-message "{\"error\":\"boom\"}") => "boom")

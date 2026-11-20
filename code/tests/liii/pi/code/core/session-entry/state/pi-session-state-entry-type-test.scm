@@ -17,7 +17,14 @@
 
 (import (liii check) (liii pi code core session-entry state))
 (check-set-mode! 'report-failed)
-(let ((e (pi-session-state-entry "model_change" "s1" "e1" "ts" '(("provider" . "google")))))
+(let ((e (pi-session-state-entry "model_change"
+           "s1"
+           "e1"
+           "ts"
+           '(("provider" . "google"))
+         ) ;pi-session-state-entry
+      ) ;e
+     ) ;
   (check-true (pi-session-state-entry? e))
   (check (pi-session-state-entry-type e) => "model_change")
   (check (pi-session-state-entry-id e) => "s1")

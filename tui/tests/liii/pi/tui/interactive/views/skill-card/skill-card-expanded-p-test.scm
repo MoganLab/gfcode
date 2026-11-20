@@ -15,10 +15,7 @@
 ;; boolean
 ;; 展开时为 #t。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive views skill-card)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive views skill-card))
 
 (check-set-mode! 'report-failed)
 

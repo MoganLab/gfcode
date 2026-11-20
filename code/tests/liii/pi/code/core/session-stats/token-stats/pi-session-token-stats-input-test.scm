@@ -16,7 +16,10 @@
 ;; 普通输入 token 的累计数量。
 ;;
 
-(import (scheme base) (liii check) (liii pi code core session-stats token-stats))
+(import (scheme base)
+  (liii check)
+  (liii pi code core session-stats token-stats)
+) ;import
 
 (check-set-mode! 'report-failed)
 

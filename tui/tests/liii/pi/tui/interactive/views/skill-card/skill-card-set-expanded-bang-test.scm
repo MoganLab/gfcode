@@ -16,10 +16,7 @@
 ;; ------
 ;; 未指定
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive views skill-card)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive views skill-card))
 
 (check-set-mode! 'report-failed)
 

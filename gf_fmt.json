@@ -1,0 +1,19 @@
+{
+  "scheme": {
+    "suffix": ["scm"],
+    "path": [
+      "ai/",
+      "agent/",
+      "code/",
+      "extensions/",
+      "review/",
+      "simplify/",
+      "tui/",
+      "web-search/",
+      "tests/"
+    ],
+    "exclude": [
+      {"path": "code/tests/fixtures/extensions/syntax-error.scm", "reason": "故意构造的语法错误 fixture（括号不闭合），用于测试错误恢复，不可格式化"}
+    ]
+  }
+}

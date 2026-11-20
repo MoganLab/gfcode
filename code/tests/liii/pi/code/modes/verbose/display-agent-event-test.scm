@@ -53,14 +53,26 @@
 
 ;; 3. tool_execution_start: bash / read / edit / write / other
 (let* ((tb (list 1))
-       (bash-ev (string->json "{\"type\":\"tool_execution_start\",\"toolName\":\"bash\",\"args\":{\"command\":\"ls -la\"}}"))
-       (read-ev (string->json "{\"type\":\"tool_execution_start\",\"toolName\":\"read\",\"args\":{\"path\":\"main.scm\"}}"))
-       (edit-ev (string->json "{\"type\":\"tool_execution_start\",\"toolName\":\"edit\",\"args\":{\"path\":\"foo.scm\"}}"))
-       (other-ev (string->json "{\"type\":\"tool_execution_start\",\"toolName\":\"custom\",\"args\":{}}"))
-       (out-bash (with-output-to-string (lambda () (display-agent-event bash-ev "" tb))))
-       (out-read (with-output-to-string (lambda () (display-agent-event read-ev "" tb))))
-       (out-edit (with-output-to-string (lambda () (display-agent-event edit-ev "" tb))))
-       (out-other (with-output-to-string (lambda () (display-agent-event other-ev "" tb))))
+       (bash-ev (string->json "{\"type\":\"tool_execution_start\",\"toolName\":\"bash\",\"args\":{\"command\":\"ls -la\"}}"
+                ) ;string->json
+       ) ;bash-ev
+       (read-ev (string->json "{\"type\":\"tool_execution_start\",\"toolName\":\"read\",\"args\":{\"path\":\"main.scm\"}}"
+                ) ;string->json
+       ) ;read-ev
+       (edit-ev (string->json "{\"type\":\"tool_execution_start\",\"toolName\":\"edit\",\"args\":{\"path\":\"foo.scm\"}}"
+                ) ;string->json
+       ) ;edit-ev
+       (other-ev (string->json "{\"type\":\"tool_execution_start\",\"toolName\":\"custom\",\"args\":{}}"
+                 ) ;string->json
+       ) ;other-ev
+       (out-bash (with-output-to-string (lambda () (display-agent-event bash-ev "" tb)))
+       ) ;out-bash
+       (out-read (with-output-to-string (lambda () (display-agent-event read-ev "" tb)))
+       ) ;out-read
+       (out-edit (with-output-to-string (lambda () (display-agent-event edit-ev "" tb)))
+       ) ;out-edit
+       (out-other (with-output-to-string (lambda () (display-agent-event other-ev "" tb)))
+       ) ;out-other
       ) ;
   (check (string-contains? out-bash "💻 [bash] ls -la") => #t)
   (check (string-contains? out-read "📄 [read] main.scm") => #t)
@@ -70,8 +82,12 @@
 
 ;; 4. tool_execution_end: 成功与失败
 (let* ((tb (list 1))
-       (ok-ev (string->json "{\"type\":\"tool_execution_end\",\"toolName\":\"bash\",\"isError\":false}"))
-       (err-ev (string->json "{\"type\":\"tool_execution_end\",\"toolName\":\"bash\",\"isError\":true}"))
+       (ok-ev (string->json "{\"type\":\"tool_execution_end\",\"toolName\":\"bash\",\"isError\":false}"
+              ) ;string->json
+       ) ;ok-ev
+       (err-ev (string->json "{\"type\":\"tool_execution_end\",\"toolName\":\"bash\",\"isError\":true}"
+               ) ;string->json
+       ) ;err-ev
        (out-ok (with-output-to-string (lambda () (display-agent-event ok-ev "" tb))))
        (out-err (with-output-to-string (lambda () (display-agent-event err-ev "" tb))))
       ) ;
@@ -81,9 +97,14 @@
 
 ;; 5. message_update 逐行打印，首行带 💬 前缀，续行不带
 (let* ((tb (list 1))
-       (start (string->json "{\"type\":\"message_start\",\"message\":{\"role\":\"assistant\"}}"))
-       (upd (string->json "{\"type\":\"message_update\",\"assistantMessageEvent\":{\"type\":\"text_delta\",\"delta\":\"第一行\\n第二行\"}}"))
-       (end (string->json "{\"type\":\"message_end\",\"message\":{\"role\":\"assistant\"}}"))
+       (start (string->json "{\"type\":\"message_start\",\"message\":{\"role\":\"assistant\"}}"
+              ) ;string->json
+       ) ;start
+       (upd (string->json "{\"type\":\"message_update\",\"assistantMessageEvent\":{\"type\":\"text_delta\",\"delta\":\"第一行\\n第二行\"}}"
+            ) ;string->json
+       ) ;upd
+       (end (string->json "{\"type\":\"message_end\",\"message\":{\"role\":\"assistant\"}}")
+       ) ;end
       ) ;
   (display-agent-event start "" tb)
   (let ((upd-out (with-output-to-string (lambda () (display-agent-event upd "" tb))))
@@ -96,7 +117,9 @@
 
 ;; 6. agent_end 输出完成标记并刷新尾部
 (let* ((tb (list 1))
-       (upd (string->json "{\"type\":\"message_update\",\"assistantMessageEvent\":{\"type\":\"text_delta\",\"delta\":\"tail\"}}"))
+       (upd (string->json "{\"type\":\"message_update\",\"assistantMessageEvent\":{\"type\":\"text_delta\",\"delta\":\"tail\"}}"
+            ) ;string->json
+       ) ;upd
        (aend (string->json "{\"type\":\"agent_end\"}"))
       ) ;
   (display-agent-event upd "" tb)
@@ -108,7 +131,9 @@
 
 ;; 7. message_end 带 stopReason=error 时输出 ❌ [error] 错误行
 (let* ((tb (list 1))
-       (ev (string->json "{\"type\":\"message_end\",\"message\":{\"role\":\"assistant\",\"content\":[],\"stopReason\":\"error\",\"errorMessage\":\"SAFETY\"}}"))
+       (ev (string->json "{\"type\":\"message_end\",\"message\":{\"role\":\"assistant\",\"content\":[],\"stopReason\":\"error\",\"errorMessage\":\"SAFETY\"}}"
+           ) ;string->json
+       ) ;ev
        (out (with-output-to-string (lambda () (display-agent-event ev "" tb))))
       ) ;
   (check (string-contains? out "❌ [error] SAFETY") => #t)

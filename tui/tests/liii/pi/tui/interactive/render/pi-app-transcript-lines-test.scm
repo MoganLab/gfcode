@@ -101,7 +101,8 @@
 ) ;let*
 
 ;; 5. 恢复的历史进入退出 transcript：历史与本轮新消息都在，且不重复
-(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-pi-transcript-history-1323")))
+(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-pi-transcript-history-1323"))
+       ) ;tmp-dir
        (file (path->string (path-join tmp-dir "session.jsonl")))
        (vt (make-virtual-terminal :width 100 :height 24))
        (app (make-pi-app :terminal vt :handler (lambda (a msg) #t)))
@@ -128,7 +129,15 @@
     (check-true (string-contains? joined "恢复的历史回答"))
     (check-true (string-contains? joined "本轮新消息"))
     ;; 历史只出现一次
-    (check (= (length (filter (lambda (line) (string-contains? line "恢复的历史提问")) plain)) 1) => #t)
+    (check
+      (=
+        (length (filter (lambda (line) (string-contains? line "恢复的历史提问")) plain)
+        ) ;length
+        1
+      ) ;=
+      =>
+      #t
+    ) ;check
   ) ;let*
   (rmtree tmp-dir)
 ) ;let*

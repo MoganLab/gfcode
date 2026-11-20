@@ -23,11 +23,7 @@
 ;; any
 ;; worker 过程或退出状态。
 
-(import (scheme base)
-  (liii check)
-  (liii go)
-  (liii pi tui interactive worker)
-) ;import
+(import (scheme base) (liii check) (liii go) (liii pi tui interactive worker))
 
 (check-set-mode! 'report-failed)
 

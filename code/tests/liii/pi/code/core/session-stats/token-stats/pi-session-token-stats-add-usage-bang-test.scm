@@ -17,7 +17,10 @@
 ;; unspecified
 ;; 无返回值。
 
-(import (scheme base) (liii check) (liii pi code core session-stats token-stats))
+(import (scheme base)
+  (liii check)
+  (liii pi code core session-stats token-stats)
+) ;import
 
 (check-set-mode! 'report-failed)
 

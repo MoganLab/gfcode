@@ -18,8 +18,9 @@
 ;; 解析后的运行配置。
 
 (set! *load-path*
-  (append
-    (list "../review" "../simplify" "../web-search" "review" "simplify" "web-search")
+  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
+            "web-search"
+          ) ;list
     *load-path*
   ) ;append
 ) ;set!
@@ -41,7 +42,9 @@
 ) ;define
 
 (define INVALID_CMD_DIR
-  (cond ((file-exists? "code/tests/fixtures/invalid_cmd") "code/tests/fixtures/invalid_cmd")
+  (cond ((file-exists? "code/tests/fixtures/invalid_cmd")
+         "code/tests/fixtures/invalid_cmd"
+        ) ;
         ((file-exists? "tests/fixtures/invalid_cmd") "tests/fixtures/invalid_cmd")
         (else "../code/tests/fixtures/invalid_cmd")
   ) ;cond
@@ -227,7 +230,10 @@
   (check (pi-cfg-ref cfg 'model-id) => "deepseek-v4-pro")
   (check (pi-cfg-ref cfg 'api-key) => "ds-key-xyz-789")
   (let ((meta (pi-cfg-ref cfg 'model-meta)))
-    (check (pi-model-metadata-base-url meta) => "https://api.deepseek.com/anthropic")
+    (check (pi-model-metadata-base-url meta)
+      =>
+      "https://api.deepseek.com/anthropic"
+    ) ;check
     (check (pi-model-metadata-context-window meta) => 1000000)
     (check (pi-model-metadata-max-tokens meta) => 384000)
   ) ;let
@@ -371,11 +377,7 @@
       ) ;
   (check (pi-cfg-ref cfg 'provider) => "google")
   (check (pi-cfg-ref cfg 'model-id) => "gemini-2.5-flash")
-  (check
-    (pi-model-metadata-matched? (pi-cfg-ref cfg 'model-meta))
-    =>
-    #t
-  ) ;check
+  (check (pi-model-metadata-matched? (pi-cfg-ref cfg 'model-meta)) => #t)
 ) ;let*
 
 (check-report)

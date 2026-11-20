@@ -61,7 +61,10 @@
     (check (cdr (assoc "provider" (vector-ref nodes 2))) => "deepseek")
   ) ;let*
   ;; 3. 越界拒绝
-  (check (cdr (assoc "ok" (pi-config-aio-promote-slot st "coding-fast" 99))) => #f)
+  (check (cdr (assoc "ok" (pi-config-aio-promote-slot st "coding-fast" 99)))
+    =>
+    #f
+  ) ;check
 ) ;let
 
 (rmtree (path->string TMP-DIR))

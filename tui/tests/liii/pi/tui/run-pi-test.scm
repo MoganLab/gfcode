@@ -35,11 +35,15 @@
 (check-help-command '("/usr/bin/gf" "--help"))
 
 ;; 识别 auth 子命令前缀并派发到 auth 处理
+
 (define (check-auth-help raw-args)
   (let ((status #f))
     (let ((output (with-output-to-string (lambda () (set! status (run-pi raw-args))))))
       (check status => 0)
-      (check-true (string-contains? output "Usage: gf pi auth print-api-key --provider <provider>"))
+      (check-true (string-contains? output
+                    "Usage: gf pi auth print-api-key --provider <provider>"
+                  ) ;string-contains?
+      ) ;check-true
     ) ;let
   ) ;let
 ) ;define

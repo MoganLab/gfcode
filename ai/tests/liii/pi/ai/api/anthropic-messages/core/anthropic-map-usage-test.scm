@@ -16,10 +16,7 @@
 ;; alist
 ;; 内部 usage alist，包含 input、output、cacheRead、cacheWrite 与 totalTokens。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages core)
- 
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages core))
 
 (check-set-mode! 'report-failed)
 
@@ -27,8 +24,10 @@
 (let* ((raw-usage '(("input_tokens" . 100)
                     ("output_tokens" . 45)
                     ("cache_read_input_tokens" . 20)
-                    ("cache_creation_input_tokens" . 10)))
-       (usage (anthropic-map-usage raw-usage)))
+                    ("cache_creation_input_tokens" . 10))
+       ) ;raw-usage
+       (usage (anthropic-map-usage raw-usage))
+      ) ;
   (check (cdr (assoc 'input usage)) => 100)
   (check (cdr (assoc 'output usage)) => 45)
   (check (cdr (assoc 'cacheRead usage)) => 20)
@@ -43,25 +42,36 @@
   (check (cdr (assoc 'cacheRead usage)) => 0)
   (check (cdr (assoc 'cacheWrite usage)) => 0)
   (check (cdr (assoc 'totalTokens usage)) => 7)
-) ;let*
+) ;let
 
 ;; 空 usage
 (let ((usage (anthropic-map-usage '())))
   (check (cdr (assoc 'input usage)) => 0)
   (check (cdr (assoc 'totalTokens usage)) => 0)
-) ;let*
+) ;let
 
 (check-report)
 
 ;; reasoning 字段：output_tokens_details.thinking_tokens 单列（output 的子集）
-(let ((usage (anthropic-map-usage '(("input_tokens" . 100)
-                                    ("output_tokens" . 45)
-                                    ("output_tokens_details" . (("thinking_tokens" . 12)))))))
+(let ((usage
+        (anthropic-map-usage '(("input_tokens" . 100)
+                               ("output_tokens" . 45)
+                               ("output_tokens_details"
+                                ("thinking_tokens" . 12)))
+        ) ;anthropic-map-usage
+      ) ;usage
+     ) ;
   (check (cdr (assoc 'reasoning usage)) => 12)
   (check (cdr (assoc 'output usage)) => 45)
 ) ;let
 
 ;; 无 thinking details 时 reasoning 为 0
-(check (cdr (assoc 'reasoning (anthropic-map-usage '(("input_tokens" . 7))))) => 0)
+(check
+  (cdr
+    (assoc 'reasoning (anthropic-map-usage '(("input_tokens" . 7))))
+  ) ;cdr
+  =>
+  0
+) ;check
 
 (check-report)

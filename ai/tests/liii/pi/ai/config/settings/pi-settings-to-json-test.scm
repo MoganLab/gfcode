@@ -61,7 +61,10 @@
   (check (pi-settings-default-tools rt) => '("read" "bash"))
   (check (pi-settings-session-dir rt) => "/tmp/sessions")
   (check (pi-settings-hide-thinking-block rt) => #t)
-  (check (pi-settings-model-thinking-level rt "deepseek" "deepseek-chat") => "medium")
+  (check (pi-settings-model-thinking-level rt "deepseek" "deepseek-chat")
+    =>
+    "medium"
+  ) ;check
   (check (pi-settings-enable-skill-commands rt) => #f)
 ) ;let*
 

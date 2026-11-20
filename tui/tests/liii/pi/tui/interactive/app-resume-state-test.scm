@@ -225,8 +225,8 @@
        (before (length (pi-app-chat app)))
        (state
          (list (cons 'model
-               (list (cons 'provider "google") (cons 'modelId "gemini-3.8-flash"))
-             ) ;cons
+                 (list (cons 'provider "google") (cons 'modelId "gemini-3.8-flash"))
+               ) ;cons
            (cons 'modelSource "assistant")
          ) ;list
        ) ;state
@@ -257,8 +257,8 @@
        ) ;app
        (state
          (list (cons 'model
-               (list (cons 'provider "google") (cons 'modelId "gemini-3.8-flash"))
-             ) ;cons
+                 (list (cons 'provider "google") (cons 'modelId "gemini-3.8-flash"))
+               ) ;cons
            (cons 'modelSource "assistant")
            (cons 'modelIntent
              (list (cons 'provider "google") (cons 'modelId "gemini-3.8-flash"))

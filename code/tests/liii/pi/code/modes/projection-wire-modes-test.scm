@@ -65,7 +65,9 @@
 (define GF-BIN (executable))
 
 (define PROJECT_ROOT
-  (path->string (path-resolve (path (if (file-exists? "gfproject.json") "." ".."))))
+  (path->string
+    (path-resolve (path (if (file-exists? "gfproject.json") "." "..")))
+  ) ;path->string
 ) ;define
 
 (define STUB
@@ -272,9 +274,7 @@
          (sfile (path->string (path-join sdir "2026-10-29T00-00-00-000Z-compact.jsonl")))
         ) ;
     (path-mkdir sdir :parents #t :exist-ok #t)
-    (save-session-header! sfile
-      "compact-1205"
-      "2026-10-29T00:00:00.000Z"
+    (save-session-header! sfile "compact-1205" "2026-10-29T00:00:00.000Z"
       PROJECT_ROOT
     ) ;save-session-header!
     (persist-new-messages! sfile

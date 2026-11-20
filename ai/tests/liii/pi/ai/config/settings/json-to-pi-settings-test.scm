@@ -26,7 +26,9 @@
 (check-true (procedure? json->pi-settings))
 
 ;; 1. 完整 JSON 解析
-(let* ((j (string->json "{\"defaultProvider\":\"deepseek\",\"defaultModel\":\"deepseek-chat\",\"defaultThinkingLevel\":\"high\",\"httpProxy\":\"http://127.0.0.1:7890\",\"retry\":{\"enabled\":false,\"maxRetries\":2},\"defaultTools\":[\"read\",\"bash\"],\"sessionDir\":\"/tmp/sessions\",\"hideThinkingBlock\":true,\"modelThinkingLevels\":{\"deepseek/deepseek-chat\":\"medium\"},\"enableSkillCommands\":false}"))
+(let* ((j (string->json "{\"defaultProvider\":\"deepseek\",\"defaultModel\":\"deepseek-chat\",\"defaultThinkingLevel\":\"high\",\"httpProxy\":\"http://127.0.0.1:7890\",\"retry\":{\"enabled\":false,\"maxRetries\":2},\"defaultTools\":[\"read\",\"bash\"],\"sessionDir\":\"/tmp/sessions\",\"hideThinkingBlock\":true,\"modelThinkingLevels\":{\"deepseek/deepseek-chat\":\"medium\"},\"enableSkillCommands\":false}"
+          ) ;string->json
+       ) ;j
        (s (json->pi-settings j))
       ) ;
   (check-true (pi-settings? s))
@@ -40,7 +42,10 @@
   (check (pi-settings-default-tools s) => '("read" "bash"))
   (check (pi-settings-session-dir s) => "/tmp/sessions")
   (check (pi-settings-hide-thinking-block s) => #t)
-  (check (pi-settings-model-thinking-level s "deepseek" "deepseek-chat") => "medium")
+  (check (pi-settings-model-thinking-level s "deepseek" "deepseek-chat")
+    =>
+    "medium"
+  ) ;check
   (check (pi-settings-enable-skill-commands s) => #f)
 ) ;let*
 
@@ -61,9 +66,7 @@
 ) ;let
 
 ;; 3. 已是 record 原样返回
-(let* ((orig (pi-settings))
-       (out (json->pi-settings orig))
-      ) ;
+(let* ((orig (pi-settings)) (out (json->pi-settings orig)))
   (check (eq? out orig) => #t)
 ) ;let*
 

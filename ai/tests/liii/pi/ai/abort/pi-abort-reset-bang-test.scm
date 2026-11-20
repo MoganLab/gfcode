@@ -14,11 +14,7 @@
 ;; 未指定
 ;; 重置后 pi-aborted? 在未收到新信号时返回 #f。
 
-(import (scheme base)
-  (liii go)
-  (liii check)
-  (liii pi ai abort)
-) ;import
+(import (scheme base) (liii go) (liii check) (liii pi ai abort))
 
 (check-set-mode! 'report-failed)
 
@@ -28,6 +24,7 @@
   (chan-send! ch 'abort 0)
   (check (pi-aborted?) => #t)
   (pi-abort-reset!)
-  (check (pi-aborted?) => #f))
+  (check (pi-aborted?) => #f)
+) ;let
 
 (check-report)

@@ -19,6 +19,10 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-simplify-suggestion-category (make-pi-simplify-suggestion "a.scm" 1 "naming" "msg" #f)) => "naming")
+(check (pi-simplify-suggestion-category (make-pi-simplify-suggestion "a.scm" 1 "naming" "msg" #f)
+       ) ;pi-simplify-suggestion-category
+  =>
+  "naming"
+) ;check
 
 (check-report)

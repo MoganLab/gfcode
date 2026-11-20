@@ -28,6 +28,7 @@
 (check-set-mode! 'report-failed)
 
 ;; 辅助：检查首张工具卡片的展开状态
+
 (define (%tool-card-expanded? chat)
   (let ((tools (filter tool-card-component? chat)))
     (and (pair? tools) (tool-card-expanded? (car tools)))
@@ -61,8 +62,7 @@
          (hit-x (+ col 5))
         ) ;
     ;; 向提示热区发送 press left 事件
-    (check-true
-      (pi-app-handle-mouse! app (make-mouse-event 'press 'left hit-x row))
+    (check-true (pi-app-handle-mouse! app (make-mouse-event 'press 'left hit-x row))
     ) ;check-true
     ;; 验证已滚回末尾恢复跟随
     (check-true (scroll-view-follow? sv))

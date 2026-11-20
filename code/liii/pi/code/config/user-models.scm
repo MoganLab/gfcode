@@ -44,9 +44,7 @@
       (let ((names (map car override)))
         (append override
           (filter
-            (lambda (h)
-              (not (find (lambda (name) (string-ci=? (car h) name)) names))
-            ) ;lambda
+            (lambda (h) (not (find (lambda (name) (string-ci=? (car h) name)) names)))
             base
           ) ;filter
         ) ;append
@@ -56,16 +54,17 @@
     (define (%merge-fields base override)
       (let* ((base-headers (or (pi-user-dict-ref base "headers" #f) '()))
              (override-headers (pi-user-dict-ref override "headers" 'unset))
-             (headers
-               (cond ((eq? override-headers 'unset) base-headers)
-                     ((pair? override-headers)
-                      (%merge-header-objects base-headers override-headers)
-                     ) ;pair?
-                     (else override-headers)
-               ) ;cond
+             (headers (cond ((eq? override-headers 'unset) base-headers)
+                            ((pair? override-headers) (%merge-header-objects base-headers override-headers))
+                            (else override-headers)
+                      ) ;cond
              ) ;headers
-             (base* (filter (lambda (f) (not (%header-key? f))) base))
-             (override* (filter (lambda (f) (not (%header-key? f))) override))
+             (base*
+               (filter (lambda (f) (not (%header-key? f))) base)
+             ) ;base*
+             (override*
+               (filter (lambda (f) (not (%header-key? f))) override)
+             ) ;override*
              (keys (map %field-key override*))
             ) ;
         (append
@@ -74,7 +73,8 @@
             (lambda (f) (not (member (%field-key f) keys)))
             base*
           ) ;filter
-          (if (or (pair? headers) (and headers (not (eq? headers 'unset))))
+          (if
+            (or (pair? headers) (and headers (not (eq? headers 'unset))))
             (list (cons "headers" headers))
             '()
           ) ;if

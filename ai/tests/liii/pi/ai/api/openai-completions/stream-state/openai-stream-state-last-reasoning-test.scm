@@ -15,9 +15,7 @@
 ;; string | #f
 ;; 当前累积的思考内容；没有活动思考内容时为 #f。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 

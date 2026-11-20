@@ -15,10 +15,7 @@
 ;; (or list #f)
 ;; 无待切换原模型时返回 #f；否则返回 5 元组快照。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive footer)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive footer))
 
 (check-set-mode! 'report)
 

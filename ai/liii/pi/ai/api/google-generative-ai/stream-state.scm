@@ -22,8 +22,7 @@
   (begin
 
     (define*-record-type <gemini-stream-state>
-      (make-gemini-stream-state
-        (blocks '())
+      (make-gemini-stream-state (blocks '())
         (last-text #f)
         (usage '())
         (tool-calls '())
@@ -37,9 +36,7 @@
       (blocks gemini-stream-state-blocks gemini-stream-state-blocks-set!)
       (last-text gemini-stream-state-last-text gemini-stream-state-last-text-set!)
       (usage gemini-stream-state-usage gemini-stream-state-usage-set!)
-      (tool-calls gemini-stream-state-tool-calls
-        gemini-stream-state-tool-calls-set!
-      ) ;tool-calls
+      (tool-calls gemini-stream-state-tool-calls gemini-stream-state-tool-calls-set!)
       (finish-reason gemini-stream-state-finish-reason
         gemini-stream-state-finish-reason-set!
       ) ;finish-reason

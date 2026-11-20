@@ -15,10 +15,7 @@
 ;; boolean?
 ;; 若为 login-selector 组件则返回 #t，否则返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive login-selector)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive login-selector))
 
 (check-set-mode! 'report-failed)
 

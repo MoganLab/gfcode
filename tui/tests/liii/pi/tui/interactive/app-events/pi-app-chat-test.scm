@@ -15,11 +15,7 @@
 ;; list
 ;; 当前会话中已添加的消息卡片组件列表。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

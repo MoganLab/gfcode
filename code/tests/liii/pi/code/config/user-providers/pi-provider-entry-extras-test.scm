@@ -18,7 +18,10 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-provider-entry-extras (make-pi-provider-entry #f #f #f #f #f #f '(("x" . 42))))
+(check
+  (pi-provider-entry-extras (make-pi-provider-entry #f #f #f #f #f #f '(("x"
+                                                                         . 42)))
+  ) ;pi-provider-entry-extras
   =>
   '(("x" . 42))
 ) ;check

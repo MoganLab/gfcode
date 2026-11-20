@@ -19,7 +19,15 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-simplify-suggestion-suggestion (make-pi-simplify-suggestion "a.scm" 1 "naming" "msg" "use count")) => "use count")
-(check (pi-simplify-suggestion-suggestion (make-pi-simplify-suggestion "a.scm" 1 "naming" "msg" #f)) => #f)
+(check (pi-simplify-suggestion-suggestion (make-pi-simplify-suggestion "a.scm" 1 "naming" "msg" "use count")
+       ) ;pi-simplify-suggestion-suggestion
+  =>
+  "use count"
+) ;check
+(check (pi-simplify-suggestion-suggestion (make-pi-simplify-suggestion "a.scm" 1 "naming" "msg" #f)
+       ) ;pi-simplify-suggestion-suggestion
+  =>
+  #f
+) ;check
 
 (check-report)

@@ -32,10 +32,7 @@
           (cons "google"
             (list (cons "name" "Google")
               (cons "models"
-                (vector
-                  (list (cons "id" "gemini-3.8-flash")
-                    (cons "input" (vector "text" "image"))
-                  ) ;list
+                (vector (list (cons "id" "gemini-3.8-flash") (cons "input" (vector "text" "image")))
                 ) ;vector
               ) ;cons
             ) ;list
@@ -43,22 +40,22 @@
           (cons "deepseek"
             (list (cons "name" "DeepSeek")
               (cons "models"
-                (vector
-                  (list (cons "id" "deepseek-chat")
-                    (cons "input" (vector "text"))
-                  ) ;list
-                ) ;vector
+                (vector (list (cons "id" "deepseek-chat") (cons "input" (vector "text"))))
               ) ;cons
             ) ;list
           ) ;cons
         ) ;list
       ) ;store
-   ) ;
+     ) ;
   ;; 1. 命中：返回含原始字段的条目
   (let ((entry (pi-provider-model-entry "google" "gemini-3.8-flash" store)))
     (check-true (pair? entry))
     (check (cdr (assoc "id" entry)) => "gemini-3.8-flash")
-    (check (member "image" (vector->list (cdr (assoc "input" entry)))) => '("image"))
+    (check
+      (member "image" (vector->list (cdr (assoc "input" entry))))
+      =>
+      '("image")
+    ) ;check
   ) ;let
 
   ;; 2. 未命中返回 #f

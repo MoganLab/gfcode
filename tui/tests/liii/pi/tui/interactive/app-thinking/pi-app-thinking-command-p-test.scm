@@ -15,10 +15,7 @@
 ;; boolean?
 ;; 满足条件返回 #t，否则返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive app-thinking)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive app-thinking))
 
 (check-set-mode! 'report-failed)
 

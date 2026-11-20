@@ -16,7 +16,11 @@
 ;; 文件会话返回路径，内存会话返回 #f。
 ;;
 
-(import (scheme base) (liii check) (liii pi code core session-stats token-stats) (liii pi code core session-stats stats))
+(import (scheme base)
+  (liii check)
+  (liii pi code core session-stats token-stats)
+  (liii pi code core session-stats stats)
+) ;import
 
 (check-set-mode! 'report-failed)
 

@@ -51,7 +51,10 @@
     (check (cdr (assoc "ok" r)) => #t)
     (check (string-contains? (cdar writes) "\"thinkingLevel\": \"high\"") => #t)
   ) ;let*
-  (check (cdr (assoc "ok" (pi-config-aio-set-slot-thinking st "coding-fast" 99 "high"))) => #f)
+  (check (cdr (assoc "ok" (pi-config-aio-set-slot-thinking st "coding-fast" 99 "high")))
+    =>
+    #f
+  ) ;check
 ) ;let
 
 (rmtree (path->string TMP-DIR))

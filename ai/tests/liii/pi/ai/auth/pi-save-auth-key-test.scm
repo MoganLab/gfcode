@@ -65,7 +65,10 @@
   (pi-save-auth-key "deepseek" "sk-ds-updated" tmp)
   (let ((updated-creds (pi-load-auth tmp)))
     (check (length updated-creds) => 2)
-    (check (pi-resolve-provider-key "deepseek" updated-creds '()) => "sk-ds-updated")
+    (check (pi-resolve-provider-key "deepseek" updated-creds '())
+      =>
+      "sk-ds-updated"
+    ) ;check
     (check (pi-resolve-provider-key "kimi-coding" updated-creds '()) => "sk-kimi-2")
   ) ;let
 

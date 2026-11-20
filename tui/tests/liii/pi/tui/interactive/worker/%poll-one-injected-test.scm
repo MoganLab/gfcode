@@ -17,11 +17,7 @@
 ;; list?
 ;; 包含轮询到消息的列表，通道为空或无消息时返回空列表 '()。
 
-(import (scheme base)
-  (liii check)
-  (liii go)
-  (liii pi tui interactive worker)
-) ;import
+(import (scheme base) (liii check) (liii go) (liii pi tui interactive worker))
 
 (check-set-mode! 'report-failed)
 

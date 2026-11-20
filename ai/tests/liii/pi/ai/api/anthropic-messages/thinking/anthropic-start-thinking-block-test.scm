@@ -32,7 +32,15 @@
 (check-set-mode! 'report-failed)
 
 ;; 派发 thinking_start 事件并重置 last-text
-(let* ((stream-state (make-anthropic-stream-state '() "old text" '((input . 10) (output . 5)) '() #f #f #f))
+(let* ((stream-state (make-anthropic-stream-state '()
+                       "old text"
+                       '((input . 10) (output . 5))
+                       '()
+                       #f
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
        (events '())
        (emit
          (lambda (ev) (set! events (append events (list ev))))
@@ -44,13 +52,15 @@
   (check (cdr (assoc 'contentIndex (car events))) => 0)
   (check (cdr (assoc 'usage (car events))) => '((input . 10) (output . 5)))
   (check (anthropic-stream-state-last-text stream-state) => #f)
-  (check-true (not (eq? (anthropic-stream-state-current-thinking stream-state) #f)))
+  (check-true (not (eq? (anthropic-stream-state-current-thinking stream-state) #f))
+  ) ;check-true
 ) ;let*
 
 ;; 回调为 #f 时不派发事件，但仍建立 thinking 状态
 (let ((stream-state (make-anthropic-stream-state '() #f '() '() #f #f #f)))
   (anthropic-start-thinking-block stream-state 3 #f)
-  (check-true (not (eq? (anthropic-stream-state-current-thinking stream-state) #f)))
-) ;let*
+  (check-true (not (eq? (anthropic-stream-state-current-thinking stream-state) #f))
+  ) ;check-true
+) ;let
 
 (check-report)

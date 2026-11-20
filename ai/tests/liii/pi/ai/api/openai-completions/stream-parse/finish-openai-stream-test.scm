@@ -28,10 +28,15 @@
 ;; 包含工具调用时完成并清空 tools 表
 (let* ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
        (events '())
-       (emit (lambda (ev) (set! events (append events (list ev)))))
+       (emit
+         (lambda (ev) (set! events (append events (list ev))))
+       ) ;emit
        (tc '(("index" . 0)
              ("id" . "call_1")
-             ("function" . (("name" . "bash") ("arguments" . "{\"command\":\"ls\"}")))))
+             ("function"
+              ("name" . "bash")
+              ("arguments" . "{\"command\":\"ls\"}")))
+       ) ;tc
       ) ;
   (process-openai-tool-call-delta tc stream-state emit)
   (set! events '())
@@ -52,6 +57,6 @@
 (let ((stream-state (make-openai-stream-state '() #f '() "stop" #f '())))
   (finish-openai-stream stream-state #f)
   (check (length (openai-stream-state-blocks stream-state)) => 0)
-) ;let*
+) ;let
 
 (check-report)

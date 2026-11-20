@@ -34,20 +34,15 @@
 (check-set-mode! 'report-failed)
 
 ;; 构造用于单元测试的最小 mock app
+
 (define (make-test-app tmp-dir)
   (let ((term (make-virtual-terminal :width 80 :height 24)))
-    (make-pi-app
-      :terminal term
-      :provider "deepseek"
-      :model "deepseek-chat"
-    ) ;make-pi-app
+    (make-pi-app :terminal term :provider "deepseek" :model "deepseek-chat")
   ) ;let
 ) ;define
 
 ;; 1. /login 唤起供应商选择器
-(let* ((tmp (make-temp-dir "gf-login-test-" ""))
-       (app (make-test-app tmp))
-      ) ;
+(let* ((tmp (make-temp-dir "gf-login-test-" "")) (app (make-test-app tmp)))
   (pi-app-submit-login! app "/login")
   (check-true (login-selector? (pi-app-active-selector app)))
 
@@ -59,9 +54,7 @@
 ) ;let*
 
 ;; 2. /login <provider> 直接唤起该供应商的 Key 对话框
-(let* ((tmp (make-temp-dir "gf-login-test-" ""))
-       (app (make-test-app tmp))
-      ) ;
+(let* ((tmp (make-temp-dir "gf-login-test-" "")) (app (make-test-app tmp)))
   (pi-app-submit-login! app "/login kimi-coding")
   (let ((selector (pi-app-active-selector app)))
     (check-true (login-dialog? selector))

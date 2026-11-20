@@ -15,17 +15,34 @@
 ;; alist
 ;; 内部 usage alist，包含 input、output、cacheRead、cacheWrite 与 totalTokens。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 
 ;; record 状态
-(let ((state (make-openai-stream-state '() #f '((input . 1) (output . 2) (cacheRead . 0) (cacheWrite . 0) (totalTokens . 3)) "stop" #f '())))
+(let ((state (make-openai-stream-state '()
+               #f
+               '((input . 1)
+                 (output . 2)
+                 (cacheRead . 0)
+                 (cacheWrite . 0)
+                 (totalTokens . 3))
+               "stop"
+               #f
+               '()
+             ) ;make-openai-stream-state
+      ) ;state
+     ) ;
   (check (openai-stream-state? state) => #t)
-  (check (openai-stream-state-usage state) => '((input . 1) (output . 2) (cacheRead . 0) (cacheWrite . 0) (totalTokens . 3)))
-) ;let*
+  (check (openai-stream-state-usage state)
+    =>
+    '((input . 1)
+      (output . 2)
+      (cacheRead . 0)
+      (cacheWrite . 0)
+      (totalTokens . 3))
+  ) ;check
+) ;let
 
 
 (check-report)

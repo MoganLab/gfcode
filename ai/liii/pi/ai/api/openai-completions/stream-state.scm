@@ -18,8 +18,7 @@
   (begin
 
     (define*-record-type <openai-stream-state>
-      (make-openai-stream-state
-        (blocks '())
+      (make-openai-stream-state (blocks '())
         (last-text #f)
         (usage '())
         (stop-reason "stop")

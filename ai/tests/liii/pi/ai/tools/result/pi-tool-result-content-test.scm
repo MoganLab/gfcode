@@ -22,8 +22,14 @@
 (let* ((obj-a (pi-tool-result "执行成功" #f))
        (obj-b (pi-tool-result "执行失败" #t))
       ) ;
-  (check (pi-tool-result-content obj-a) => #(((type . "text") (text . "执行成功"))))
-  (check (pi-tool-result-content obj-b) => #(((type . "text") (text . "执行失败"))))
+  (check (pi-tool-result-content obj-a)
+    =>
+    #(((type . "text") (text . "执行成功")))
+  ) ;check
+  (check (pi-tool-result-content obj-b)
+    =>
+    #(((type . "text") (text . "执行失败")))
+  ) ;check
 ) ;let*
 
 (check-report)

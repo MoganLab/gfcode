@@ -88,7 +88,9 @@
         (append
           (filter
             (lambda (h)
-              (not (find (lambda (extra) (string-ci=? (car h) (car extra))) extras))
+              (not
+                (find (lambda (extra) (string-ci=? (car h) (car extra))) extras)
+              ) ;not
             ) ;lambda
             base
           ) ;filter
@@ -100,7 +102,11 @@
     (define (%openai-extra-headers url provider session-id config settings)
       (let* ((cfg-hdrs (or (pi-cfg-ref config 'headers) '()))
              (set-hdrs
-               (or (and (pair? settings) (cdr (or (assoc 'headers settings) '(#f . #f)))) '())
+               (or
+                 (and (pair? settings) (cdr (or (assoc 'headers settings) '(#f
+                                                                            . #f))))
+                 '()
+               ) ;or
              ) ;set-hdrs
              (opencode-hdrs
                (if
@@ -219,7 +225,8 @@
                     ((thinking-level) (pi-cfg-ref config 'thinking-level))
                     ((model-entry)
                      (openai-resolve-model-entry (pi-cfg-ref config 'models-store '())
-                       provider model-id
+                       provider
+                       model-id
                      ) ;openai-resolve-model-entry
                     ) ;
                     ((max-retries base-delay max-delay provider-max-retries)
@@ -261,7 +268,8 @@
                     ((openai-msgs) (openai-build-messages messages system-instruction))
                     ((req-body)
                      (openai-build-request-body model-id openai-msgs #f
-                       tool-decls max-tokens prompt-cache-key thinking-level model-entry
+                       tool-decls max-tokens prompt-cache-key thinking-level
+                       model-entry
                      ) ;openai-build-request-body
                     ) ;
                     ((req-json-str) (json->string req-body))

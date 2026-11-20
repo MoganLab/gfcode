@@ -22,7 +22,9 @@
 
 (check-set-mode! 'report-failed)
 
-(let* ((j (string->json "{\"$schema\":\"https://s\",\"name\":\"Kimi\",\"baseUrl\":\"https://api.kimi.com\",\"api\":\"openai\",\"httpProxy\":\"http://127.0.0.1:7890\",\"models\":[\"k3\"],\"extraKey\":123}"))
+(let* ((j (string->json "{\"$schema\":\"https://s\",\"name\":\"Kimi\",\"baseUrl\":\"https://api.kimi.com\",\"api\":\"openai\",\"httpProxy\":\"http://127.0.0.1:7890\",\"models\":[\"k3\"],\"extraKey\":123}"
+          ) ;string->json
+       ) ;j
        (e (json->pi-provider-entry j))
       ) ;
   (check-true (pi-provider-entry? e))

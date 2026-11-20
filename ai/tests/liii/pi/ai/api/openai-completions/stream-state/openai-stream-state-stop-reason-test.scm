@@ -15,9 +15,7 @@
 ;; string | #f
 ;; OpenAI 返回的原始 finish_reason 映射值。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -25,7 +23,7 @@
 (let ((state (make-openai-stream-state '() #f '() "stop" #f '())))
   (check (openai-stream-state? state) => #t)
   (check (openai-stream-state-stop-reason state) => "stop")
-) ;let*
+) ;let
 
 
 (check-report)

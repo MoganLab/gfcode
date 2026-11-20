@@ -35,9 +35,7 @@
 ;; 1. 缺失凭证时投递包含 /login 的 error 事件并结束当前轮次
 (let ((ev-ch (make-chan 4)))
   (pi-tui-run-worker '() '((provider . "deepseek") (api-key . #f)) "test" ev-ch)
-  (let ((ev1 (chan-try-recv! ev-ch #f))
-        (ev2 (chan-try-recv! ev-ch #f))
-       ) ;
+  (let ((ev1 (chan-try-recv! ev-ch #f)) (ev2 (chan-try-recv! ev-ch #f)))
     (check-true (pair? ev1))
     (check (car ev1) => 'error)
     (check-true (string-contains? (cadr ev1) "/login"))

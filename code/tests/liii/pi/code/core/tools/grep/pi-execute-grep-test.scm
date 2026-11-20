@@ -98,7 +98,8 @@
       ) ;out
      ) ;
   (check-true (string? out))
-  (check-true (string-contains? out ": (define-library (liii pi code core tools)"))
+  (check-true (string-contains? out ": (define-library (liii pi code core tools)")
+  ) ;check-true
 ) ;let
 
 (let ((out (pi-execute-grep (list (cons "pattern" "DEFINE-LIBRARY")
@@ -109,7 +110,8 @@
            ) ;pi-execute-grep
       ) ;out
      ) ;
-  (check-true (string-contains? out ": (define-library (liii pi code core tools)"))
+  (check-true (string-contains? out ": (define-library (liii pi code core tools)")
+  ) ;check-true
 ) ;let
 
 (let ((out

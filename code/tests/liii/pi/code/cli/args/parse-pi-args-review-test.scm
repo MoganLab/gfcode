@@ -16,8 +16,9 @@
 ;; 解析后的参数字典。
 
 (set! *load-path*
-  (append
-    (list "../review" "../simplify" "../web-search" "review" "simplify" "web-search")
+  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
+            "web-search"
+          ) ;list
     *load-path*
   ) ;append
 ) ;set!

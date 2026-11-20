@@ -17,11 +17,7 @@
 ;; list
 ;; 五元列表 (list msg thinking-level provider model-id thinking-level-explicit?)。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 
@@ -40,10 +36,10 @@
 
 ;; 2. 启动即由 CLI --thinking 给出等级时，载荷带显式意图标记
 (let* ((app (make-pi-app
-              :terminal                (make-virtual-terminal :width 80 :height 24)
-              :provider                "all-in-one"
-              :model                   "coding-fast"
-              :thinking-level          "high"
+              :terminal       (make-virtual-terminal :width 80 :height 24)
+              :provider       "all-in-one"
+              :model          "coding-fast"
+              :thinking-level "high"
               :thinking-level-explicit #t
             ) ;make-pi-app
        ) ;app

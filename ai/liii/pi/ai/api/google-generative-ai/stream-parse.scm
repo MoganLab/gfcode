@@ -56,10 +56,9 @@
           (let ((json-data (string->json body)))
             (and (json-object? json-data)
               (let ((err (json-ref json-data "error")))
-                (cond
-                 ((json-object? err) (json-ref-string err "message" #f))
-                 ((string? err) err)
-                 (else #f)
+                (cond ((json-object? err) (json-ref-string err "message" #f))
+                      ((string? err) err)
+                      (else #f)
                 ) ;cond
               ) ;let
             ) ;and
@@ -125,13 +124,15 @@
     (define (process-stream-function-call fc blocks stream-state on-event)
       (let* ((name (if (json-object? fc) (json-ref-string fc "name" "") ""))
              (args (if (json-object? fc) (json-ref fc "args") '()))
-             (id (or (and (json-object? fc) (json-ref-string fc "id" #f))
-                   (cdr (or (assoc 'id fc) '(#f . #f)))
-                 ) ;or
+             (id
+               (or (and (json-object? fc) (json-ref-string fc "id" #f))
+                 (cdr (or (assoc 'id fc) '(#f . #f)))
+               ) ;or
              ) ;id
-             (ts (or (and (json-object? fc) (json-ref-string fc "thoughtSignature" #f))
-                   (cdr (or (assoc 'thoughtSignature fc) '(#f . #f)))
-                 ) ;or
+             (ts
+               (or (and (json-object? fc) (json-ref-string fc "thoughtSignature" #f))
+                 (cdr (or (assoc 'thoughtSignature fc) '(#f . #f)))
+               ) ;or
              ) ;ts
              (eff-id
                (if (and (string? id) (not (string-null? id)))
@@ -178,9 +179,10 @@
       (let* ((blocks (gemini-stream-state-blocks stream-state))
              (last-text (gemini-stream-state-last-text stream-state))
              (usage (gemini-stream-state-usage stream-state))
-             (part-ts (or (and (json-object? part) (json-ref-string part "thoughtSignature" #f))
-                        (cdr (or (assoc 'thoughtSignature part) '(#f . #f)))
-                      ) ;or
+             (part-ts
+               (or (and (json-object? part) (json-ref-string part "thoughtSignature" #f))
+                 (cdr (or (assoc 'thoughtSignature part) '(#f . #f)))
+               ) ;or
              ) ;part-ts
             ) ;
         (cond

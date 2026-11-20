@@ -70,7 +70,7 @@
        (sel1 (make-login-selector (lambda (p) #f)
                (lambda () #f)
                :config-dir tmp
-               :providers '("ollama")
+               :providers  '("ollama")
              ) ;make-login-selector
        ) ;sel1
        (rendered1 (string-join (component-render sel1 80) "\n"))
@@ -81,7 +81,7 @@
     (let* ((sel2 (make-login-selector (lambda (p) #f)
                    (lambda () #f)
                    :config-dir tmp
-                   :providers '("ollama")
+                   :providers  '("ollama")
                  ) ;make-login-selector
            ) ;sel2
            (rendered2 (string-join (component-render sel2 80) "\n"))

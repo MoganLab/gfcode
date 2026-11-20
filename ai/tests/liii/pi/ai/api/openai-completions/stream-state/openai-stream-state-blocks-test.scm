@@ -15,9 +15,7 @@
 ;; list
 ;; 已完成的 pi 消息块列表。
 
-(import (liii check)
-  (liii pi ai api openai-completions stream-state)
-) ;import
+(import (liii check) (liii pi ai api openai-completions stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -25,7 +23,7 @@
 (let ((state (make-openai-stream-state '() #f '() "stop" #f '())))
   (check (openai-stream-state? state) => #t)
   (check (openai-stream-state-blocks state) => '())
-) ;let*
+) ;let
 
 
 (check-report)

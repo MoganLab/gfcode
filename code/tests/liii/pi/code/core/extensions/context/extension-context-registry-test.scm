@@ -18,7 +18,8 @@
 (import (scheme base)
   (liii check)
   (liii check)
-  (liii pi code core extensions extension-registry) (liii pi code core extensions context)
+  (liii pi code core extensions extension-registry)
+  (liii pi code core extensions context)
 ) ;import
 
 (check-set-mode! 'report-failed)

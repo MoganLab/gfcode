@@ -19,10 +19,14 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-web-search-config-raw-proxy (make-pi-web-search-config "google" #f #f "http://127.0.0.1:7890"))
+(check (pi-web-search-config-raw-proxy (make-pi-web-search-config "google" #f #f "http://127.0.0.1:7890")
+       ) ;pi-web-search-config-raw-proxy
   =>
   "http://127.0.0.1:7890"
 ) ;check
-(check (pi-web-search-config-raw-proxy (make-pi-web-search-config "google" #f #f #f)) => #f)
+(check (pi-web-search-config-raw-proxy (make-pi-web-search-config "google" #f #f #f))
+  =>
+  #f
+) ;check
 
 (check-report)

@@ -15,11 +15,7 @@
 ;; any
 ;; 激活的选择器组件对象，未激活模态选择器时返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

@@ -35,11 +35,9 @@
 
 ;; 2. 注入同步 bash-handler：pi-app-run-bash! 内同步结算，卡片不留在 running
 (let* ((vterm (make-virtual-terminal :width 80 :height 24))
-       (app (make-pi-app :terminal vterm
-              :bash-handler (lambda (cmd) (values "output" 0))
-            ) ;make-pi-app
-      ) ;app 绑定
-      ) ;绑定列表
+       (app (make-pi-app :terminal vterm :bash-handler (lambda (cmd) (values "output" 0)))
+       ) ;app
+      ) ;
   (check-true (pi-app-run-bash! app "echo hi"))
   (check-true (not (pi-app-bash-running? app)))
 ) ;let*

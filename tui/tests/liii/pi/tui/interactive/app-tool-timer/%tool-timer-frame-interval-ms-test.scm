@@ -14,10 +14,7 @@
 ;; integer?
 ;; 毫秒整数（默认 1000）。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive app-tool-timer)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive app-tool-timer))
 
 (check-set-mode! 'report-failed)
 

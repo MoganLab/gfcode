@@ -24,23 +24,19 @@
 (define DEEPSEEK
   '(("id" . "m")
     ("reasoning" . true)
-    ("thinkingLevelMap" ("low" . "low") ("medium" . null)
-      ("high" . "high") ("max" . "max")
-    ) ;thinkingLevelMap
-    ("compat" ("thinkingFormat" . "deepseek"))
-   ) ;list
+    ("thinkingLevelMap"
+     ("low" . "low")
+     ("medium" . null)
+     ("high" . "high")
+     ("max" . "max"))
+    ("compat" ("thinkingFormat" . "deepseek")))
 ) ;define
 
 (define OPENAI
-  '(("id" . "m")
-    ("reasoning" . true)
-    ("compat" ("thinkingFormat" . "openai"))
-   ) ;list
+  '(("id" . "m") ("reasoning" . true) ("compat" ("thinkingFormat" . "openai")))
 ) ;define
 
-(define PLAIN
-  '(("id" . "m") ("reasoning" . false))
-) ;define
+(define PLAIN '(("id" . "m") ("reasoning" . false)))
 
 ;; deepseek：开启思考并写 reasoning_effort
 (check (openai-thinking-request-params DEEPSEEK "high")

@@ -27,9 +27,7 @@
 ;; anthropic-stream-state
 ;; 流状态记录。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages stream-state)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -43,10 +41,19 @@
   (check (anthropic-stream-state-stop-reason state) => "end_turn")
   (check (anthropic-stream-state-current-tool state) => #f)
   (check (anthropic-stream-state-current-thinking state) => #f)
-) ;let*
+) ;let
 
 ;; 入参非默认值时同样被保留
-(let ((state (make-anthropic-stream-state '(blk) "text" '(usage) '(tc) "tool_use" 'tool 'thinking)))
+(let ((state (make-anthropic-stream-state '(blk)
+               "text"
+               '(usage)
+               '(tc)
+               "tool_use"
+               'tool
+               'thinking
+             ) ;make-anthropic-stream-state
+      ) ;state
+     ) ;
   (check (anthropic-stream-state-blocks state) => '(blk))
   (check (anthropic-stream-state-last-text state) => "text")
   (check (anthropic-stream-state-usage state) => '(usage))
@@ -54,6 +61,6 @@
   (check (anthropic-stream-state-stop-reason state) => "tool_use")
   (check (anthropic-stream-state-current-tool state) => 'tool)
   (check (anthropic-stream-state-current-thinking state) => 'thinking)
-) ;let*
+) ;let
 
 (check-report)

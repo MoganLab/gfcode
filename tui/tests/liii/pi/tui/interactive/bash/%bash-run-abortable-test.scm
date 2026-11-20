@@ -30,10 +30,7 @@
 (check-set-mode! 'report-failed)
 
 ;; 1. 探测恒为假：正常返回真实退出码，输出已清理
-(let-values (((text code)
-              (%bash-run-abortable "echo 'plain ok'" 30 (lambda () #f))
-            ) ;
-           ) ;
+(let-values (((text code) (%bash-run-abortable "echo 'plain ok'" 30 (lambda () #f))))
   (check code => 0)
   (check-true (string-contains? text "plain ok"))
 ) ;let-values
@@ -45,11 +42,12 @@
        (t0 (current-second))
       ) ;
   (let-values (((text code)
-                (%bash-run-abortable "echo 'partial'; sleep 30" 30
+                (%bash-run-abortable "echo 'partial'; sleep 30"
+                  30
                   (lambda () (chan-try-recv! sig #f))
-                ) ;
+                ) ;%bash-run-abortable
+               ) ;
               ) ;
-             ) ;
     (check code => -2)
     (check-true (string-contains? text "partial"))
     (check-true (< (- (current-second) t0) 10))

@@ -49,8 +49,12 @@
 ;; 4. 缺失 --provider 时报错
 (check-catch 'pi-arg-error (parse-pi-auth-args '("print-api-key")))
 (check-catch 'pi-arg-error (parse-pi-auth-args '("print-api-key" "--provider")))
-(check-catch 'pi-arg-error (parse-pi-auth-args '("print-api-key" "--provider=")))
-(check-catch 'pi-arg-error (parse-pi-auth-args '("print-api-key" "--provider" "")))
+(check-catch 'pi-arg-error
+  (parse-pi-auth-args '("print-api-key" "--provider="))
+) ;check-catch
+(check-catch 'pi-arg-error
+  (parse-pi-auth-args '("print-api-key" "--provider" ""))
+) ;check-catch
 
 ;; 5. 未知子命令报错
 (check-catch 'pi-arg-error

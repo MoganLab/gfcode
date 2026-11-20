@@ -15,11 +15,7 @@
 ;; 未指定
 ;; 绑定新的通道并复位中止状态。
 
-(import (scheme base)
-  (liii go)
-  (liii check)
-  (liii pi ai abort)
-) ;import
+(import (scheme base) (liii go) (liii check) (liii pi ai abort))
 
 (check-set-mode! 'report-failed)
 
@@ -27,7 +23,8 @@
 (let ((ch (make-chan 1)))
   (chan-send! ch 'abort 0)
   (pi-abort-arm-chan! ch)
-  (check (pi-aborted?) => #f))
+  (check (pi-aborted?) => #f)
+) ;let
 
 ;; arm 排空多个残留信号
 (let ((ch (make-chan 4)))
@@ -35,6 +32,7 @@
   (chan-send! ch 'abort 0)
   (chan-send! ch 'abort 0)
   (pi-abort-arm-chan! ch)
-  (check (pi-aborted?) => #f))
+  (check (pi-aborted?) => #f)
+) ;let
 
 (check-report)

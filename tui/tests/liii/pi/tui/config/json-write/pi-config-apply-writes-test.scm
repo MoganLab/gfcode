@@ -17,11 +17,7 @@
 ;; alist
 ;; 包含 ok、message 与 failed 的结果。
 
-(import (liii check)
-  (liii path)
-  (liii shutil)
-  (liii pi tui config json-write)
-) ;import
+(import (liii check) (liii path) (liii shutil) (liii pi tui config json-write))
 
 (check-set-mode! 'report-failed)
 

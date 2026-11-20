@@ -15,11 +15,7 @@
 ;; boolean
 ;; 翻转后的思考折叠隐藏状态（隐藏时为 #t，展开时为 #f）。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

@@ -29,8 +29,12 @@
            ) ;make-pi-session-info
        ) ;s1
        (sync-sel (make-session-selector (list s1) '() (lambda (p) #f) (lambda () #f)))
-       (inc-sel
-         (make-session-selector (list s1) '() (lambda (p) #f) (lambda () #f) :incremental #t)
+       (inc-sel (make-session-selector (list s1)
+                  '()
+                  (lambda (p) #f)
+                  (lambda () #f)
+                  :incremental #t
+                ) ;make-session-selector
        ) ;inc-sel
       ) ;
   (check (session-selector-step-index! sync-sel) => #f)

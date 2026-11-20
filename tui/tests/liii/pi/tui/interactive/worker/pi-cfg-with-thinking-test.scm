@@ -32,9 +32,7 @@
   (check (pi-cfg-ref cfg 'thinking-level) => "off")
 ) ;let*
 
-(let* ((cfg (make-pi-config :model-id "m"))
-       (out (pi-cfg-with-thinking cfg "low"))
-      ) ;
+(let* ((cfg (make-pi-config :model-id "m")) (out (pi-cfg-with-thinking cfg "low")))
   (check (pi-cfg-ref out 'thinking-level) => "low")
   (check (pi-cfg-ref out 'model-id) => "m")
 ) ;let*

@@ -18,11 +18,7 @@
 ;; session-file 为字符串时返回附加 (session-id . 路径) 的新配置（已有
 ;; session-id 键则替换，不重复）；否则原样返回 cfg。
 
-(import (scheme base)
-  (liii check)
-  (liii list)
-  (liii pi tui interactive worker)
-) ;import
+(import (scheme base) (liii check) (liii list) (liii pi tui interactive worker))
 
 (check-set-mode! 'report-failed)
 

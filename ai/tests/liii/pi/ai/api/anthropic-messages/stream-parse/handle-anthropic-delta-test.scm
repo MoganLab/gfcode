@@ -36,11 +36,19 @@
 ;; text_delta 追加文本并派发 text_delta 事件
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (handle-anthropic-delta '(("type" . "content_block_delta")
                             ("index" . 0)
-                            ("delta" . (("type" . "text_delta") ("text" . "Hi"))))
+                            ("delta" ("type" . "text_delta") ("text" . "Hi")))
     stream-state
     on-ev
   ) ;handle-anthropic-delta
@@ -53,22 +61,32 @@
 ;; input_json_delta 拼接工具参数 JSON 片段
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   ;; 先建立工具块状态
   (process-anthropic-sse '(("type" . "content_block_start")
                            ("index" . 1)
-                           ("content_block" . (("type" . "tool_use")
-                                               ("id" . "call_1")
-                                               ("name" . "bash"))))
+                           ("content_block"
+                            ("type" . "tool_use")
+                            ("id" . "call_1")
+                            ("name" . "bash")))
     stream-state
     on-ev
   ) ;process-anthropic-sse
   (set! evs '())
   (handle-anthropic-delta '(("type" . "content_block_delta")
                             ("index" . 1)
-                            ("delta" . (("type" . "input_json_delta")
-                                        ("partial_json" . "{\"command\":"))))
+                            ("delta"
+                             ("type" . "input_json_delta")
+                             ("partial_json" . "{\"command\":")))
     stream-state
     on-ev
   ) ;handle-anthropic-delta
@@ -80,20 +98,29 @@
 ;; thinking_delta 累积思考内容
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   ;; 先建立 thinking 块状态
   (process-anthropic-sse '(("type" . "content_block_start")
                            ("index" . 2)
-                           ("content_block" . (("type" . "thinking"))))
+                           ("content_block" ("type" . "thinking")))
     stream-state
     on-ev
   ) ;process-anthropic-sse
   (set! evs '())
   (handle-anthropic-delta '(("type" . "content_block_delta")
                             ("index" . 2)
-                            ("delta" . (("type" . "thinking_delta")
-                                        ("thinking" . "thinking..."))))
+                            ("delta"
+                             ("type" . "thinking_delta")
+                             ("thinking" . "thinking...")))
     stream-state
     on-ev
   ) ;handle-anthropic-delta
@@ -103,11 +130,19 @@
 ) ;let*
 
 ;; 未知增量类型被忽略
-(let* ((stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+(let* ((stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (handle-anthropic-delta '(("type" . "content_block_delta")
                             ("index" . 0)
-                            ("delta" . (("type" . "unknown_delta"))))
+                            ("delta" ("type" . "unknown_delta")))
     stream-state
     #f
   ) ;handle-anthropic-delta

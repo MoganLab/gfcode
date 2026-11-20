@@ -99,7 +99,10 @@
   (check (pi-cfg-ref cfg 'api-key) => "ds-key-xyz-789")
   (let ((meta (pi-cfg-ref cfg 'model-meta)))
     ;; fixture 中 baseUrl 为 https://api.deepseek.com，生产语义归一化为 /anthropic
-    (check (pi-model-metadata-base-url meta) => "https://api.deepseek.com/anthropic")
+    (check (pi-model-metadata-base-url meta)
+      =>
+      "https://api.deepseek.com/anthropic"
+    ) ;check
     (check (pi-model-metadata-name meta) => "DeepSeek V4 Pro (fixture)")
     (check (pi-model-metadata-context-window meta) => 1000000)
     (check (pi-model-metadata-max-tokens meta) => 384000)
@@ -117,7 +120,10 @@
   (check (pi-cfg-ref cfg 'model-id) => "glm-5.3")
   (check (pi-cfg-ref cfg 'api-key) => "glm-token-xyz-123")
   (let ((meta (pi-cfg-ref cfg 'model-meta)))
-    (check (pi-model-metadata-base-url meta) => "https://open.bigmodel.cn/api/anthropic")
+    (check (pi-model-metadata-base-url meta)
+      =>
+      "https://open.bigmodel.cn/api/anthropic"
+    ) ;check
     (check (pi-model-metadata-name meta) => "GLM 5.3 (fixture)")
   ) ;let
 ) ;let*
@@ -182,7 +188,10 @@
   (check (pi-cfg-ref cfg 'model-id) => "deepseek-v4-pro")
   (check (pi-cfg-ref cfg 'api-key) => "ds-key-xyz-789")
   (let ((meta (pi-cfg-ref cfg 'model-meta)))
-    (check (pi-model-metadata-base-url meta) => "https://api.deepseek.com/anthropic")
+    (check (pi-model-metadata-base-url meta)
+      =>
+      "https://api.deepseek.com/anthropic"
+    ) ;check
     (check (pi-model-metadata-name meta) => "DeepSeek V4 Pro (fixture)")
     (check (pi-model-metadata-context-window meta) => 1000000)
     (check (pi-model-metadata-max-tokens meta) => 384000)

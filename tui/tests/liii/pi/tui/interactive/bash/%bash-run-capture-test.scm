@@ -16,30 +16,23 @@
 ;; ----
 ;; (values 清理后的合并输出 退出码)：-1 超时（run-either 约定）。
 
-(import (scheme base)
-  (liii check)
-  (liii string)
-  (liii pi tui interactive bash)
-) ;import
+(import (scheme base) (liii check) (liii string) (liii pi tui interactive bash))
 
 (check-set-mode! 'report-failed)
 
 ;; 1. 正常命令：返回真实退出码，输出已清理（剥 ANSI、删 \r）
-(let-values (((text code) (%bash-run-capture "printf 'red\\033[0m\\r\\n'" 30))
-           ) ;
+(let-values (((text code) (%bash-run-capture "printf 'red\\033[0m\\r\\n'" 30)))
   (check code => 0)
   (check-true (string-contains? text "red"))
 ) ;let-values
 
 ;; 2. 非零退出码：exit 42 原样返回
-(let-values (((text code) (%bash-run-capture "exit 42" 30))
-           ) ;
+(let-values (((text code) (%bash-run-capture "exit 42" 30)))
   (check code => 42)
 ) ;let-values
 
 ;; 3. 超时：sleep 30 以 1s 超时强杀，返回 -1
-(let-values (((text code) (%bash-run-capture "sleep 30" 1))
-           ) ;
+(let-values (((text code) (%bash-run-capture "sleep 30" 1)))
   (check code => -1)
 ) ;let-values
 

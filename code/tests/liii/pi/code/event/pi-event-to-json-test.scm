@@ -27,7 +27,9 @@
 (check-true (procedure? pi-event->json))
 
 ;; 1. session 事件
-(let ((j (pi-event->json (pi-event-session "/tmp/work" "id-1" "2026-01-01T00:00:00Z"))))
+(let ((j (pi-event->json (pi-event-session "/tmp/work" "id-1" "2026-01-01T00:00:00Z"))
+      ) ;j
+     ) ;
   (check (json-ref j "type") => "session")
   (check (json-ref j "version") => 3)
   (check (json-ref j "id") => "id-1")
@@ -41,7 +43,10 @@
       ) ;
   (check (json-ref j "type") => "message_end")
   (check (json-ref j "message" "role") => "assistant")
-  (check (json-ref (vector-ref (json-ref j "message" "content") 0) "text") => "done")
+  (check (json-ref (vector-ref (json-ref j "message" "content") 0) "text")
+    =>
+    "done"
+  ) ;check
   (check-false (json-contains-key? (json-ref j "message") "errorMessage"))
 ) ;let*
 
@@ -57,7 +62,9 @@
 
 ;; 4. agent_end 嵌套消息列表
 (let* ((msg (pi-user-message "hi" 100))
-       (j (pi-event->json (pi-event-agent-end (list msg) #f '((total . 0.01)))))
+       (j
+         (pi-event->json (pi-event-agent-end (list msg) #f '((total . 0.01))))
+       ) ;j
       ) ;
   (check (json-ref j "type") => "agent_end")
   (check-true (vector? (json-ref j "messages")))

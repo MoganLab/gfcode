@@ -96,10 +96,12 @@
 (let* ((proc (process-spawn (list "python3" stub-server-file) :stdout 'pipe))
        (port (parse-port-line (process-read-line proc)))
        (base-url (string-append "http://127.0.0.1:" (number->string port)))
-       (dir (path->string (path-join (path-temp-dir)
-                            (string-append "aio-summary-test-" (number->string (getpid)))
-                          ) ;path-join
-            ) ;path->string
+       (dir
+         (path->string
+           (path-join (path-temp-dir)
+             (string-append "aio-summary-test-" (number->string (getpid)))
+           ) ;path-join
+         ) ;path->string
        ) ;dir
       ) ;
   (check-true (number? port))
@@ -127,10 +129,10 @@
   ) ;path-write-text
   (pi-chain-reset-state!)
   (let ((result (pi-generate-summary (list (cons 'provider "all-in-one")
-                                      (cons 'provider-api "all-in-one")
-                                      (cons 'model-id "coding-deep")
-                                      (cons 'config-dir dir)
-                                    ) ;list
+                                       (cons 'provider-api "all-in-one")
+                                       (cons 'model-id "coding-deep")
+                                       (cons 'config-dir dir)
+                                     ) ;list
                   (list (pi-user-message "Summarize this conversation"))
                   #f
                   10

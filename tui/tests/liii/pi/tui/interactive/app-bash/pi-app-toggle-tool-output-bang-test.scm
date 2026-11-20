@@ -15,11 +15,7 @@
 ;; boolean
 ;; 切换后的工具展开状态（展开为 #t，折叠为 #f）。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

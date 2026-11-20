@@ -31,13 +31,15 @@
 
 ;; 2. 调用 emitter 输出 turn_start 与工具调用
 (let* ((emitter (make-verbose-emitter))
-       (out (with-output-to-string
-              (lambda ()
-                (emitter 'turn_start)
-                (emitter 'tool_execution_start "id1" "bash" '((command . "git status")))
-                (emitter 'tool_execution_end "id1" "bash" '() #f 100)
-              ) ;lambda
-            ) ;with-output-to-string
+       (out
+         (with-output-to-string
+           (lambda ()
+             (emitter 'turn_start)
+             (emitter 'tool_execution_start "id1" "bash" '((command
+                                                             . "git status")))
+             (emitter 'tool_execution_end "id1" "bash" '() #f 100)
+           ) ;lambda
+         ) ;with-output-to-string
        ) ;out
       ) ;
   (check-true (string-contains? out "💡 [Turn 1]"))
@@ -48,15 +50,19 @@
 ;; 3. 消息文本流式更新与完成
 (let* ((emitter (make-verbose-emitter))
        (msg (pi-assistant-message (list (pi-text-block "Hello world"))))
-       (out (with-output-to-string
-              (lambda ()
-                (emitter 'turn_start)
-                (emitter 'message_start msg)
-                (emitter 'message_update '() '((type . "text_delta") (delta . "Hello stream\n")))
-                (emitter 'message_end msg)
-                (emitter 'agent_end (list msg) #f 0 0)
-              ) ;lambda
-            ) ;with-output-to-string
+       (out
+         (with-output-to-string
+           (lambda ()
+             (emitter 'turn_start)
+             (emitter 'message_start msg)
+             (emitter 'message_update
+               '()
+               '((type . "text_delta") (delta . "Hello stream\n"))
+             ) ;emitter
+             (emitter 'message_end msg)
+             (emitter 'agent_end (list msg) #f 0 0)
+           ) ;lambda
+         ) ;with-output-to-string
        ) ;out
       ) ;
   (check-true (string-contains? out "💡 [Turn 1]"))

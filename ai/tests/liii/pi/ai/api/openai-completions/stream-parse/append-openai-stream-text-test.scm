@@ -35,11 +35,16 @@
 ;; 首个增量新建文本块
 (let* ((stream-state (make-openai-stream-state '() #f '((input . 1)) "stop" #f '()))
        (events '())
-       (emit (lambda (ev) (set! events (append events (list ev)))))
+       (emit
+         (lambda (ev) (set! events (append events (list ev))))
+       ) ;emit
       ) ;
   (append-openai-stream-text stream-state "Hello" emit)
   (check (length (openai-stream-state-blocks stream-state)) => 1)
-  (check (pi-text-block-text (car (openai-stream-state-blocks stream-state))) => "Hello")
+  (check (pi-text-block-text (car (openai-stream-state-blocks stream-state)))
+    =>
+    "Hello"
+  ) ;check
   (check (openai-stream-state-last-text stream-state) => "Hello")
   (check (length events) => 2)
   (check (cdr (assoc 'type (car events))) => "text_start")
@@ -49,13 +54,18 @@
 ;; 后续增量合并到现有文本块
 (let* ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
        (events '())
-       (emit (lambda (ev) (set! events (append events (list ev)))))
+       (emit
+         (lambda (ev) (set! events (append events (list ev))))
+       ) ;emit
       ) ;
   (append-openai-stream-text stream-state "Hello" emit)
   (set! events '())
   (append-openai-stream-text stream-state " world" emit)
   (check (length (openai-stream-state-blocks stream-state)) => 1)
-  (check (pi-text-block-text (car (openai-stream-state-blocks stream-state))) => "Hello world")
+  (check (pi-text-block-text (car (openai-stream-state-blocks stream-state)))
+    =>
+    "Hello world"
+  ) ;check
   (check (openai-stream-state-last-text stream-state) => "Hello world")
   (check (length events) => 1)
   (check (cdr (assoc 'type (car events))) => "text_delta")
@@ -64,7 +74,9 @@
 ;; 空文本被忽略
 (let* ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
        (events '())
-       (emit (lambda (ev) (set! events (append events (list ev)))))
+       (emit
+         (lambda (ev) (set! events (append events (list ev))))
+       ) ;emit
       ) ;
   (append-openai-stream-text stream-state "" emit)
   (append-openai-stream-text stream-state #f emit)

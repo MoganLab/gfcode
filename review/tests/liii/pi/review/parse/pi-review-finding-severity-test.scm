@@ -19,6 +19,10 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-review-finding-severity (make-pi-review-finding "HIGH" "a.scm" 1 "cat" "msg" #f)) => "HIGH")
+(check (pi-review-finding-severity (make-pi-review-finding "HIGH" "a.scm" 1 "cat" "msg" #f)
+       ) ;pi-review-finding-severity
+  =>
+  "HIGH"
+) ;check
 
 (check-report)

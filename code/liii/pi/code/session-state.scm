@@ -119,7 +119,9 @@
                   ;; 同一 provider 下也可能存在不同协议（如 google 下的 Vertex OpenAI 兼容模型），
                   ;; 不能只按 provider 重置，否则会把 openai-completions 覆盖回 Gemini。
                   (cons 'provider-api (pi-cfg-provider-api cfg provider model-id))
-                  (cons 'headers (pi-resolve-request-headers models-store provider model-id api-key))
+                  (cons 'headers
+                    (pi-resolve-request-headers models-store provider model-id api-key)
+                  ) ;cons
                   (cons 'model-id model-id)
                   (cons 'model-meta meta)
                   (cons 'api-key api-key)

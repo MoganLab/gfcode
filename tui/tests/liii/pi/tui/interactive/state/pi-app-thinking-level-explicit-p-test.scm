@@ -32,22 +32,22 @@
 
 ;; 2. CLI 显式给出时启动即标记
 (let ((app (make-pi-app
-             :terminal                (make-virtual-terminal :width 80 :height 24)
-             :thinking-level          "high"
+             :terminal       (make-virtual-terminal :width 80 :height 24)
+             :thinking-level "high"
              :thinking-level-explicit #t
            ) ;make-pi-app
-          ) ;
+      ) ;app
      ) ;
   (check-true (pi-app-thinking-level-explicit? app))
 ) ;let
 
 ;; 3. 修改器可复位标记
 (let ((app (make-pi-app
-             :terminal                (make-virtual-terminal :width 80 :height 24)
-             :thinking-level          "high"
+             :terminal       (make-virtual-terminal :width 80 :height 24)
+             :thinking-level "high"
              :thinking-level-explicit #t
            ) ;make-pi-app
-          ) ;
+      ) ;app
      ) ;
   (%pi-app-thinking-level-explicit?-set! app #f)
   (check-false (pi-app-thinking-level-explicit? app))

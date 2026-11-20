@@ -34,20 +34,30 @@
 ;; 工具块结束时解析参数并写入 toolCall 块
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (process-anthropic-sse '(("type" . "content_block_start")
                            ("index" . 0)
-                           ("content_block" . (("type" . "tool_use")
-                                               ("id" . "call_1")
-                                               ("name" . "bash"))))
+                           ("content_block"
+                            ("type" . "tool_use")
+                            ("id" . "call_1")
+                            ("name" . "bash")))
     stream-state
     on-ev
   ) ;process-anthropic-sse
   (handle-anthropic-delta '(("type" . "content_block_delta")
                             ("index" . 0)
-                            ("delta" . (("type" . "input_json_delta")
-                                        ("partial_json" . "{\"command\":\"ls\"}"))))
+                            ("delta"
+                             ("type" . "input_json_delta")
+                             ("partial_json" . "{\"command\":\"ls\"}")))
     stream-state
     on-ev
   ) ;handle-anthropic-delta
@@ -58,7 +68,8 @@
     (check (pi-tool-call-block? tc) => #t)
     (check (pi-tool-call-block-id tc) => "call_1")
     (check (pi-tool-call-block-name tc) => "bash")
-    (check (cdr (assoc "command" (pi-tool-call-block-arguments tc))) => "ls"))
+    (check (cdr (assoc "command" (pi-tool-call-block-arguments tc))) => "ls")
+  ) ;let
   (check (length (anthropic-stream-state-tool-calls stream-state)) => 1)
   (check (length evs) => 1)
   (check (cdr (assoc 'type (car evs))) => "toolcall_end")
@@ -66,26 +77,46 @@
 ) ;let*
 
 ;; 空工具参数归一化为空 alist
-(let* ((stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+(let* ((stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (process-anthropic-sse '(("type" . "content_block_start")
                            ("index" . 0)
-                           ("content_block" . (("type" . "tool_use")
-                                               ("id" . "call_empty")
-                                               ("name" . "ls"))))
+                           ("content_block"
+                            ("type" . "tool_use")
+                            ("id" . "call_empty")
+                            ("name" . "ls")))
     stream-state
     #f
   ) ;process-anthropic-sse
   (stop-anthropic-current-block stream-state #f)
   (check (length (anthropic-stream-state-blocks stream-state)) => 1)
-  (check (pi-tool-call-block-arguments (car (anthropic-stream-state-blocks stream-state)))
-    => '())
+  (check (pi-tool-call-block-arguments (car (anthropic-stream-state-blocks stream-state))
+         ) ;pi-tool-call-block-arguments
+    =>
+    '()
+  ) ;check
 ) ;let*
 
 ;; 文本块结束时派发 text_end 并清除 last-text
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (append-anthropic-stream-text stream-state "done" on-ev)
   (set! evs '())
@@ -99,7 +130,15 @@
 ;; 没有活动块时不产生事件
 (let* ((evs '())
        (on-ev (lambda (e) (set! evs (cons e evs))))
-       (stream-state (make-anthropic-stream-state '() #f (anthropic-map-usage '()) '() "end_turn" #f #f))
+       (stream-state (make-anthropic-stream-state '()
+                       #f
+                       (anthropic-map-usage '())
+                       '()
+                       "end_turn"
+                       #f
+                       #f
+                     ) ;make-anthropic-stream-state
+       ) ;stream-state
       ) ;
   (stop-anthropic-current-block stream-state on-ev)
   (check (length evs) => 0)

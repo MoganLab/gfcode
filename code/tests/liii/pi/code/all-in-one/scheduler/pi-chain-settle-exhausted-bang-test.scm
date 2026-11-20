@@ -69,16 +69,15 @@
 (check (pi-chain-settle-exhausted! CHAIN TMP-DIR) => 'all-nodes-exhausted)
 (check-false (pi-chain-current-sticky-index "settle-chain"))
 (let* ((log-text (path-read-text (path->string (resolve-alarm-log-path TMP-DIR))))
-       (exhausted-lines
-         (filter
-           (lambda (line) (string-contains? line "[EXHAUSTED]"))
-           (string-split log-text "\n")
-         ) ;filter
+       (exhausted-lines (filter (lambda (line) (string-contains? line "[EXHAUSTED]"))
+                          (string-split log-text "\n")
+                        ) ;filter
        ) ;exhausted-lines
       ) ;
   (check (length exhausted-lines) => 1)
   (check-true (string-contains? (car exhausted-lines) "model=settle-chain"))
-  (check-true (string-contains? (car exhausted-lines) "All 3 nodes in chain failed probe"))
+  (check-true (string-contains? (car exhausted-lines) "All 3 nodes in chain failed probe")
+  ) ;check-true
 ) ;let*
 
 ;; 2. 粘性只清除目标链，其他链的粘性保留

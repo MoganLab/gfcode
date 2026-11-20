@@ -25,16 +25,12 @@
 (check-set-mode! 'report-failed)
 
 ;; 1. 正常取值
-(check (pi-usage-limit-kind (pi-quota-limit "weekly" "1310" "x"))
-  =>
-  "weekly"
-) ;check
+(check (pi-usage-limit-kind (pi-quota-limit "weekly" "1310" "x")) => "weekly")
 (check (pi-usage-limit-kind (pi-quota-limit "five-hour" "1308" "x"))
   =>
   "five-hour"
 ) ;check
-(check (pi-usage-limit-kind (pi-quota-limit "quota" "exceeded_current_quota_error" #f)
-       ) ;pi-usage-limit-kind
+(check (pi-usage-limit-kind (pi-quota-limit "quota" "exceeded_current_quota_error" #f))
   =>
   "quota"
 ) ;check

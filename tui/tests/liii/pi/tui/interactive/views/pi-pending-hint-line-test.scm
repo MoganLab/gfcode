@@ -15,11 +15,7 @@
 ;; string?
 ;; 返回提示行文本，例如 "↳ Option+Up to edit all queued messages"。
 
-(import (scheme base)
-  (liii check)
-  (liii os)
-  (liii pi tui interactive views)
-) ;import
+(import (scheme base) (liii check) (liii os) (liii pi tui interactive views))
 
 (check-set-mode! 'report-failed)
 

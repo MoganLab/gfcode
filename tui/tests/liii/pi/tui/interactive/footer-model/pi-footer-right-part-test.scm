@@ -16,10 +16,7 @@
 ;; ----
 ;; string
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive footer-model)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive footer-model))
 
 (check-set-mode! 'report)
 
@@ -45,7 +42,11 @@
          "medium"
          #t
          #f
-         '("all-in-one" "coding-fast" "medium" #t ("minimax-cn" "MiniMax-M3.1-Flash" "medium" 262144 #t))
+         '("all-in-one"
+           "coding-fast"
+           "medium"
+           #t
+           ("minimax-cn" "MiniMax-M3.1-Flash" "medium" 262144 #t))
        ) ;pi-footer-right-part
   =>
   "(minimax-cn) MiniMax-M3.1-Flash • medium -> (google) gemini-4-hydrogen • medium"

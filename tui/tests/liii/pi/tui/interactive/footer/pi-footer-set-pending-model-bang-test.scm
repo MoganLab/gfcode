@@ -38,10 +38,9 @@
   (pi-footer-set-model! ft "google" "gemini-4-hydrogen" #t)
   (pi-footer-set-thinking-level! ft "medium")
   (let ((line (list-ref (component-render ft 120) 1)))
-    (check-true
-      (string-contains? line
-        "(minimax-cn) MiniMax-M3.1-Flash • medium -> (google) gemini-4-hydrogen • medium"
-      ) ;string-contains?
+    (check-true (string-contains? line
+                  "(minimax-cn) MiniMax-M3.1-Flash • medium -> (google) gemini-4-hydrogen • medium"
+                ) ;string-contains?
     ) ;check-true
   ) ;let
 ) ;let
@@ -59,13 +58,14 @@
   (pi-footer-set-pending-model! ft "all-in-one" "coding-fast" "medium" #t #f)
   (pi-footer-set-model! ft "google" "gemini-4-hydrogen" #t)
   (pi-footer-set-thinking-level! ft "medium")
-  (pi-footer-set-active-node! ft '("minimax-cn" "MiniMax-M3.1-Flash" "high" 262144 #t))
+  (pi-footer-set-active-node! ft
+    '("minimax-cn" "MiniMax-M3.1-Flash" "high" 262144 #t)
+  ) ;pi-footer-set-active-node!
   (check (pi-footer-active-node ft) => #f)
   (let ((line (list-ref (component-render ft 140) 1)))
-    (check-true
-      (string-contains? line
-        "(minimax-cn) MiniMax-M3.1-Flash • high -> (google) gemini-4-hydrogen • medium"
-      ) ;string-contains?
+    (check-true (string-contains? line
+                  "(minimax-cn) MiniMax-M3.1-Flash • high -> (google) gemini-4-hydrogen • medium"
+                ) ;string-contains?
     ) ;check-true
     (check-false (string-contains? line "all-in-one"))
   ) ;let

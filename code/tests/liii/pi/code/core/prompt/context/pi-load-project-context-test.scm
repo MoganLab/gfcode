@@ -20,6 +20,7 @@
 ;; pi-load-project-context
 ;; 自动加载当前工作目录下的 AGENTS.md / CLAUDE.md 等项目说明文件。
 ;; 使用本仓库自包含的项目上下文夹具，避免依赖其他仓库的说明文件。
+
 (define repo-root
   (cond ((file-exists? "code/tests/fixtures/project-context/AGENTS.md")
          "code/tests/fixtures/project-context"

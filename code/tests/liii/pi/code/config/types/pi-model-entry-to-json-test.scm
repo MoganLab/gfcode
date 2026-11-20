@@ -14,11 +14,7 @@
 ;; ----
 ;; any
 
-(import (scheme base)
-  (liii check)
-  (liii json)
-  (liii pi code config types)
-) ;import
+(import (scheme base) (liii check) (liii json) (liii pi code config types))
 
 (check-set-mode! 'report-failed)
 

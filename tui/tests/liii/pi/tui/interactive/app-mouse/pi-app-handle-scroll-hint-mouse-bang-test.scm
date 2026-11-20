@@ -45,8 +45,7 @@
   (pi-app-render! app)
   (check-true (scroll-view-follow? sv))
   (check-false (pi-app-scroll-hint-rect app))
-  (check-false
-    (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left 30 18))
+  (check-false (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left 30 18))
   ) ;check-false
   (check-true (scroll-view-follow? sv))
 ) ;let*
@@ -70,8 +69,7 @@
     (check-true (pair? rect))
     (let ((row (car rect)) (col (cadr rect)) (w (caddr rect)))
       ;; 命中左边缘
-      (check-true
-        (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left col row))
+      (check-true (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left col row))
       ) ;check-true
       (check-true (scroll-view-follow? sv))
       ;; 重新滚离末尾验证中间位置
@@ -86,10 +84,9 @@
       ;; 重新滚离末尾验证右边缘
       (pi-app-scroll-up! app)
       (pi-app-render! app)
-      (check-true
-        (pi-app-handle-scroll-hint-mouse! app
-          (make-mouse-event 'press 'left (+ col w -1) row)
-        ) ;pi-app-handle-scroll-hint-mouse!
+      (check-true (pi-app-handle-scroll-hint-mouse! app
+                    (make-mouse-event 'press 'left (+ col w -1) row)
+                  ) ;pi-app-handle-scroll-hint-mouse!
       ) ;check-true
       (check-true (scroll-view-follow? sv))
     ) ;let
@@ -116,26 +113,29 @@
          (w (caddr rect))
         ) ;
     ;; 热区左侧空白
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left (- col 1) row))
+    (check-false (pi-app-handle-scroll-hint-mouse! app
+                   (make-mouse-event 'press 'left (- col 1) row)
+                 ) ;pi-app-handle-scroll-hint-mouse!
     ) ;check-false
     (check-false (scroll-view-follow? sv))
     ;; 热区右侧空白
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left (+ col w) row))
+    (check-false (pi-app-handle-scroll-hint-mouse! app
+                   (make-mouse-event 'press 'left (+ col w) row)
+                 ) ;pi-app-handle-scroll-hint-mouse!
     ) ;check-false
     (check-false (scroll-view-follow? sv))
     ;; 最右侧滚动条所在列
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left 79 row))
+    (check-false (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left 79 row))
     ) ;check-false
     (check-false (scroll-view-follow? sv))
     ;; 上方行与下方行
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left col (- row 1)))
+    (check-false (pi-app-handle-scroll-hint-mouse! app
+                   (make-mouse-event 'press 'left col (- row 1))
+                 ) ;pi-app-handle-scroll-hint-mouse!
     ) ;check-false
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left col (+ row 1)))
+    (check-false (pi-app-handle-scroll-hint-mouse! app
+                   (make-mouse-event 'press 'left col (+ row 1))
+                 ) ;pi-app-handle-scroll-hint-mouse!
     ) ;check-false
     (check-false (scroll-view-follow? sv))
   ) ;let*
@@ -161,21 +161,16 @@
          (mid (+ col 5))
         ) ;
     ;; 右键或中键按下
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'right mid row))
+    (check-false (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'right mid row))
     ) ;check-false
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'middle mid row))
+    (check-false (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'middle mid row))
     ) ;check-false
     ;; release, drag, click 事件
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'release 'left mid row))
+    (check-false (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'release 'left mid row))
     ) ;check-false
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'drag 'left mid row))
+    (check-false (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'drag 'left mid row))
     ) ;check-false
-    (check-false
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'click 'left mid row))
+    (check-false (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'click 'left mid row))
     ) ;check-false
     (check-false (scroll-view-follow? sv))
   ) ;let*
@@ -197,8 +192,7 @@
   (pi-app-selection-set! app (make-selection-range '(0 . 0) '(10 . 5) #t))
   (check-true (pi-app-selection-active? app))
   (let* ((rect (pi-app-scroll-hint-rect app)) (row (car rect)) (col (cadr rect)))
-    (check-true
-      (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left col row))
+    (check-true (pi-app-handle-scroll-hint-mouse! app (make-mouse-event 'press 'left col row))
     ) ;check-true
     (check-false (pi-app-selection app))
     (check-false (pi-app-selection-active? app))

@@ -14,10 +14,7 @@
 ;; number?
 ;; 非负单调时间戳（毫秒）。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive views tool-card)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive views tool-card))
 
 (check-set-mode! 'report-failed)
 

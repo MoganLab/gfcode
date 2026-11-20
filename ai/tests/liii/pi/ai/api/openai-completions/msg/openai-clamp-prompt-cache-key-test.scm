@@ -26,18 +26,18 @@
 
 ;; 2. 恰好 64 字符：原样返回
 (let ((k64 (make-string 64 #\a)))
-  (check (openai-clamp-prompt-cache-key k64) => k64))
+  (check (openai-clamp-prompt-cache-key k64) => k64)
+) ;let
 
 ;; 3. 超过 64 字符：截断为前 64 个字符
-(let ((k80 (make-string 80 #\b))
-      (k64 (make-string 64 #\b)))
+(let ((k80 (make-string 80 #\b)) (k64 (make-string 64 #\b)))
   (check (openai-clamp-prompt-cache-key k80) => k64)
-  (check (string-length (openai-clamp-prompt-cache-key k80)) => 64))
+  (check (string-length (openai-clamp-prompt-cache-key k80)) => 64)
+) ;let
 
 ;; 4. 截断保留前缀：前 64 个字符与原串前缀一致
 (let ((k (string-append "session-" (make-string 100 #\x))))
-  (check (openai-clamp-prompt-cache-key k)
-    =>
-    (substring k 0 64)))
+  (check (openai-clamp-prompt-cache-key k) => (substring k 0 64))
+) ;let
 
 (check-report)

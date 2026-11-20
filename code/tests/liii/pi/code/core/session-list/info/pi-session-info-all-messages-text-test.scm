@@ -24,7 +24,8 @@
   (liii path)
   (liii string)
   (liii unicode)
-  (liii pi code core session-list info) (liii pi code core session-list)
+  (liii pi code core session-list info)
+  (liii pi code core session-list)
 ) ;import
 
 (check-set-mode! 'report-failed)
@@ -45,7 +46,7 @@
 ;; 含非法 UTF-8 字节的 JSONL：读取后替换为 U+FFFD，可供 string-downcase 安全处理
 (let* ((tmp-dir (path-join (path-temp-dir) "gf-pi-session-list-utf8-test"))
        (file (path->string (path-join tmp-dir "bad-utf8.jsonl")))
-       (bad-bytes (string (integer->char #x80) (integer->char #xe4)))
+       (bad-bytes (string (integer->char 128) (integer->char 228)))
       ) ;
   (unless (file-exists? (path->string tmp-dir))
     (mkdir (path->string tmp-dir))
@@ -55,8 +56,7 @@
       (write-string "{\"type\":\"session\",\"id\":\"s-bad\",\"timestamp\":\"2026-10-20T08:00:00.000Z\",\"cwd\":\"/tmp\"}\n"
         port
       ) ;write-string
-      (write-string (string-append
-                      "{\"type\":\"message\",\"timestamp\":\"2026-10-20T08:00:01.000Z\",\"message\":{\"role\":\"user\",\"content\":\"hello "
+      (write-string (string-append "{\"type\":\"message\",\"timestamp\":\"2026-10-20T08:00:01.000Z\",\"message\":{\"role\":\"user\",\"content\":\"hello "
                       bad-bytes
                       " world\"}}"
                     ) ;string-append
@@ -69,7 +69,10 @@
          (all-text (pi-session-info-all-messages-text info))
         ) ;
     (check-true (pi-session-info? info))
-    (check-true (string-contains? (string-downcase (pi-session-info-first-message info)) "hello"))
+    (check-true (string-contains? (string-downcase (pi-session-info-first-message info))
+                  "hello"
+                ) ;string-contains?
+    ) ;check-true
     (check-true (string-contains? (string-downcase all-text) "world"))
     (check-true (string-contains? all-text (utf8->string #u8(239 191 189))))
   ) ;let*

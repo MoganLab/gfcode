@@ -17,11 +17,7 @@
 ;; boolean?
 ;; 发送成功返回 #t，异常返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii go)
-  (liii pi tui interactive bash)
-) ;import
+(import (scheme base) (liii check) (liii go) (liii pi tui interactive bash))
 
 (check-set-mode! 'report-failed)
 

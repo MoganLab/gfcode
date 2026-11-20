@@ -15,11 +15,7 @@
 ;; boolean?
 ;; 卡片状态为 running 时 #t；ESC 中止门控（对齐上游 isBashRunning）的数据源。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive bash)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive bash))
 
 (check-set-mode! 'report-failed)
 

@@ -14,11 +14,7 @@
 ;; boolean
 ;; 已收到中止信号时返回 #t，否则返回 #f。
 
-(import (scheme base)
-  (liii go)
-  (liii check)
-  (liii pi ai abort)
-) ;import
+(import (scheme base) (liii go) (liii check) (liii pi ai abort))
 
 (check-set-mode! 'report-failed)
 
@@ -29,19 +25,22 @@
 ;; arm chan 后无信号返回 #f
 (let ((ch (make-chan 1)))
   (pi-abort-arm-chan! ch)
-  (check (pi-aborted?) => #f))
+  (check (pi-aborted?) => #f)
+) ;let
 
 ;; chan 中收到 abort 信号后返回 #t
 (let ((ch (make-chan 1)))
   (pi-abort-arm-chan! ch)
   (chan-send! ch 'abort 0)
-  (check (pi-aborted?) => #t))
+  (check (pi-aborted?) => #t)
+) ;let
 
 ;; 一次性语义：置位缓存后仍保持 #t
 (let ((ch (make-chan 1)))
   (pi-abort-arm-chan! ch)
   (chan-send! ch 'abort 0)
   (check (pi-aborted?) => #t)
-  (check (pi-aborted?) => #t))
+  (check (pi-aborted?) => #t)
+) ;let
 
 (check-report)

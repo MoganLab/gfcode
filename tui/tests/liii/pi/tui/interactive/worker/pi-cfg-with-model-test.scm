@@ -117,7 +117,8 @@
     (rmtree agent-dir)
   ) ;when
   (path-mkdir (path-join (path agent-dir) (path "models") (path "google"))
-    :parents #t :exist-ok #t
+    :parents  #t
+    :exist-ok #t
   ) ;path-mkdir
   (path-write-text (path->string (path-join (path agent-dir) (path "auth.json")))
     "{\"google\":{\"type\":\"api_key\",\"key\":\"vertex-key\"}}"

@@ -18,11 +18,7 @@
 ;; 验证大段粘贴（超过阈值行数）折叠为占位标记并于提交时还原原文；
 ;; 小段多行粘贴直接在编辑器中展开并原样提交。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report)
 

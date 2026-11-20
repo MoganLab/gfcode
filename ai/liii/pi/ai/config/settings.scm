@@ -100,20 +100,17 @@
             (pi-settings)
             (let* ((raw-proxy (json-ref-string obj "httpProxy" ""))
                    (clean-proxy
-                     (and (not (string-null? (string-trim-both raw-proxy)))
-                       raw-proxy
-                     ) ;and
+                     (and (not (string-null? (string-trim-both raw-proxy))) raw-proxy)
                    ) ;clean-proxy
                    (raw-thinking (json-ref obj "defaultThinkingLevel"))
                    (default-thinking (if (string? raw-thinking) raw-thinking #f))
                    (raw-session-dir (json-ref obj "sessionDir"))
                    (session-dir (if (string? raw-session-dir) raw-session-dir #f))
                    (raw-retry (json-ref obj "retry"))
-                   (retry
-                     (if (or (json-object? raw-retry) (pi-retry-config? raw-retry))
-                       (json->pi-retry-config raw-retry)
-                       (pi-retry-config)
-                     ) ;if
+                   (retry (if (or (json-object? raw-retry) (pi-retry-config? raw-retry))
+                            (json->pi-retry-config raw-retry)
+                            (pi-retry-config)
+                          ) ;if
                    ) ;retry
                   ) ;
               (pi-settings (json-ref-string obj "defaultProvider" "google")

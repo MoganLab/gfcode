@@ -15,10 +15,7 @@
 ;; string?
 ;; 服务商标识名称。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive login-dialog)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive login-dialog))
 
 (check-set-mode! 'report-failed)
 

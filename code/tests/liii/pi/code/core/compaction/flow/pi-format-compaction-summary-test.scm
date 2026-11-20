@@ -51,8 +51,7 @@
 ) ;check
 
 ;; 4. 支持 pi-compaction-result record
-(check (pi-format-compaction-summary
-         (make-pi-compaction-result "c-1" "sum" "e-1" 1500 4 6 '())
+(check (pi-format-compaction-summary (make-pi-compaction-result "c-1" "sum" "e-1" 1500 4 6 '())
        ) ;pi-format-compaction-summary
   =>
   "Compacted session: summarized 4 messages, kept 6, tokens before 1500"

@@ -19,7 +19,13 @@
 
 (check-set-mode! 'report-failed)
 
-(check (pi-web-search-config-provider (make-pi-web-search-config "deepseek" #f #f #f)) => "deepseek")
-(check (pi-web-search-config-provider (make-pi-web-search-config #f #f #f #f)) => #f)
+(check (pi-web-search-config-provider (make-pi-web-search-config "deepseek" #f #f #f))
+  =>
+  "deepseek"
+) ;check
+(check (pi-web-search-config-provider (make-pi-web-search-config #f #f #f #f))
+  =>
+  #f
+) ;check
 
 (check-report)

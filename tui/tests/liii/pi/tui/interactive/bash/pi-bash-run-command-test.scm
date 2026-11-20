@@ -20,8 +20,14 @@
 ;; (values 清理后的合并输出 退出码)
 ;; 退出码 -1 表示超时，-2 表示被中止。
 
-(import (scheme base) (liii check) (liii go) (liii time) (scheme time)
-  (liii string) (liii pi tui interactive bash))
+(import (scheme base)
+  (liii check)
+  (liii go)
+  (liii time)
+  (scheme time)
+  (liii string)
+  (liii pi tui interactive bash)
+) ;import
 
 (check-set-mode! 'report)
 
@@ -34,15 +40,14 @@
 
 ;; :check-abort 非 procedure 时报 type-error
 (check-catch 'type-error
-  (pi-bash-run-command "echo x" :check-abort "not-a-proc"))
+  (pi-bash-run-command "echo x" :check-abort "not-a-proc")
+) ;check-catch
 
 ;; :check-abort 恒为假时行为不变：正常返回真实退出码
 (let-values (((text code)
-              (pi-bash-run-command "echo 'no-abort'"
-                :check-abort (lambda () #f)
-              ) ;pi-bash-run-command
+              (pi-bash-run-command "echo 'no-abort'" :check-abort (lambda () #f))
+             ) ;
             ) ;
-           ) ;
   (check code => 0)
   (check-true (string-contains? text "no-abort"))
 ) ;let-values
@@ -57,8 +62,8 @@
                 (pi-bash-run-command "echo 'partial'; sleep 30"
                   :check-abort (lambda () (chan-try-recv! sig #f))
                 ) ;pi-bash-run-command
+               ) ;
               ) ;
-             ) ;
     (check code => -2)
     (check-true (string-contains? text "partial"))
     (check-true (< (- (current-second) t0) 10))

@@ -23,6 +23,9 @@
   =>
   "sk-123"
 ) ;check
-(check (pi-auth-args-key (make-pi-auth-args #f "print-api-key" "deepseek" #f)) => #f)
+(check (pi-auth-args-key (make-pi-auth-args #f "print-api-key" "deepseek" #f))
+  =>
+  #f
+) ;check
 
 (check-report)

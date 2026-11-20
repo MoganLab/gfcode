@@ -15,10 +15,7 @@
 ;; number? 或 #f
 ;; pending 状态下记录的起始时间戳（毫秒），非 pending 构造时为 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive views tool-card)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive views tool-card))
 
 (check-set-mode! 'report-failed)
 

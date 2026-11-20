@@ -15,17 +15,16 @@
 ;; pi-compaction-settings?
 ;; 解析后的压缩配置 record；缺失字段使用 pi-compaction-default-settings 默认值。
 
-(import (liii check)
-  (liii json)
-  (liii pi code core compaction tokens)
-) ;import
+(import (liii check) (liii json) (liii pi code core compaction tokens))
 
 (check-set-mode! 'report-failed)
 
 (check-true (procedure? json->pi-compaction-settings))
 
 ;; 1. 完整 JSON 解析（含 JSON 布尔 true/false）
-(let* ((j (string->json "{\"enabled\":false,\"reserveTokens\":8000,\"keepRecentTokens\":9000}"))
+(let* ((j (string->json "{\"enabled\":false,\"reserveTokens\":8000,\"keepRecentTokens\":9000}"
+          ) ;string->json
+       ) ;j
        (s (json->pi-compaction-settings j))
       ) ;
   (check-true (pi-compaction-settings? s))
@@ -47,7 +46,8 @@
 ) ;let
 
 ;; 3. 非法字段回退默认值，非对象输入抛出 type-error
-(let ((s (json->pi-compaction-settings (string->json "{\"enabled\":\"bad\",\"reserveTokens\":\"x\",\"keepRecentTokens\":null}")
+(let ((s (json->pi-compaction-settings (string->json "{\"enabled\":\"bad\",\"reserveTokens\":\"x\",\"keepRecentTokens\":null}"
+                                       ) ;string->json
          ) ;json->pi-compaction-settings
       ) ;s
      ) ;

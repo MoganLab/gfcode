@@ -20,6 +20,7 @@
 (check-set-mode! 'report-failed)
 
 (check-true (pi-auth-args-help? (make-pi-auth-args #t #f #f #f)))
-(check-false (pi-auth-args-help? (make-pi-auth-args #f "print-api-key" "deepseek" #f)))
+(check-false (pi-auth-args-help? (make-pi-auth-args #f "print-api-key" "deepseek" #f))
+) ;check-false
 
 (check-report)

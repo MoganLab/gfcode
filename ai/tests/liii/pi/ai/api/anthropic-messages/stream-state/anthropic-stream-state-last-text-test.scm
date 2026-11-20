@@ -15,9 +15,7 @@
 ;; string | #f
 ;; 当前累积的文本；没有活动文本块时为 #f。
 
-(import (liii check)
-  (liii pi ai api anthropic-messages stream-state)
-) ;import
+(import (liii check) (liii pi ai api anthropic-messages stream-state))
 
 (check-set-mode! 'report-failed)
 
@@ -25,7 +23,7 @@
 (let ((state (make-anthropic-stream-state '() "partial" '() '() "end_turn" #f #f)))
   (check (anthropic-stream-state? state) => #t)
   (check (anthropic-stream-state-last-text state) => "partial")
-) ;let*
+) ;let
 
 
 (check-report)

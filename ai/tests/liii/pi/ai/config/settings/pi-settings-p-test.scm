@@ -29,7 +29,7 @@
              "/tmp/pi-session"
              #f
              '(("deepseek/deepseek-v4-pro" . "high"))
-               #t
+             #t
            ) ;pi-settings
       ) ;obj
      ) ;

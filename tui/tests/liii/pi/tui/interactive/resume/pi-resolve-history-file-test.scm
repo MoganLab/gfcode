@@ -31,7 +31,9 @@
 
 (check-set-mode! 'report-failed)
 
-(define %tmp-dir (path->string (path-join (path-temp-dir) "test-pi-resolve-history-file")))
+(define %tmp-dir
+  (path->string (path-join (path-temp-dir) "test-pi-resolve-history-file"))
+) ;define
 
 (when (file-exists? %tmp-dir)
   (rmtree %tmp-dir)
@@ -39,30 +41,39 @@
 (path-mkdir %tmp-dir :parents #t :exist-ok #t)
 
 ;; 1. --no-session：不读取也不伪造历史
-(check (pi-resolve-history-file '((no-session . #t)) '((agent-dir . "/unused")) %tmp-dir) => #f)
+(check (pi-resolve-history-file '((no-session . #t))
+         '((agent-dir . "/unused"))
+         %tmp-dir
+       ) ;pi-resolve-history-file
+  =>
+  #f
+) ;check
 
 ;; 2. 显式 --session：直接使用该路径
 (check (pi-resolve-history-file '((session-file . "/tmp/explicit.jsonl"))
          '((agent-dir . "/unused"))
          %tmp-dir
-       )
-       =>
-       "/tmp/explicit.jsonl"
+       ) ;pi-resolve-history-file
+  =>
+  "/tmp/explicit.jsonl"
 ) ;check
 
 ;; 3. 既无 --session 也无 --continue：没有恢复来源
 (check (pi-resolve-history-file '() '((agent-dir . "/unused")) %tmp-dir) => #f)
 
 ;; 4. --continue：取会话目录内最新会话文件（与 worker 的解析入口同源）
-(let* ((file (path->string (path-join %tmp-dir "2026-11-04T08-00-00.000_sess-1.jsonl")))
+(let* ((file (path->string (path-join %tmp-dir "2026-11-04T08-00-00.000_sess-1.jsonl"))
+       ) ;file
        (cfg (list (cons 'agent-dir %tmp-dir)))
       ) ;
   (save-session-header! file "sess-1" "2026-11-04T08:00:00.000Z" %tmp-dir)
   (check-true
-    (string-suffix?
-      "2026-11-04T08-00-00.000_sess-1.jsonl"
-      (pi-resolve-history-file `((continue . #t) (session-dir . ,%tmp-dir)) cfg %tmp-dir)
-    )
+    (string-suffix? "2026-11-04T08-00-00.000_sess-1.jsonl"
+      (pi-resolve-history-file `((continue . #t) (session-dir . ,%tmp-dir))
+        cfg
+        %tmp-dir
+      ) ;pi-resolve-history-file
+    ) ;string-suffix?
   ) ;check-true
 ) ;let*
 

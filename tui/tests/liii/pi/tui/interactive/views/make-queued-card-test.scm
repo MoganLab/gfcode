@@ -50,15 +50,30 @@
        (lines (component-render (make-queued-card long-line) 40))
       ) ;
   (check-true (> (length lines) 1))
-  (check-true (every (lambda (l) (<= (display-width (strip-ansi l)) 40)) lines))
+  (check-true
+    (every
+      (lambda (l) (<= (display-width (strip-ansi l)) 40))
+      lines
+    ) ;every
+  ) ;check-true
 ) ;let*
 
 ;; 超长多行日志限制最大预览行数，避免撑爆终端高度
-(let* ((many-lines (string-join (map (lambda (i) (string-append "log line " (number->string i))) (iota 200)) "\n"))
+(let* ((many-lines
+         (string-join
+           (map (lambda (i) (string-append "log line " (number->string i))) (iota 200))
+           "\n"
+         ) ;string-join
+       ) ;many-lines
        (lines (component-render (make-queued-card many-lines) 80))
       ) ;
   (check-true (<= (length lines) 8))
-  (check-true (every (lambda (l) (<= (display-width (strip-ansi l)) 80)) lines))
+  (check-true
+    (every
+      (lambda (l) (<= (display-width (strip-ansi l)) 80))
+      lines
+    ) ;every
+  ) ;check-true
 ) ;let*
 
 ;; \r\n 与 \r 被规范化，不会在渲染行中残留 \r

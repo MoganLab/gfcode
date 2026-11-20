@@ -39,7 +39,9 @@
 ) ;let
 
 ;; 24 行终端下最多保留 8 行（前 7 行 + 1 行省略提示）
-(let* ((lines (map (lambda (i) (string-append "  line " (number->string i))) (iota 20)))
+(let* ((lines
+         (map (lambda (i) (string-append "  line " (number->string i))) (iota 20))
+       ) ;lines
        (clipped (pi-clip-pending-lines lines 24 1 0 80))
       ) ;
   (check (length clipped) => 8)

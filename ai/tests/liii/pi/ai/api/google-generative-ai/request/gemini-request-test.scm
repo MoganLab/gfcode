@@ -35,7 +35,7 @@
   (liii path)
   (liii subprocess)
   (liii tempfile)
- 
+
   (liii pi ai log)
   (liii pi ai api google-generative-ai request)
 ) ;import
@@ -195,7 +195,9 @@
       (check (pi-assistant-message-stop-reason resp-retry) => "stop")
       (check
         (cdr
-          (cons 'text (pi-text-block-text (car (pi-assistant-message-content resp-retry))))
+          (cons 'text
+            (pi-text-block-text (car (pi-assistant-message-content resp-retry)))
+          ) ;cons
         ) ;cdr
         =>
         "Hello from stub!"
@@ -232,7 +234,9 @@
       (check (pi-assistant-message-stop-reason resp-retry-p) => "stop")
       (check
         (cdr
-          (cons 'text (pi-text-block-text (car (pi-assistant-message-content resp-retry-p))))
+          (cons 'text
+            (pi-text-block-text (car (pi-assistant-message-content resp-retry-p)))
+          ) ;cons
         ) ;cdr
         =>
         "Hello from stub!"
@@ -266,7 +270,9 @@
            ) ;resp-retry-f
           ) ;
       (check (pi-assistant-message-stop-reason resp-retry-f) => "error")
-      (check-true (string-contains? (pi-assistant-message-error-message resp-retry-f) "Too Many Requests")
+      (check-true (string-contains? (pi-assistant-message-error-message resp-retry-f)
+                    "Too Many Requests"
+                  ) ;string-contains?
       ) ;check-true
     ) ;let*
 

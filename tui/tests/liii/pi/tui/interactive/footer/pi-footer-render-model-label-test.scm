@@ -70,16 +70,24 @@
             :active-node       '("google" "gemini-3.8-flash" "low" 1048576 #t)
           ) ;make-pi-footer
        ) ;f
-       (render (lambda () (apply string-append (map strip-ansi (component-render f 200)))))
+       (render
+         (lambda () (apply string-append (map strip-ansi (component-render f 200))))
+       ) ;render
       ) ;
   (check (string-contains? (render) "-> (google) gemini-3.8-flash • low") => #t)
   (pi-footer-set-thinking-level! f "high")
   ;; 切换后立即显示用户所选等级，不再停留在旧值
-  (check (string-contains? (render) "-> (google) gemini-3.8-flash • high") => #t)
+  (check (string-contains? (render) "-> (google) gemini-3.8-flash • high")
+    =>
+    #t
+  ) ;check
   (check-false (string-contains? (render) "• low"))
   ;; 新请求回报收敛后的实际等级（该节点最高只支持 high）
   (pi-footer-set-active-node! f '("google" "gemini-3.8-flash" "high" 1048576 #t))
-  (check (string-contains? (render) "-> (google) gemini-3.8-flash • high") => #t)
+  (check (string-contains? (render) "-> (google) gemini-3.8-flash • high")
+    =>
+    #t
+  ) ;check
 ) ;let*
 
 ;; 尚无实际节点时切换等级：页脚保持 all-in-one/<chain-id>，
@@ -91,13 +99,18 @@
             :supports-thinking #t
           ) ;make-pi-footer
        ) ;f
-       (render (lambda () (apply string-append (map strip-ansi (component-render f 200)))))
+       (render
+         (lambda () (apply string-append (map strip-ansi (component-render f 200))))
+       ) ;render
       ) ;
   (pi-footer-set-thinking-level! f "high")
   (check (string-contains? (render) "all-in-one/coding-fast") => #t)
   (check-false (string-contains? (render) "->"))
   (pi-footer-set-active-node! f '("google" "gemini-3.8-flash" "high" 1048576 #t))
-  (check (string-contains? (render) "-> (google) gemini-3.8-flash • high") => #t)
+  (check (string-contains? (render) "-> (google) gemini-3.8-flash • high")
+    =>
+    #t
+  ) ;check
 ) ;let*
 
 ;; 切换瞬间显示用户所选等级；请求返回后显示节点收敛后的实际值。
@@ -107,15 +120,20 @@
             :provider          "all-in-one"
             :thinking-level    "medium"
             :supports-thinking #t
-            :active-node       '("google" "gemini-3.8-flash" "medium" 1048576 #t)
+            :active-node '("google" "gemini-3.8-flash" "medium" 1048576 #t)
           ) ;make-pi-footer
        ) ;f
-       (render (lambda () (apply string-append (map strip-ansi (component-render f 200)))))
+       (render
+         (lambda () (apply string-append (map strip-ansi (component-render f 200))))
+       ) ;render
       ) ;
   (pi-footer-set-thinking-level! f "max")
   (check (string-contains? (render) "-> (google) gemini-3.8-flash • max") => #t)
   (pi-footer-set-active-node! f '("google" "gemini-3.8-flash" "high" 1048576 #t))
-  (check (string-contains? (render) "-> (google) gemini-3.8-flash • high") => #t)
+  (check (string-contains? (render) "-> (google) gemini-3.8-flash • high")
+    =>
+    #t
+  ) ;check
   (check-false (string-contains? (render) "• max"))
 ) ;let*
 
@@ -128,7 +146,9 @@
             :active-node       '("ollama" "plain-model" "off" 128000 #f)
           ) ;make-pi-footer
        ) ;f
-       (render (lambda () (apply string-append (map strip-ansi (component-render f 200)))))
+       (render
+         (lambda () (apply string-append (map strip-ansi (component-render f 200))))
+       ) ;render
       ) ;
   (pi-footer-set-thinking-level! f "high")
   (check (string-contains? (render) "-> (ollama) plain-model") => #t)

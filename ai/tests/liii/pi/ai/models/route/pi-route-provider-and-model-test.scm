@@ -304,7 +304,11 @@
 (check-route "ollama" "qwen2.5-coder:latest" "ollama" #f)
 (check-route "ollama" "qwen2.5-coder:latest" #f "ollama/qwen2.5-coder:latest")
 (check-route "ollama" "qwen2.5-coder:latest" "ollama" "qwen2.5-coder:latest")
-(check-route "ollama" "rafw007/qwen35-claude-coder:9b" #f "ollama/rafw007/qwen35-claude-coder:9b")
-(check-route "ollama" "rafw007/qwen35-claude-coder:9b" "ollama" "rafw007/qwen35-claude-coder:9b")
+(check-route "ollama" "rafw007/qwen35-claude-coder:9b" #f
+  "ollama/rafw007/qwen35-claude-coder:9b"
+) ;check-route
+(check-route "ollama" "rafw007/qwen35-claude-coder:9b" "ollama"
+  "rafw007/qwen35-claude-coder:9b"
+) ;check-route
 
 (check-report)

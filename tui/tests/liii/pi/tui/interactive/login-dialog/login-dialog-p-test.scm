@@ -15,10 +15,7 @@
 ;; boolean?
 ;; 若为 login-dialog 组件则返回 #t，否则返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive login-dialog)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive login-dialog))
 
 (check-set-mode! 'report-failed)
 

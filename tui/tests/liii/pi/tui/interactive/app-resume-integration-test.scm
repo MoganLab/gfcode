@@ -50,7 +50,10 @@
 
 (define (chat-text app)
   (string-join
-    (map (lambda (child) (string-join (map strip-ansi (component-render child 100)) "\n"))
+    (map
+      (lambda (child)
+        (string-join (map strip-ansi (component-render child 100)) "\n")
+      ) ;lambda
       (pi-app-chat app)
     ) ;map
     "\n"
@@ -344,7 +347,8 @@
 
 ;; 14. 会话切换后的可见历史：界面历史来自最后选择的会话，
 ;;     worker 载荷与后续消息写入目标仍走既有契约
-(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-pi-resume-integration-1323")))
+(let* ((tmp-dir (path->string (path-join (path-temp-dir) "test-pi-resume-integration-1323"))
+       ) ;tmp-dir
        (file-a (path->string (path-join tmp-dir "a.jsonl")))
        (file-b (path->string (path-join tmp-dir "b.jsonl")))
        (info-a (make-info file-a "id-a" "Alpha" "2026-10-21T08:00:01.000Z"))

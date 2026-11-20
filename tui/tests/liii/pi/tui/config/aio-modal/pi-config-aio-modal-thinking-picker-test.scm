@@ -23,14 +23,15 @@
 ;; list
 ;; 覆盖层状态 alist。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui config aio-modal)
-) ;import
+(import (scheme base) (liii check) (liii pi tui config aio-modal))
 
 (check-set-mode! 'report-failed)
 
-(let ((m (pi-config-aio-modal-thinking-picker "coding-fast" 0 "google" "gemini-3.8-flash" "high")))
+(let ((m (pi-config-aio-modal-thinking-picker "coding-fast" 0 "google"
+           "gemini-3.8-flash" "high"
+         ) ;pi-config-aio-modal-thinking-picker
+      ) ;m
+     ) ;
   (check (cdr (assoc 'mode m)) => 'pick-slot-thinking)
   (check (cdr (assoc 'chain-id m)) => "coding-fast")
   (check (cdr (assoc 't-idx m)) => 4)

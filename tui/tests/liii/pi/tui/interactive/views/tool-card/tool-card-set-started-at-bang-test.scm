@@ -18,10 +18,7 @@
 ;; unspecified
 ;; 返回值未指定。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive views tool-card)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive views tool-card))
 
 (check-set-mode! 'report-failed)
 

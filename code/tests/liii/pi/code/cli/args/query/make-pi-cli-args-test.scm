@@ -19,7 +19,10 @@
 
 (check-set-mode! 'report-failed)
 
-(let ((args (make-pi-cli-args :provider "deepseek" :extensions '((custom-flag . "abc")))))
+(let ((args (make-pi-cli-args :provider "deepseek" :extensions '((custom-flag
+                                                                   . "abc")))
+      ) ;args
+     ) ;
   (check-true (pi-cli-args? args))
   (check (pi-args-ref args 'provider) => "deepseek")
   (check (pi-args-ref args 'model) => #f)

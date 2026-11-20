@@ -16,10 +16,7 @@
 ;; boolean
 ;; 允许 /skill: 展示与展开时为 #t。
 
-(import (scheme base)
-  (liii check)
-  (liii pi ai config settings)
-) ;import
+(import (scheme base) (liii check) (liii pi ai config settings))
 
 (check-set-mode! 'report-failed)
 
@@ -27,7 +24,9 @@
 (check-true (pi-settings-enable-skill-commands (pi-settings)))
 
 ;; 显式构造
-(check-false (pi-settings-enable-skill-commands (pi-settings :enable-skill-commands #f)))
-(check-true (pi-settings-enable-skill-commands (pi-settings :enable-skill-commands #t)))
+(check-false (pi-settings-enable-skill-commands (pi-settings :enable-skill-commands #f))
+) ;check-false
+(check-true (pi-settings-enable-skill-commands (pi-settings :enable-skill-commands #t))
+) ;check-true
 
 (check-report)

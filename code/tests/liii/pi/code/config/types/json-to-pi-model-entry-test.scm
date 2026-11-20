@@ -14,15 +14,13 @@
 ;; ----
 ;; any
 
-(import (scheme base)
-  (liii check)
-  (liii json)
-  (liii pi code config types)
-) ;import
+(import (scheme base) (liii check) (liii json) (liii pi code config types))
 
 (check-set-mode! 'report-failed)
 
-(let* ((j (string->json "{\"id\":\"k3.1-pro\",\"name\":\"Kimi K3.1 Pro\",\"baseUrl\":\"https://api.kimi.com\",\"api\":\"openai\",\"reasoning\":true,\"contextWindow\":1048576,\"maxTokens\":131072,\"custom\":1}"))
+(let* ((j (string->json "{\"id\":\"k3.1-pro\",\"name\":\"Kimi K3.1 Pro\",\"baseUrl\":\"https://api.kimi.com\",\"api\":\"openai\",\"reasoning\":true,\"contextWindow\":1048576,\"maxTokens\":131072,\"custom\":1}"
+          ) ;string->json
+       ) ;j
        (e (json->pi-model-entry j))
       ) ;
   (check-true (pi-model-entry? e))

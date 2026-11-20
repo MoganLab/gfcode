@@ -15,11 +15,7 @@
 ;; boolean?
 ;; 若为 footer 组件返回 #t，否则返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive footer)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive footer))
 
 (check-set-mode! 'report-failed)
 

@@ -34,7 +34,9 @@
 
 ;; 1. 正确解析并执行 auth login，写入 auth.json
 (let* ((tmp (make-temp-dir "gf-auth-cli-" ""))
-       (status (run-pi-auth '("login" "--provider" "deepseek" "--key" "sk-cli-123") tmp))
+       (status (run-pi-auth '("login" "--provider" "deepseek" "--key"
+                              "sk-cli-123") tmp)
+       ) ;status
        (creds (pi-load-auth tmp))
       ) ;
   (check status => 0)

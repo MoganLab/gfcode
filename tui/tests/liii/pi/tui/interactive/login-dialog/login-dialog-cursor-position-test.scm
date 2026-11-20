@@ -15,10 +15,7 @@
 ;; list?
 ;; 长度为 2 的整数列表，格式为 (row col)。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive login-dialog)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive login-dialog))
 
 (check-set-mode! 'report-failed)
 

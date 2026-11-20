@@ -21,9 +21,21 @@
 (check-true (pair? PI_OPENCODE_BUILTIN_MODELS))
 (check (length PI_OPENCODE_BUILTIN_MODELS) => 27)
 
-(let ((deepseek (assoc "deepseek-v4.1-flash" (map (lambda (m) (cons (cdr (assoc "id" m)) m)) PI_OPENCODE_BUILTIN_MODELS))))
+(let ((deepseek
+        (assoc "deepseek-v4.1-flash"
+          (map
+            (lambda (m) (cons (cdr (assoc "id" m)) m))
+            PI_OPENCODE_BUILTIN_MODELS
+          ) ;map
+        ) ;assoc
+      ) ;deepseek
+     ) ;
   (check-true (pair? deepseek))
   (check (cdr (assoc "name" (cdr deepseek))) => "DeepSeek V4.1 Flash")
-  (check (cdr (assoc "baseUrl" (cdr deepseek))) => "https://opencode.ai/zen/go/v1"))
+  (check (cdr (assoc "baseUrl" (cdr deepseek)))
+    =>
+    "https://opencode.ai/zen/go/v1"
+  ) ;check
+) ;let
 
 (check-report)

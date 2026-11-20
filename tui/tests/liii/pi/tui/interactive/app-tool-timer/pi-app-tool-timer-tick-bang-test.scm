@@ -46,7 +46,10 @@
   (pi-app-poll-events! app)
 
   ;; 屏幕上初始显示 Elapsed 0.0s
-  (let ((screen-text (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")))
+  (let ((screen-text
+          (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
+        ) ;screen-text
+       ) ;
     (check-true (string-contains? screen-text "Elapsed 0.0s"))
   ) ;let
 
@@ -58,13 +61,14 @@
   (check-false (pi-app-tool-timer-tick! app))
 
   ;; 模拟经过 1000ms：tick 返回 #t 并触发重绘，卡片显示 Elapsed 1.0s
-  (let* ((card (cdar (%pi-app-tool-cards app)))
-         (now (current-monotonic-millis))
-        ) ;
+  (let* ((card (cdar (%pi-app-tool-cards app))) (now (current-monotonic-millis)))
     (tool-card-set-started-at! card (- (%tool-now-ms) 1050))
     (pi-app-tool-timer-last-tick-set! app (- now 1000))
     (check-true (pi-app-tool-timer-tick! app))
-    (let ((screen-text (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")))
+    (let ((screen-text
+            (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
+          ) ;screen-text
+         ) ;
       (check-true (string-contains? screen-text "Elapsed 1.0s"))
       (check-false (string-contains? screen-text "Elapsed 0.0s"))
     ) ;let
@@ -73,7 +77,10 @@
     (tool-card-set-started-at! card (- (%tool-now-ms) 3050))
     (pi-app-tool-timer-last-tick-set! app (- (current-monotonic-millis) 1000))
     (check-true (pi-app-tool-timer-tick! app))
-    (let ((screen-text (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")))
+    (let ((screen-text
+            (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
+          ) ;screen-text
+         ) ;
       (check-true (string-contains? screen-text "Elapsed 3.0s"))
     ) ;let
   ) ;let*
@@ -81,7 +88,10 @@
   ;; 工具执行结束：结算为 Took，且后续 tick 复位为 #f 不再重绘
   (emit 'tool_execution_end "t-1" "bash" "Tests passed" #f 3200)
   (pi-app-poll-events! app)
-  (let ((screen-text (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")))
+  (let ((screen-text
+          (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
+        ) ;screen-text
+       ) ;
     (check-true (string-contains? screen-text "Took 3.2s"))
     (check-false (string-contains? screen-text "Elapsed"))
   ) ;let

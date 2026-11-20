@@ -22,18 +22,18 @@
     (define (%resolve-header-value name value api-key opt-env provider model-id)
       (unless (string? value)
         (error 'pi-config-error
-          (string-append "Header \"" name "\" for model \"" provider "/" model-id
-            "\" must have a string value"
+          (string-append "Header \"" name "\" for model \"" provider "/"
+            model-id "\" must have a string value"
           ) ;string-append
         ) ;error
       ) ;unless
       (let* ((key-required? (string-contains? value "${API_KEY}"))
              (_
-               (when (and key-required?
-                       (or (not (string? api-key)) (string-null? api-key))
-                     ) ;and
+               (when
+                 (and key-required? (or (not (string? api-key)) (string-null? api-key)))
                  (error 'pi-config-error
-                   (string-append "Header \"" name "\" for model \"" provider "/" model-id
+                   (string-append "Header \"" name "\" for model \"" provider
+                     "/" model-id
                      "\" requires ${API_KEY}, but no API key was resolved"
                    ) ;string-append
                  ) ;error
@@ -48,8 +48,8 @@
             ) ;
         (unless (string? resolved)
           (error 'pi-config-error
-            (string-append "Header \"" name "\" for model \"" provider "/" model-id
-              "\" references an undefined environment variable"
+            (string-append "Header \"" name "\" for model \"" provider "/"
+              model-id "\" references an undefined environment variable"
             ) ;string-append
           ) ;error
         ) ;unless
@@ -72,14 +72,15 @@
                    "\" must be a JSON object"
                  ) ;string-append
                ) ;error
-              ) ;not
+              ) ;
               (else
                 (map
                   (lambda (h)
-                    (unless (and (pair? h) (string? (car h)) (not (string-null? (car h))))
+                    (unless
+                      (and (pair? h) (string? (car h)) (not (string-null? (car h))))
                       (error 'pi-config-error
-                        (string-append "Headers for model \"" provider "/" model-id
-                          "\" must have non-empty string names"
+                        (string-append "Headers for model \"" provider "/"
+                          model-id "\" must have non-empty string names"
                         ) ;string-append
                       ) ;error
                     ) ;unless

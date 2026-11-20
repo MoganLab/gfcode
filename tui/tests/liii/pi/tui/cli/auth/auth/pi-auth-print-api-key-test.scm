@@ -33,11 +33,8 @@
 (check-set-mode! 'report-failed)
 
 (define (with-stderr-to-string thunk)
-  (let* ((p (open-output-string))
-         (orig *stderr*)
-        ) ;
-    (dynamic-wind
-      (lambda () (set! *stderr* p))
+  (let* ((p (open-output-string)) (orig *stderr*))
+    (dynamic-wind (lambda () (set! *stderr* p))
       thunk
       (lambda () (set! *stderr* orig))
     ) ;dynamic-wind
@@ -53,8 +50,11 @@
     "{\"deepseek\":{\"type\":\"api_key\",\"key\":\"sk-fixture-1280\"}}"
   ) ;path-write-text
   (let ((status #f))
-    (let ((out (with-output-to-string
-                 (lambda () (set! status (pi-auth-print-api-key "deepseek" tmp '()))))))
+    (let ((out
+            (with-output-to-string (lambda () (set! status (pi-auth-print-api-key "deepseek" tmp '())))
+            ) ;with-output-to-string
+          ) ;out
+         ) ;
       (check status => 0)
       (check out => "sk-fixture-1280\n")
     ) ;let
@@ -72,8 +72,11 @@
     "{\"deepseek\":{\"type\":\"api_key\",\"key\":\"sk-fixture-1280\"}}"
   ) ;path-write-text
   (let ((status #f))
-    (let ((out (with-output-to-string
-                 (lambda () (set! status (pi-auth-print-api-key "deepseek" tmp env))))))
+    (let ((out
+            (with-output-to-string (lambda () (set! status (pi-auth-print-api-key "deepseek" tmp env)))
+            ) ;with-output-to-string
+          ) ;out
+         ) ;
       (check status => 0)
       (check out => "sk-env-1280\n")
     ) ;let
@@ -91,8 +94,11 @@
     "{\"deepseek\":{\"type\":\"api_key\",\"key\":\"${MY_CUSTOM_VAR}\"}}"
   ) ;path-write-text
   (let ((status #f))
-    (let ((out (with-output-to-string
-                 (lambda () (set! status (pi-auth-print-api-key "deepseek" tmp env))))))
+    (let ((out
+            (with-output-to-string (lambda () (set! status (pi-auth-print-api-key "deepseek" tmp env)))
+            ) ;with-output-to-string
+          ) ;out
+         ) ;
       (check status => 0)
       (check out => "sk-interpolated-1280\n")
     ) ;let
@@ -103,14 +109,17 @@
 
 ;; 4. 未找到 key 时输出说明到 stderr，stdout 无输出，退出码为 1
 (let* ((tmp (make-temp-dir "gf-auth-test-empty-" "")))
-  (let ((status #f)
-        (out "")
-        (err "")
-       ) ;
-    (set! err (with-stderr-to-string
-                (lambda ()
-                  (set! out (with-output-to-string
-                              (lambda () (set! status (pi-auth-print-api-key "kimi-coding" tmp '()))))))))
+  (let ((status #f) (out "") (err ""))
+    (set! err
+      (with-stderr-to-string
+        (lambda ()
+          (set! out
+            (with-output-to-string (lambda () (set! status (pi-auth-print-api-key "kimi-coding" tmp '())))
+            ) ;with-output-to-string
+          ) ;set!
+        ) ;lambda
+      ) ;with-stderr-to-string
+    ) ;set!
     (check status => 1)
     (check out => "")
     (check-true (string-contains? err "kimi-coding"))
@@ -122,14 +131,17 @@
 
 ;; 5. 不受支持的 provider（如 all-in-one 或未知 id）同样走未找到说明路径
 (let* ((tmp (make-temp-dir "gf-auth-test-unknown-" "")))
-  (let ((status #f)
-        (out "")
-        (err "")
-       ) ;
-    (set! err (with-stderr-to-string
-                (lambda ()
-                  (set! out (with-output-to-string
-                              (lambda () (set! status (pi-auth-print-api-key "all-in-one" tmp '()))))))))
+  (let ((status #f) (out "") (err ""))
+    (set! err
+      (with-stderr-to-string
+        (lambda ()
+          (set! out
+            (with-output-to-string (lambda () (set! status (pi-auth-print-api-key "all-in-one" tmp '())))
+            ) ;with-output-to-string
+          ) ;set!
+        ) ;lambda
+      ) ;with-stderr-to-string
+    ) ;set!
     (check status => 1)
     (check out => "")
     (check-true (string-contains? err "all-in-one"))
@@ -141,8 +153,11 @@
 ;; 6. ollama 免密回退到 "ollama"
 (let* ((tmp (make-temp-dir "gf-auth-test-ollama-" "")))
   (let ((status #f))
-    (let ((out (with-output-to-string
-                 (lambda () (set! status (pi-auth-print-api-key "ollama" tmp '()))))))
+    (let ((out
+            (with-output-to-string (lambda () (set! status (pi-auth-print-api-key "ollama" tmp '())))
+            ) ;with-output-to-string
+          ) ;out
+         ) ;
       (check status => 0)
       (check out => "ollama\n")
     ) ;let
@@ -158,8 +173,11 @@
     "{\"zai\":{\"type\":\"api_key\",\"key\":\"sk-zai-alias\"}}"
   ) ;path-write-text
   (let ((status #f))
-    (let ((out (with-output-to-string
-                 (lambda () (set! status (pi-auth-print-api-key "zai-coding-cn" tmp '()))))))
+    (let ((out
+            (with-output-to-string (lambda () (set! status (pi-auth-print-api-key "zai-coding-cn" tmp '())))
+            ) ;with-output-to-string
+          ) ;out
+         ) ;
       (check status => 0)
       (check out => "sk-zai-alias\n")
     ) ;let

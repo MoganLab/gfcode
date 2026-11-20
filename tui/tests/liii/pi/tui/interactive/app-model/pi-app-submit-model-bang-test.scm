@@ -204,9 +204,11 @@
           (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
         ) ;plain
        ) ;
-    (check-true (string-contains? plain "本轮结束之后，将会切换到 zai/glm-5"))
-    (check-true
-      (string-contains? plain "(google) gemini-2.5-pro • high -> (zai) glm-5 • medium")
+    (check-true (string-contains? plain "本轮结束之后，将会切换到 zai/glm-5")
+    ) ;check-true
+    (check-true (string-contains? plain
+                  "(google) gemini-2.5-pro • high -> (zai) glm-5 • medium"
+                ) ;string-contains?
     ) ;check-true
   ) ;let
   (chan-send! (pi-app-event-chan app) '(agent_settled #f) 1000)
@@ -234,13 +236,13 @@
           (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
         ) ;plain
        ) ;
-    (check-true
-      (string-contains? plain "本轮结束之后，将会切换到 google/gemini-3-flash-preview")
+    (check-true (string-contains? plain
+                  "本轮结束之后，将会切换到 google/gemini-3-flash-preview"
+                ) ;string-contains?
     ) ;check-true
-    (check-true
-      (string-contains? plain
-        "(google) gemini-2.5-pro • high -> (google) gemini-3-flash-preview • medium"
-      ) ;string-contains?
+    (check-true (string-contains? plain
+                  "(google) gemini-2.5-pro • high -> (google) gemini-3-flash-preview • medium"
+                ) ;string-contains?
     ) ;check-true
   ) ;let
   (chan-send! (pi-app-event-chan app) '(agent_settled #f) 1000)
@@ -249,7 +251,8 @@
           (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
         ) ;plain
        ) ;
-    (check-true (string-contains? plain "已经切换到 google/gemini-3-flash-preview"))
+    (check-true (string-contains? plain "已经切换到 google/gemini-3-flash-preview")
+    ) ;check-true
     (check-false (string-contains? plain "->"))
   ) ;let
 ) ;let

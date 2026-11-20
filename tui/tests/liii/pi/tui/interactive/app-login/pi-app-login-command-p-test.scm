@@ -15,10 +15,7 @@
 ;; boolean?
 ;; 是否以 /login 起始。
 
-(import (scheme base)
-  (liii check)
-  (liii pi tui interactive app-login)
-) ;import
+(import (scheme base) (liii check) (liii pi tui interactive app-login))
 
 (check-set-mode! 'report-failed)
 

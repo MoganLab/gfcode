@@ -65,7 +65,10 @@
     ev-chan
     #f
   ) ;pi-worker-handle-job
-  (pi-worker-handle-job (list 'session_state "thinking_level_change" (list (cons "thinkingLevel" "off")))
+  (pi-worker-handle-job (list 'session_state
+                          "thinking_level_change"
+                          (list (cons "thinkingLevel" "off"))
+                        ) ;list
     parsed
     cfg
     box
@@ -117,7 +120,10 @@
        (box (vector (path->string (path-temp-dir))))
        (ev-chan (make-chan 16))
       ) ;
-  (pi-worker-handle-job (list 'session_state "thinking_level_change" (list (cons "thinkingLevel" "high")))
+  (pi-worker-handle-job (list 'session_state
+                          "thinking_level_change"
+                          (list (cons "thinkingLevel" "high"))
+                        ) ;list
     parsed
     cfg
     box

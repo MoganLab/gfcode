@@ -46,7 +46,8 @@
   ;; 2. provider 为 google 时读取 model-meta 中的 base-url
   (check
     (pi-resolve-search-base-url '((provider . "google")
-                                  (model-meta (base-url . "http://meta-base:8080")))
+                                  (model-meta (base-url
+                                                . "http://meta-base:8080")))
       #f
       #f
       "google"
@@ -58,18 +59,12 @@
 
   ;; 2b. model-meta 为 pi-model-metadata record 时，用访问器读取 base-url（issue #1172）
   (check
-    (pi-resolve-search-base-url
-      `((provider . "google")
-        (model-meta . ,(pi-model-metadata "gemini-2.5-flash"
-                          "Gemini 2.5 Flash"
-                          "google"
-                          "http://record-meta-base:8080"
-                          1048576
-                          8192
-                          #t
-                        ) ;pi-model-metadata
-         ) ;model-meta
-      ) ;config
+    (pi-resolve-search-base-url `((provider . "google")
+                                  (model-meta
+                                    . ,(pi-model-metadata "gemini-2.5-flash"
+                                         "Gemini 2.5 Flash" "google"
+                                         "http://record-meta-base:8080" 1048576
+                                         8192 #t)))
       #f
       #f
       "google"
@@ -81,18 +76,11 @@
 
   ;; 2c. record 的 base-url 为空白字符串时视为未配置，回退默认地址（issue #1172）
   (check
-    (pi-resolve-search-base-url
-      `((provider . "google")
-        (model-meta . ,(pi-model-metadata "gemini-2.5-flash"
-                          "Gemini 2.5 Flash"
-                          "google"
-                          "   "
-                          1048576
-                          8192
-                          #t
-                        ) ;pi-model-metadata
-         ) ;model-meta
-      ) ;config
+    (pi-resolve-search-base-url `((provider . "google")
+                                  (model-meta
+                                    . ,(pi-model-metadata "gemini-2.5-flash"
+                                         "Gemini 2.5 Flash" "google" "   "
+                                         1048576 8192 #t)))
       #f
       #f
       "google"
@@ -103,13 +91,12 @@
   ) ;check
 
   ;; 3. web-search.json 覆盖
-  (check
-    (pi-resolve-search-base-url '()
-      #f
-      (make-pi-web-search-config "google" #f "http://ws-server:8080" #f)
-      "google"
-      clean-env
-    ) ;pi-resolve-search-base-url
+  (check (pi-resolve-search-base-url '()
+           #f
+           (make-pi-web-search-config "google" #f "http://ws-server:8080" #f)
+           "google"
+           clean-env
+         ) ;pi-resolve-search-base-url
     =>
     "http://ws-server:8080"
   ) ;check

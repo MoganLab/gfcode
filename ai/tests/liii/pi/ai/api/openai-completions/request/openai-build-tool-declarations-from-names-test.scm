@@ -28,11 +28,14 @@
   (pi-tool-definition name (string-append name " description") '() (lambda () #t))
 ) ;define
 
-(let ((decls (openai-build-tool-declarations-from-names '("bash" "read") mock-resolver)))
+(let ((decls (openai-build-tool-declarations-from-names '("bash" "read") mock-resolver)
+      ) ;decls
+     ) ;
   (check (length decls) => 2)
-  (let* ((d1 (car decls))
-         (fn1 (cdr (assoc "function" d1))))
+  (let* ((d1 (car decls)) (fn1 (cdr (assoc "function" d1))))
     (check (cdr (assoc "type" d1)) => "function")
-    (check (cdr (assoc "name" fn1)) => "bash")))
+    (check (cdr (assoc "name" fn1)) => "bash")
+  ) ;let*
+) ;let
 
 (check-report)

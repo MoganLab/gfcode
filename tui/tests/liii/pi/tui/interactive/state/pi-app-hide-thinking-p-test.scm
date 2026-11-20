@@ -15,11 +15,7 @@
 ;; boolean
 ;; 思考内容隐藏折叠时返回 #t，展开展示时返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

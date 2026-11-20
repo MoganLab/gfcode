@@ -33,11 +33,8 @@
 (check-set-mode! 'report-failed)
 
 (define (with-stderr-to-string thunk)
-  (let* ((p (open-output-string))
-         (orig *stderr*)
-        ) ;
-    (dynamic-wind
-      (lambda () (set! *stderr* p))
+  (let* ((p (open-output-string)) (orig *stderr*))
+    (dynamic-wind (lambda () (set! *stderr* p))
       thunk
       (lambda () (set! *stderr* orig))
     ) ;dynamic-wind
@@ -49,14 +46,21 @@
 (let ((status #f))
   (let ((out (with-output-to-string (lambda () (set! status (run-pi-auth '()))))))
     (check status => 0)
-    (check-true (string-contains? out "Usage: gf pi auth print-api-key --provider <provider>"))
+    (check-true (string-contains? out "Usage: gf pi auth print-api-key --provider <provider>")
+    ) ;check-true
   ) ;let
 ) ;let
 
 (let ((status #f))
-  (let ((out (with-output-to-string (lambda () (set! status (run-pi-auth '("--help")))))))
+  (let ((out
+          (with-output-to-string
+            (lambda () (set! status (run-pi-auth '("--help"))))
+          ) ;with-output-to-string
+        ) ;out
+       ) ;
     (check status => 0)
-    (check-true (string-contains? out "Usage: gf pi auth print-api-key --provider <provider>"))
+    (check-true (string-contains? out "Usage: gf pi auth print-api-key --provider <provider>")
+    ) ;check-true
   ) ;let
 ) ;let
 
@@ -68,9 +72,16 @@
     "{\"deepseek\":{\"type\":\"api_key\",\"key\":\"sk-fixture-1280\"}}"
   ) ;path-write-text
   (let ((status #f))
-    (let ((out (with-output-to-string
-                 (lambda ()
-                   (set! status (run-pi-auth '("print-api-key" "--provider" "deepseek") tmp))))))
+    (let ((out
+            (with-output-to-string
+              (lambda ()
+                (set! status (run-pi-auth '("print-api-key"
+                                            "--provider"
+                                            "deepseek") tmp))
+              ) ;lambda
+            ) ;with-output-to-string
+          ) ;out
+         ) ;
       (check status => 0)
       (check out => "sk-fixture-1280\n")
     ) ;let
@@ -82,8 +93,11 @@
 ;; 3. 缺失 --provider 时 stderr 提示并返回 1
 (let* ((tmp (make-temp-dir "gf-auth-test-" "")))
   (let ((status #f) (err ""))
-    (set! err (with-stderr-to-string
-                (lambda () (set! status (run-pi-auth '("print-api-key") tmp)))))
+    (set! err
+      (with-stderr-to-string
+        (lambda () (set! status (run-pi-auth '("print-api-key") tmp)))
+      ) ;with-stderr-to-string
+    ) ;set!
     (check status => 1)
     (check-true (string-contains? err "--provider <provider>"))
   ) ;let
@@ -93,13 +107,14 @@
 ;; 4. 未知子命令时 stderr 提示并返回 1
 (let* ((tmp (make-temp-dir "gf-auth-test-" "")))
   (let ((status #f) (err ""))
-    (set! err (with-stderr-to-string
-                (lambda ()
-                  (set! status
-                    (run-pi-auth '("print-bearer-token" "--provider" "deepseek") tmp)
-                  ) ;set!
-                ) ;lambda
-              ) ;with-stderr-to-string
+    (set! err
+      (with-stderr-to-string
+        (lambda ()
+          (set! status (run-pi-auth '("print-bearer-token"
+                                      "--provider"
+                                      "deepseek") tmp))
+        ) ;lambda
+      ) ;with-stderr-to-string
     ) ;set!
     (check status => 1)
     (check-true (string-contains? err "print-api-key"))
@@ -110,13 +125,14 @@
 ;; 5. 未知选项时 stderr 提示并返回 1
 (let* ((tmp (make-temp-dir "gf-auth-test-" "")))
   (let ((status #f) (err ""))
-    (set! err (with-stderr-to-string
-                (lambda ()
-                  (set! status
-                    (run-pi-auth '("print-api-key" "--provider" "deepseek" "--model" "m") tmp)
-                  ) ;set!
-                ) ;lambda
-              ) ;with-stderr-to-string
+    (set! err
+      (with-stderr-to-string
+        (lambda ()
+          (set! status
+            (run-pi-auth '("print-api-key" "--provider" "deepseek" "--model" "m") tmp)
+          ) ;set!
+        ) ;lambda
+      ) ;with-stderr-to-string
     ) ;set!
     (check status => 1)
     (check-true (string-contains? err "unknown option"))

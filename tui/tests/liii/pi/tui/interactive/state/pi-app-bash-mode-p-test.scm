@@ -15,11 +15,7 @@
 ;; boolean
 ;; 处于 Bash 命令直发模式时返回 #t，否则返回 #f。
 
-(import (scheme base)
-  (liii check)
-  (liii tui)
-  (liii pi tui interactive app)
-) ;import
+(import (scheme base) (liii check) (liii tui) (liii pi tui interactive app))
 
 (check-set-mode! 'report-failed)
 

@@ -38,33 +38,32 @@
   "google"
 ) ;check
 ;; ws-config（web-search.json，全局覆盖：任何会话 provider 都生效）
-(check
-  (pi-resolve-web-search-provider '()
-    #f
-    (make-pi-web-search-config "deepseek" #f #f #f)
-  ) ;pi-resolve-web-search-provider
+(check (pi-resolve-web-search-provider '()
+         #f
+         (make-pi-web-search-config "deepseek" #f #f #f)
+       ) ;pi-resolve-web-search-provider
   =>
   "deepseek"
 ) ;check
-(check
-  (pi-resolve-web-search-provider '((provider . "google"))
-    #f
-    (make-pi-web-search-config "deepseek" #f #f #f)
-  ) ;pi-resolve-web-search-provider
+(check (pi-resolve-web-search-provider '((provider . "google"))
+         #f
+         (make-pi-web-search-config "deepseek" #f #f #f)
+       ) ;pi-resolve-web-search-provider
   =>
   "deepseek"
 ) ;check
-(check
-  (pi-resolve-web-search-provider '()
-    "google"
-    (make-pi-web-search-config "deepseek" #f #f #f)
-  ) ;pi-resolve-web-search-provider
+(check (pi-resolve-web-search-provider '()
+         "google"
+         (make-pi-web-search-config "deepseek" #f #f #f)
+       ) ;pi-resolve-web-search-provider
   =>
   "google"
 ) ;check
 ;; ws-config 里不认识的 provider 回退 google
-(check
-  (pi-resolve-web-search-provider '() #f (make-pi-web-search-config "openai" #f #f #f))
+(check (pi-resolve-web-search-provider '()
+         #f
+         (make-pi-web-search-config "openai" #f #f #f)
+       ) ;pi-resolve-web-search-provider
   =>
   "google"
 ) ;check

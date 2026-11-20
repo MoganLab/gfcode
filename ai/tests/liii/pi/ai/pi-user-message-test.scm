@@ -33,6 +33,8 @@
 
   ;; 指定 timestamp 构造
   (let ((msg2 (pi-user-message "foo" 123456789)))
-    (check (pi-user-message-timestamp msg2) => 123456789)))
+    (check (pi-user-message-timestamp msg2) => 123456789)
+  ) ;let
+) ;let*
 
 (check-report)

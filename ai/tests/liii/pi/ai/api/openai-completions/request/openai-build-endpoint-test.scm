@@ -20,36 +20,56 @@
 (check-set-mode! 'report-failed)
 
 (check (openai-build-endpoint "https://api.kimi.com/coding/v1")
-  => "https://api.kimi.com/coding/v1/chat/completions")
+  =>
+  "https://api.kimi.com/coding/v1/chat/completions"
+) ;check
 (check (openai-build-endpoint "https://api.kimi.com/coding")
-  => "https://api.kimi.com/coding/v1/chat/completions")
+  =>
+  "https://api.kimi.com/coding/v1/chat/completions"
+) ;check
 (check (openai-build-endpoint "http://localhost:8080/v1/")
-  => "http://localhost:8080/v1/chat/completions")
+  =>
+  "http://localhost:8080/v1/chat/completions"
+) ;check
 (check (openai-build-endpoint "http://localhost:8080/chat/completions")
-  => "http://localhost:8080/chat/completions")
+  =>
+  "http://localhost:8080/chat/completions"
+) ;check
 
 ;; 缺省值（协议层默认端点为 OpenAI 官方地址）
 (check (openai-build-endpoint #f)
-  => "https://api.openai.com/v1/chat/completions")
+  =>
+  "https://api.openai.com/v1/chat/completions"
+) ;check
 
 ;; 仅主机名，无路径
 (check (openai-build-endpoint "http://localhost:8080")
-  => "http://localhost:8080/v1/chat/completions")
+  =>
+  "http://localhost:8080/v1/chat/completions"
+) ;check
 
 ;; 主机名带尾斜杠
 (check (openai-build-endpoint "http://localhost:8080/")
-  => "http://localhost:8080/v1/chat/completions")
+  =>
+  "http://localhost:8080/v1/chat/completions"
+) ;check
 
 ;; /v4 后缀
 (check (openai-build-endpoint "https://proxy.example.com/v4")
-  => "https://proxy.example.com/v4/chat/completions")
+  =>
+  "https://proxy.example.com/v4/chat/completions"
+) ;check
 
 ;; 包含 /paas/ 的路径
 (check (openai-build-endpoint "https://open.bigmodel.cn/api/coding/paas/v4")
-  => "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions")
+  =>
+  "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions"
+) ;check
 
 ;; 已带 /chat/completions 且带尾斜杠
 (check (openai-build-endpoint "http://localhost:8080/chat/completions/")
-  => "http://localhost:8080/chat/completions")
+  =>
+  "http://localhost:8080/chat/completions"
+) ;check
 
 (check-report)

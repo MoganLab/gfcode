@@ -35,7 +35,10 @@
        ) ;s1
        (cache (make-session-search-cache))
       ) ;
-  (check (session-selector-filter-sessions cache (list s1) "body-only" 'recent #t) => '())
+  (check (session-selector-filter-sessions cache (list s1) "body-only" 'recent #t)
+    =>
+    '()
+  ) ;check
   (let ((res (session-selector-warm-batch! cache (list s1) 1.0)))
     (check (car res) => 1)
     (check (cdr res) => #f)
