@@ -1,5 +1,5 @@
 {
-  "goldfish_version": "18.11",
+  "goldfish_version": "18.11.64",
   "rules": {
     "unit-test": {
       "enabled": true
