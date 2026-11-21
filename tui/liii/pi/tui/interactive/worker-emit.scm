@@ -122,14 +122,22 @@
     ) ;define
 
     ;; 将 agent 会话事件翻译为 TUI 卡片事件并投递到 event-chan（生产与测试共用）
-    ;; context-window：当前模型的上下文窗口 Token 数，
-    ;; 随 message_usage 事件投递给前端用于换算上下文占比
+    ;; context-window：可为数字（当前模型上下文窗口 Token 数）、
+    ;; 过程（返回本次有效窗口，随 effective-cfg 动态变化）或 #f。
+    ;; 随 message_usage 事件投递给前端用于换算上下文占比。
     (define (make-tui-emit event-chan . opt-window)
-      (let ((context-window (if (pair? opt-window) (car opt-window) #f))
+      (let ((window-arg (if (pair? opt-window) (car opt-window) #f))
             (call-args-map '())
             (thinking-line-buffer "")
             (text-streamed? #f)
+            ;; all-in-one 实际节点上报的窗口覆盖：只作用于发出它的那一次
+            ;; all-in-one 请求；后续 effective-cfg 改变时随 agent_settled 清除，
+            ;; 避免污染普通模型或另一条链的 usage
+            (active-node-window #f)
            ) ;
+        (define (current-window)
+          (or active-node-window (if (procedure? window-arg) (window-arg) window-arg))
+        ) ;define
         (lambda (event-type . args)
           (cond
             ;; provider 流式 thinking 与正文增量：
@@ -190,7 +198,7 @@
                       (usage (pi-message-field msg 'usage '()))
                      ) ;
                  (when (and (equal? role "assistant") (pair? usage))
-                   (pi-tui-send-event! event-chan (list 'message_usage usage context-window))
+                   (pi-tui-send-event! event-chan (list 'message_usage usage (current-window)))
                  ) ;when
                  (let ((was-streamed? (and (equal? role "assistant") text-streamed?)))
                    (when was-streamed?
@@ -219,13 +227,14 @@
              (pi-tui-send-event! event-chan (list 'compaction))
             ) ;
             ;; all-in-one 交接完成：携带当前实际节点（provider model thinking-level）
+            ;; 实际节点窗口仅用于本次请求的 usage 换算，优先级高于本次 effective-cfg
+            ;; 的模型窗口；切换模型后随 agent_settled 清除，避免污染普通模型
             ((eq? event-type 'active_node)
              (when (pair? args)
                (let ((node (car args)))
                  (when (pair? node)
-                   ;; 第四项为实际节点的上下文窗口；同时更新后续 usage 事件容量
                    (when (and (>= (length node) 4) (number? (list-ref node 3)))
-                     (set! context-window (list-ref node 3))
+                     (set! active-node-window (list-ref node 3))
                    ) ;when
                    (pi-tui-send-event! event-chan (list 'active_node node))
                  ) ;when
@@ -249,8 +258,10 @@
              ) ;when
             ) ;
             ;; 任务全部结算完成：携带 aborted 标志（主线程据此上屏 Aborted 提示）
+            ;; 同时清除 all-in-one 实际节点窗口覆盖，避免污染下一条消息
             ((eq? event-type 'agent_settled)
              (set! text-streamed? #f)
+             (set! active-node-window #f)
              (pi-tui-send-event! event-chan
                (list 'agent_settled (and (pair? args) (car args)))
              ) ;pi-tui-send-event!

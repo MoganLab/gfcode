@@ -43,7 +43,7 @@
     %pi-app-thinking-level-explicit?-set! pi-app-recovery-card
     %pi-app-recovery-card-set! pi-app-tool-timer-last-tick
     %pi-app-tool-timer-last-tick-set! pi-app-tool-timer-last-tick-set!
-    pi-app-pending-model-switch %pi-app-pending-model-switch-set!
+    pi-app-request-selection-chan
   ) ;export
   (import (scheme base) (liii date-time) (liii pi tui interactive selection))
   (begin
@@ -64,7 +64,7 @@
         hide-thinking? on-save-hide-thinking selection flash tokens
         rendered-frame dock-length working-border-row skills
         enable-skill-commands scroll-hint-rect thinking-level-explicit
-        recovery-card tool-timer-last-tick pending-model-switch
+        recovery-card tool-timer-last-tick request-selection-chan
       ) ;%make-pi-app
       pi-app?
       (term pi-app-term)
@@ -177,10 +177,12 @@
       (tool-timer-last-tick pi-app-tool-timer-last-tick
         %pi-app-tool-timer-last-tick-set!
       ) ;tool-timer-last-tick
-      ;; 请求进行中通过 /model 切换的目标模型标签（#f 表示无待切换模型）
-      (pending-model-switch pi-app-pending-model-switch
-        %pi-app-pending-model-switch-set!
-      ) ;pending-model-switch
+      ;; 独立于 jobs-chan 的“最新请求选择”通道（latest-wins）：
+      ;; /model 与 /thinking 在模型/思考等级计算完成后发布一次完整选择快照
+      ;; (provider model-id thinking-level thinking-level-explicit?)；
+      ;; Worker 在每次新 Provider 请求前排空并只应用最后一项，从而实现
+      ;; 运行中切模立即对下一次请求生效，而不需要额外的串行任务。
+      (request-selection-chan pi-app-request-selection-chan)
     ) ;define-record-type
 
     (define %pi-app-term pi-app-term)

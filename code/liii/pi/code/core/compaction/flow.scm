@@ -250,9 +250,16 @@
           (list
             (cons 'compactor
               (lambda (msgs)
-                (let ((window (pi-resolve-compaction-window cfg)))
-                  (%auto-compact cfg sfile state timeout settings window msgs emit)
-                ) ;let
+                ;; 压缩在请求边界执行：同样解析最新 effective-cfg，
+                ;; 不能一直使用创建闭包时的初始模型（运行中切模后窗口/认证须同步）。
+                ;; prepare-request 排空选择通道后返回本次有效 cfg；
+                ;; 未安装钩子时直接沿用创建时的 cfg，保持非交互行为不变。
+                (let* ((prepare (pi-cfg-ref cfg 'prepare-request #f))
+                       (eff-cfg (if (procedure? prepare) (prepare cfg) cfg))
+                       (window (pi-resolve-compaction-window eff-cfg))
+                      ) ;
+                  (%auto-compact eff-cfg sfile state timeout settings window msgs emit)
+                ) ;let*
               ) ;lambda
             ) ;cons
           ) ;list

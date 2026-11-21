@@ -115,7 +115,8 @@
     ) ;define
 
     ;; job 载荷：(消息 thinking-level provider model-id thinking-level-explicit?)，
-    ;; 会话内 /model 与 /thinking 切换均对下一条消息生效（对齐上游 per-request 覆盖）
+    ;; 会话内 /model 与 /thinking 切换提供新任务的初始快照；运行中切模
+    ;; 另由 request-selection-chan 在每次新 Provider 请求前由 prepare-request 读取最新选择
     (define (%pi-app-job-payload app msg)
       (list msg
         (pi-app-thinking-level app)
@@ -323,16 +324,6 @@
       ) ;case
     ) ;define
 
-    (define (%pi-app-finish-pending-model-switch! app)
-      (let ((target (pi-app-pending-model-switch app)))
-        (when target
-          (%pi-app-pending-model-switch-set! app #f)
-          (pi-footer-clear-pending-model! (%pi-app-footer app))
-          (pi-app-add-assistant-text! app (string-append "已经切换到 " target))
-        ) ;when
-      ) ;let
-    ) ;define
-
     ;; 非阻塞轮询来自后台 Worker 的事件流，驱动卡片实时上屏与队列结算
     (define (pi-app-poll-events! app)
       (let ((ch (pi-app-event-chan app)) (q (pi-app-queue app)) (has-event #f))
@@ -357,7 +348,6 @@
                      (when (and (> (length ev) 1) (cadr ev))
                        (pi-app-add-assistant-text! app "Aborted")
                      ) ;when
-                     (%pi-app-finish-pending-model-switch! app)
                      (pi-queue-finish-task! q)
                      (settle!)
                     ) ;
@@ -365,7 +355,6 @@
                      (%pi-app-close-thinking-card! app)
                      (%pi-app-close-assistant-card! app)
                      (pi-app-add-tool-result! app "error" '() 'error (cadr ev))
-                     (%pi-app-finish-pending-model-switch! app)
                      (pi-queue-finish-task! q)
                      (settle!)
                     ) ;

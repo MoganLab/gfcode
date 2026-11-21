@@ -21,6 +21,7 @@ gf doc run-agent-loop
 ### 主循环驱动
 - `run-agent-loop` - 执行 Agent 完整的多轮工具调用与事件驱动主循环
 - `pi-step-agent-turn` - 执行单轮模型请求与响应解析，提取工具调用与停止原因
+  （每次新请求前调用可选 prepare-request 钩子解析最新 effective-cfg）
 
 ### 提示词与上下文
 - `pi-resolve-turn-system-prompt` - 解析单轮系统提示词并动态注入预算与时间信息

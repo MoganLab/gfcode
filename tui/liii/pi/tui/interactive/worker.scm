@@ -32,6 +32,7 @@
     (liii pi code session-state)
     (liii pi ai retry)
     (liii pi tui interactive worker-emit)
+    (liii pi tui interactive worker-model)
     (liii pi code modes flow)
     (liii pi code modes output)
   ) ;import
@@ -166,15 +167,19 @@
       ) ;let
     ) ;define
 
-    (define (pi-tui-run-worker parsed cfg user-text event-chan . opts)
-      (let ((session-file (and (pair? opts) (car opts))))
+    (define* (pi-tui-run-worker parsed cfg user-text event-chan . opts)
+      (let* ((session-file (and (pair? opts) (car opts)))
+             (opt-window-getter
+               (if (and (pair? opts) (pair? (cdr opts))) (cadr opts) #f)
+             ) ;opt-window-getter
+            ) ;
         (catch #t
           (lambda ()
             (%worker-assert-cred! cfg)
             (run-session-flow parsed
               (%worker-cfg-with-session-id cfg session-file)
               user-text
-              (make-tui-emit event-chan (%cfg-context-window cfg))
+              (make-tui-emit event-chan (or opt-window-getter (%cfg-context-window cfg)))
               (lambda (res-msgs) #t)
               session-file
               '()
@@ -190,8 +195,8 @@
             (pi-tui-send-event! event-chan (list 'agent_settled #f))
           ) ;lambda
         ) ;catch
-      ) ;let
-    ) ;define
+      ) ;let*
+    ) ;define*
 
     (define (pi-worker-ensure-session-file! parsed cfg sfile-box)
       (unless (vector-ref sfile-box 0)
@@ -227,6 +232,12 @@
              (follow-up-chan
                (if (and (pair? opt-chans) (pair? (cdr opt-chans))) (cadr opt-chans) #f)
              ) ;follow-up-chan
+             (eff-box
+               (if (and (pair? opt-chans) (>= (length opt-chans) 3)) (list-ref opt-chans 2) #f)
+             ) ;eff-box
+             (req-sel-chan
+               (if (and (pair? opt-chans) (>= (length opt-chans) 4)) (list-ref opt-chans 3) #f)
+             ) ;req-sel-chan
              (cfg (%pi-worker-poll-cfg cfg steering-chan follow-up-chan event-chan))
              (effective-cfg cfg)
             ) ;
@@ -349,17 +360,43 @@
             (lambda () (set! effective-cfg (%worker-reload-cfg cfg job)))
             (lambda args #f)
           ) ;catch
+          ;; 同步 effective-cfg box：reload_models 不应清除运行中切模的选择。
+          ;; 保留当前 provider/model，仅刷新 models-store/settings/api-key
+          (when eff-box
+            (pi-effective-cfg-set! eff-box effective-cfg)
+          ) ;when
          ) ;
          (else (pi-abort-arm-chan! abort-chan)
-           (let ((job-cfg (%worker-job-cfg cfg job parsed)))
-             (set! effective-cfg job-cfg)
-             (pi-tui-run-worker parsed
-               job-cfg
-               (car job)
-               event-chan
-               (pi-worker-ensure-session-file! parsed cfg sfile-box)
-             ) ;pi-tui-run-worker
-           ) ;let
+           (let* ((job-cfg (%worker-job-cfg cfg job parsed))
+                  ;; 新消息初始化 effective-cfg 为本任务的初始快照；
+                  ;; 运行中切模由 request-selection-chan 在每次请求前覆盖
+                  (eff-local (or eff-box (pi-make-effective-cfg-box job-cfg)))
+                 ) ;
+             (when eff-box
+               (pi-effective-cfg-set! eff-box job-cfg)
+             ) ;when
+             (let* ((prepare (pi-worker-make-prepare-request eff-local req-sel-chan parsed))
+                    (cfg-with-prepare (pi-cfg-merge job-cfg (list (cons 'prepare-request prepare))))
+                    ;; 事件桥读取本次响应对应的有效窗口：
+                    ;; all-in-one 实际节点窗口优先，否则按 effective-cfg 的模型窗口
+                    (window-getter
+                      (lambda ()
+                        (let* ((cur (pi-effective-cfg-ref eff-local)) (cw (%cfg-context-window cur)))
+                          cw
+                        ) ;let*
+                      ) ;lambda
+                    ) ;window-getter
+                   ) ;
+               (set! effective-cfg job-cfg)
+               (pi-tui-run-worker parsed
+                 cfg-with-prepare
+                 (car job)
+                 event-chan
+                 (pi-worker-ensure-session-file! parsed cfg sfile-box)
+                 window-getter
+               ) ;pi-tui-run-worker
+             ) ;let*
+           ) ;let*
          ) ;else
         ) ;cond
         effective-cfg
@@ -372,6 +409,7 @@
                (initial-session-file #f)
                (steering-chan #f)
                (follow-up-chan #f)
+               (request-selection-chan #f)
              ) ;pi-tui-agent-worker
       (let* ((parsed (parse-pi-args (cdr (command-line))))
              (cfg (augment-pi-config (resolve-pi-config parsed (get-environment-variables))
@@ -379,6 +417,9 @@
                   ) ;augment-pi-config
              ) ;cfg
              (sfile-box (vector initial-session-file))
+             ;; 贯穿本 Worker 生命周期的 effective-cfg 状态：
+             ;; 不随每个 job 回退到初始 cfg，运行中切模后保留最新选择
+             (eff-box (pi-make-effective-cfg-box cfg))
             ) ;
         (set-pi-retry-logger! (lambda (msg) (pi-tui-send-event! event-chan (list 'retry msg)))
         ) ;set-pi-retry-logger!
@@ -387,7 +428,8 @@
           (let ((job (chan-recv! jobs-chan)))
             (when (and job (not (eof-object? job)))
               (loop (pi-worker-handle-job job parsed current-cfg sfile-box
-                      event-chan abort-chan steering-chan follow-up-chan
+                      event-chan abort-chan steering-chan follow-up-chan eff-box
+                      request-selection-chan
                     ) ;pi-worker-handle-job
               ) ;loop
             ) ;when
