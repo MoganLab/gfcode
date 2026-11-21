@@ -87,11 +87,14 @@
       ) ;let*
     ) ;define
 
-    ;; api 简写归一化：anthropic/openai/google -> 全名
+    ;; api 简写归一化：anthropic/openai/google -> 全名；responses/openai-responses -> 全名
     (define (pi-user-normalize-api api-str)
       (cond ((string=? api-str "anthropic") "anthropic-messages")
             ((string=? api-str "openai") "openai-completions")
             ((string=? api-str "google") "google-generative-ai")
+            ((or (string=? api-str "openai-responses") (string=? api-str "responses"))
+             "openai-responses"
+            ) ;
             (else api-str)
       ) ;cond
     ) ;define

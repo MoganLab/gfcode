@@ -9,6 +9,7 @@
     (liii pi ai api anthropic-messages)
     (liii pi ai api google-generative-ai)
     (liii pi ai api openai-completions)
+    (liii pi ai api openai-responses)
 
     (liii pi ai config model-metadata)
     (liii pi ai config runtime)
@@ -124,6 +125,9 @@
               ((string=? api "openai-completions")
                (openai-request eff-config norm-msgs sys-prompt tools timeout opt-retry)
               ) ;
+              ((string=? api "openai-responses")
+               (responses-request eff-config norm-msgs sys-prompt tools timeout opt-retry)
+              ) ;
               (else (gemini-request eff-config norm-msgs sys-prompt tools timeout opt-retry))
         ) ;cond
       ) ;let*
@@ -147,6 +151,9 @@
               ) ;
               ((string=? api "openai-completions")
                (openai-request-stream eff-config norm-msgs sys-prompt tools on-ev timeout)
+              ) ;
+              ((string=? api "openai-responses")
+               (responses-request-stream eff-config norm-msgs sys-prompt tools on-ev timeout)
               ) ;
               (else (gemini-request-stream eff-config norm-msgs sys-prompt tools on-ev timeout)
               ) ;else
