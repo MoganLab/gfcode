@@ -11,8 +11,6 @@
     pi-footer-message pi-footer-stats pi-footer-set-stats!
     pi-footer-set-token-stats! pi-footer-set-context-unknown!
     pi-footer-context-window pi-footer-set-active-node! pi-footer-active-node
-    pi-footer-pending-model pi-footer-set-pending-model!
-    pi-footer-clear-pending-model!
   ) ;export
   (import (scheme base)
     (liii string)
@@ -75,7 +73,7 @@
     (define-record-type <pi-footer-state>
       (%make-pi-footer-state cwd branch provider model stats thinking-level
         supports-thinking? session-name message context-info context-percent
-        context-window active-node pending-from
+        context-window active-node
       ) ;%make-pi-footer-state
       pi-footer-state?
       (cwd pi-footer-state-cwd)
@@ -101,9 +99,6 @@
       ) ;context-window
       ;; all-in-one 伪模型当前实际执行节点（provider . model . thinking-level）
       (active-node pi-footer-state-active-node pi-footer-state-active-node-set!)
-      ;; 请求进行中通过 /model 切换时，记录正在请求的原模型快照：
-      ;; (provider model thinking-level supports-thinking? active-node) 或 #f
-      (pending-from pi-footer-state-pending-from pi-footer-state-pending-from-set!)
     ) ;define-record-type
 
     (define (pi-footer? obj)
@@ -137,7 +132,6 @@
                            (pi-footer-state-thinking-level st)
                            (pi-footer-state-supports-thinking? st)
                            (pi-footer-state-active-node st)
-                           (pi-footer-state-pending-from st)
                          ) ;pi-footer-right-part
              ) ;right-part
              (left-part
@@ -207,7 +201,7 @@
             ) ;
         (component-data-set! comp
           (%make-pi-footer-state cwd branch provider model stats tl supports?
-            session-name #f context-info 0.0 context-window active-node #f
+            session-name #f context-info 0.0 context-window active-node
           ) ;%make-pi-footer-state
         ) ;component-data-set!
         comp
@@ -269,40 +263,18 @@
       ) ;let*
     ) ;define
 
-    ;; all-in-one 交接后同步当前实际节点；请求中切模时更新左侧原模型节点
+    ;; all-in-one 交接后同步当前实际节点；同时更新上下文窗口容量
     (define (pi-footer-set-active-node! comp node)
-      (let* ((st (%footer-state comp)) (p (pi-footer-state-pending-from st)))
-        (if (pair? p)
-          (pi-footer-state-pending-from-set! st
-            (list (car p) (cadr p) (caddr p) (cadddr p) node)
-          ) ;pi-footer-state-pending-from-set!
-          (pi-footer-state-active-node-set! st node)
-        ) ;if
+      (let ((st (%footer-state comp)))
+        (pi-footer-state-active-node-set! st node)
         (when (and (pair? node) (>= (length node) 4))
           (%update-footer-cw! st (list-ref node 3))
         ) ;when
-      ) ;let*
+      ) ;let
     ) ;define
 
     (define (pi-footer-active-node comp)
       (pi-footer-state-active-node (%footer-state comp))
-    ) ;define
-
-    ;; 请求进行中切换模型时，记录正在请求的原模型（显示在右下角左侧）
-    (define (pi-footer-set-pending-model! comp provider model tl supports? . opt-node)
-      (let ((node (if (pair? opt-node) (car opt-node) #f)))
-        (pi-footer-state-pending-from-set! (%footer-state comp)
-          (list provider model tl supports? node)
-        ) ;pi-footer-state-pending-from-set!
-      ) ;let
-    ) ;define
-
-    (define (pi-footer-clear-pending-model! comp)
-      (pi-footer-state-pending-from-set! (%footer-state comp) #f)
-    ) ;define
-
-    (define (pi-footer-pending-model comp)
-      (pi-footer-state-pending-from (%footer-state comp))
     ) ;define
 
     (define (pi-footer-set-session-name! comp session-name)

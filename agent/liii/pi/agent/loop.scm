@@ -33,9 +33,20 @@
       ) ;let
     ) ;define
 
+    ;; 在每次新的 Provider 请求前解析最新选择（对齐上游 prepareRequest）。
+    ;; cfg 中的可选 prepare-request 过程排空选择通道并返回本次有效的 cfg；
+    ;; 未配置时直接沿用传入 config，保持 CLI、现有测试及非交互调用兼容。
+    ;; 已开始的 request-fn 调用不被中断，下一次 pi-step-agent-turn 才再次读取。
+    (define (%resolve-effective-cfg config)
+      (let ((prepare (pi-cfg-ref config 'prepare-request #f)))
+        (if (procedure? prepare) (prepare config) config)
+      ) ;let
+    ) ;define
+
     (define* (pi-step-agent-turn config msgs system-prompt emit timeout request-fn)
-      (let* ((active-tools (pi-cfg-ref config 'tools '()))
-             (provider (pi-cfg-ref config 'provider "google"))
+      (let* ((eff-cfg (%resolve-effective-cfg config))
+             (active-tools (pi-cfg-ref eff-cfg 'tools '()))
+             (provider (pi-cfg-ref eff-cfg 'provider "google"))
              (on-stream-ev
                (if (procedure? emit)
                  (lambda (ev)
@@ -46,11 +57,11 @@
                  #f
                ) ;if
              ) ;on-stream-ev
-             (raw-resp (request-fn provider config msgs system-prompt
+             (raw-resp (request-fn provider eff-cfg msgs system-prompt
                          active-tools on-stream-ev timeout
                        ) ;request-fn
              ) ;raw-resp
-             (resp (pi-agent-attach-cost raw-resp config))
+             (resp (pi-agent-attach-cost raw-resp eff-cfg))
             ) ;
         (when (procedure? emit)
           (emit 'message_start resp)

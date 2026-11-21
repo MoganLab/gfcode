@@ -146,34 +146,42 @@
                ) ;let
              ) ;session-timeout
             ) ;
-        (let ((all-in-one? (equal? (pi-cfg-ref cfg 'provider) "all-in-one")))
-          (run-agent-loop cfg
-            init-msgs
-            system-prompt
-            emit
-            timeout
-            max-turns
-            session-timeout
-            compaction
-            (if all-in-one?
-              (lambda (provider config messages system-prompt tools on-event timeout)
-                ;; 把 agent emit 注入给请求适配器，用于上报实际节点
-                (pi-all-in-one-request-stream provider
-                  (pi-cfg-set config 'emit emit)
-                  messages
-                  system-prompt
-                  tools
-                  on-event
-                  timeout
-                  probe-fn
-                  request-fn
-                ) ;pi-all-in-one-request-stream
-              ) ;lambda
-              (or request-fn pi-request-provider-stream)
+        ;; 普通 Provider 与 all-in-one 的分发必须在每次请求时按本次 effective-cfg
+        ;; 动态判断，而不是在 run 启动时按初始 provider 固化：保证运行中在
+        ;; 普通模型与 all-in-one 之间切换时仍进入正确适配器。
+        ;; Agent 层的 prepare-request 钩子已在调用本 request-fn 前解析最新
+        ;; effective-cfg 并作为 config 传入，此处只需按本次 provider 决定分发路径。
+        (run-agent-loop cfg
+          init-msgs
+          system-prompt
+          emit
+          timeout
+          max-turns
+          session-timeout
+          compaction
+          (lambda (provider config messages system-prompt tools on-event timeout)
+            (if (equal? (pi-cfg-ref config 'provider) "all-in-one")
+              ;; 把 agent emit 注入给请求适配器，用于上报实际节点
+              (pi-all-in-one-request-stream provider
+                (pi-cfg-set config 'emit emit)
+                messages
+                system-prompt
+                tools
+                on-event
+                timeout
+                probe-fn
+                request-fn
+              ) ;pi-all-in-one-request-stream
+              (if request-fn
+                (request-fn provider config messages system-prompt tools on-event timeout)
+                (pi-request-provider-stream provider config messages
+                  system-prompt tools on-event timeout
+                ) ;pi-request-provider-stream
+              ) ;if
             ) ;if
-            emit-initial?
-          ) ;run-agent-loop
-        ) ;let
+          ) ;lambda
+          emit-initial?
+        ) ;run-agent-loop
       ) ;let*
     ) ;define*
 
