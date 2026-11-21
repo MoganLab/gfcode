@@ -23,6 +23,9 @@
 (check (pi-user-normalize-api "openai") => "openai-completions")
 (check (pi-user-normalize-api "google") => "google-generative-ai")
 (check (pi-user-normalize-api "openai-completions") => "openai-completions")
+;; Responses 协议简写（含上流常用的 "responses"）
+(check (pi-user-normalize-api "openai-responses") => "openai-responses")
+(check (pi-user-normalize-api "responses") => "openai-responses")
 (check (pi-user-normalize-api "custom-protocol") => "custom-protocol")
 
 (check-report)
