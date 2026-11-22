@@ -68,6 +68,12 @@
       (container-add! (%pi-app-chat app) (make-retry-card msg))
     ) ;define
 
+    ;; 扩展状态行（对齐上游 ctx.ui.notify -> showStatus）：聊天区 dim 提示，不进输入区
+    (define (pi-app-add-status-message! app msg)
+      (%pi-app-invalidate-scroll! app)
+      (container-add! (%pi-app-chat app) (make-status-card msg))
+    ) ;define
+
     (define (%pi-app-close-thinking-card! app)
       (%pi-app-thinking-card-set! app #f)
     ) ;define
@@ -314,6 +320,8 @@
              (pi-app-handle-status-event! app ev)
             ) ;
             ((retry) (pi-app-add-retry-message! app (cadr ev)))
+            ;; 扩展通知（经 event-chan 投递的状态行）：渲染为聊天区 dim 提示
+            ((tps_report) (pi-app-add-status-message! app (cadr ev)))
             ;; worker 消费了 steering / follow-up 注入消息：
             ;; 移除待处理显示并上屏正式用户卡片（对齐上游 message_start 双动作）
             ((user_message)

@@ -13,7 +13,7 @@
     make-thinking-card tool-card-set-started-at! tool-card-started-at
     tool-card-pending-bash? thinking-card-append-line! thinking-card-set-hidden!
     thinking-card-component? skill-card-component? skill-card-set-expanded!
-    pi-pending-hint-line pi-clip-pending-lines
+    pi-pending-hint-line pi-clip-pending-lines make-status-card
   ) ;export
   (import (scheme base)
     (liii list)
@@ -190,6 +190,21 @@
             (if (<= width 0)
               '()
               (list (apply-card-bg line width %bg-pending %fg-output) "")
+            ) ;if
+          ) ;lambda
+        ) ;%make-cached-component
+      ) ;let
+    ) ;define
+
+    ;; 扩展状态行：对齐上游 ctx.ui.notify -> showStatus（Spacer(1) + dim 文本）。
+    ;; 上方一个空行作间隔，下方为本行 dim 提示，不进输入区。
+    (define (make-status-card msg)
+      (let ((text (string-trim-both msg)))
+        (%make-cached-component msg
+          (lambda (width)
+            (if (or (<= width 0) (string-null? text))
+              '()
+              (list "" (string-append %fg-dim text %ansi-reset))
             ) ;if
           ) ;lambda
         ) ;%make-cached-component

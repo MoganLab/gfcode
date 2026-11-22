@@ -219,6 +219,8 @@
         (when (and (pi-args-ref parsed 'continue) (not (pi-args-ref parsed 'session-file)))
           (pi-app-rebuild-history! app (%tui-history-file parsed))
         ) ;when
+        ;; 扩展通知的 arm 在 worker 会话内进行（pi-tui-agent-worker 体内）：
+        ;; go 起的 worker 是独立 s7 会话，主线程 arm 的全局槽位对 worker 不可见
         (pi-app-run app initial-msg rest-msgs)
         0
       ) ;let*

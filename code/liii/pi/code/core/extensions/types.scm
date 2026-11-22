@@ -48,6 +48,8 @@
     extension-context-model
     extension-context-registry
     extension-context-extra
+    extension-context-notify
+    extension-context-has-ui
 
     ;; ExtensionToolDef
     make-extension-tool-def

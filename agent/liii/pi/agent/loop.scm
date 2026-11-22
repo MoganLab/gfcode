@@ -97,6 +97,12 @@
           (emit 'agent_settled aborted?)
         ) ;let*
       ) ;when
+      ;; 同步桥接到扩展事件系统：payload 携带 final-msgs 供扩展统计 usage
+      (let ((ext-emit (%ext-emit config)))
+        (when ext-emit
+          (ext-emit 'agent_end (list (cons 'messages final-msgs)))
+        ) ;when
+      ) ;let
     ) ;define
 
     (define (pi-finish-agent-turn new-msgs stop-reason tool-calls emit config resp)
@@ -279,6 +285,12 @@
           ) ;for-each
         ) ;when
       ) ;when
+      ;; 桥接 agent_start 到扩展事件系统
+      (let ((ext-emit (%ext-emit config)))
+        (when ext-emit
+          (ext-emit 'agent_start '())
+        ) ;when
+      ) ;let
       (let* ((start-sec (pi-current-monotonic-seconds))
              (deadline-sec (if (and (number? session-timeout) (> session-timeout 0))
                              (+ start-sec session-timeout)
