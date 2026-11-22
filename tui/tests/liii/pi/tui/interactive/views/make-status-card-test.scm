@@ -33,9 +33,12 @@
   (check (eq? lines (component-render card 60)) => #t)
 ) ;let*
 
-;; 文本首尾空白被裁剪
+;; 文本首尾空白被裁剪；dim 为主题真彩色（见 views/theme.scm 的 %fg-dim）
 (let ((lines (component-render (make-status-card "  hi  ") 40)))
-  (check (cadr lines) => (string-append "\x1b;[2m" "hi" "\x1b;[0m"))
+  (check (cadr lines)
+    =>
+    (string-append "\x1b;[38;2;126;136;142m" "hi" "\x1b;[0m")
+  ) ;check
 ) ;let
 
 ;; 零宽不渲染任何行
