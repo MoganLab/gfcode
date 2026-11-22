@@ -50,6 +50,16 @@ gf doc run-agent-loop
 - **行动（Acting）**：逐个执行模型请求的工具（读文件、改代码、跑命令……），可被用户中止或扩展拦截
 - **观察（Observation）**：工具结果作为 toolResult 消息回填历史（本地操作，不请求模型）；带着全部观察发起的下一轮思考才是一次新的模型请求
 
+上述"思考 → 行动 → 观察"的完整循环对应代码中的**一个 Turn**（轮次）：`turn_start` 事件开始，依次完成模型请求、工具执行与结果回填，最后以携工具结果的 `turn_end` 事件收尾；下一轮 Turn 从新的思考开始。事件流为：
+
+```
+turn_start
+  message_start / message_end            assistant 回复（思考）
+  tool_execution_start / update / end   工具执行（行动）
+  message_start / message_end            toolResult 上屏（观察）
+turn_end（携工具结果向量）
+```
+
 与静态的"先规划后执行"相比，ReAct 的优势在于每一步行动都基于最新观察：跑了个测试发现失败，下一轮思考就针对失败原因调整。是否结束也由思考阶段判定：模型认为还需要干活就返回 `toolUse`（继续循环），认为任务完成就返回 `stop`（自然停止）。`run-agent-loop` 就是驱动这个循环的状态机，一次调用对应 Agent 处理一个任务的完整过程。循环期间用户并非只能等待：
 
 | 用户交互 | 机制 | 生效时机 |
