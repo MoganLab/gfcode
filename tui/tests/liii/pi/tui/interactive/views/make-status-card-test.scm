@@ -25,9 +25,7 @@
 (check-set-mode! 'report-failed)
 
 ;; 正常渲染：首行为空行间隔，第二行为 dim 提示
-(let* ((card (make-status-card "TPS 38.5 tok/s"))
-       (lines (component-render card 60))
-      ) ;
+(let* ((card (make-status-card "TPS 38.5 tok/s")) (lines (component-render card 60)))
   (check (component? card) => #t)
   (check (length lines) => 2)
   (check (car lines) => "")
