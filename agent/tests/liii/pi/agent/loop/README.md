@@ -221,31 +221,9 @@ turn_end（携工具结果向量）
 - **停止前必查队列**：每轮请求前查一次引导队列；自然停止前再查一次（引导优先于后续任务），排队消息以续跑而非结束会话。
 - **多检查点可中止**：按 ESC 后经信号通道通知后台，流式回调、工具批次边界、主循环边界各自探测（详见 4.8）；既不丢已生成的回复，也不会发起无谓的新请求。
 
-## 5. 事件列表
+## 5. 事件
 
-`emit` 回调接收 `(事件类型 . 参数)` 形式的事件。事件 record 定义与 JSON 编解码见 `(liii pi agent event)`；`agent_settled` 定义在 `(liii pi code event agent-settled)`。
-
-| 事件 | 参数 | 触发时机 |
-| --- | --- | --- |
-| `agent_start` | - | `run-agent-loop` 启动时 |
-| `turn_start` | - | 每轮开始（含 steering/follow-up 注入续跑后的新一轮） |
-| `message_start` | `msg` | 每条消息上屏开始（初始消息、assistant 回复、注入消息、工具结果消息） |
-| `message_update` | `usage, stream-ev` | Provider 流式响应期间 |
-| `message_end` | `msg` | 每条消息上屏结束 |
-| `tool_execution_start` | `id, name, args` | 单个工具调用开始执行 |
-| `tool_execution_update` | `id, name, args, partial-result` | 工具流式输出（如 bash on-update） |
-| `tool_execution_end` | `id, name, result, is-error, [duration-ms]` | 单个工具调用执行完成 |
-| `turn_end` | `assistant-msg, tool-results` | 单轮结束（工具批次后携工具结果向量；结算时为 `#()`） |
-| `agent_end` | `final-msgs, will-retry, cost, savings` | 会话结束，携完整消息历史与成本汇总 |
-| `agent_settled` | `aborted?` | 会话结算完成（紧随 agent_end，TUI 依此解锁队列） |
-
-另有**扩展事件桥**（经 config 的 `emit-extension-event` 注入，不走 `emit`）：
-
-| 扩展事件 | 载荷 | 说明 |
-| --- | --- | --- |
-| `turn_start` | `((turn . N))` | 每轮开始，附轮次编号 |
-| `tool_call` | `(id name tool input)` | 工具调用前；返回 `(action . block)` 可拦截，`(payload …)` 可改写入参，`(terminate . #t)` 可终止运行 |
-| `tool_result` | `(id name tool input result isError)` | 工具调用后 |
+循环通过 `emit` 回调派发事件，`emit` 接收 `(事件类型 . 参数)` 形式；各事件的触发时机见上文各阶段说明。事件的完整定义（record 构造/访问、谓词、JSON 编解码）见事件模块文档：`gf doc liii/pi/agent/event`。
 
 ## 6. config 配置键
 
