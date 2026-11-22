@@ -26,11 +26,19 @@
 ) ;import
 
 ;; 盒子记录本轮 agent_start 的单调毫秒时间戳；多 run 串扰由 run 入口重置兜底。
+
 (define %start-ms-box (cons #f #f))
-(define (%start-ms-set! v) (set-car! %start-ms-box v))
-(define (%start-ms) (car %start-ms-box))
+
+(define (%start-ms-set! v)
+  (set-car! %start-ms-box v)
+) ;define
+
+(define (%start-ms)
+  (car %start-ms-box)
+) ;define
 
 ;; 健壮取数：usage 中的值可能是数字或字符串（持久化后），统一转 inexact。
+
 (define (%->num v)
   (cond ((number? v) (if (exact? v) (exact->inexact v) v))
         ((string? v)
@@ -43,14 +51,16 @@
 ) ;define
 
 ;; 在 usage alist 中按符号/字符串两种键查找并取数。
+
 (define (%usage-num usage key)
   (if (not (pair? usage))
     0.0
-    (let ((p (or (assq key usage)
-                 (assoc (symbol->string key) usage)
-                 (assoc (string->symbol (symbol->string key)) usage)
-             ) ;or
-           ) ;p
+    (let ((p
+            (or (assq key usage)
+              (assoc (symbol->string key) usage)
+              (assoc (string->symbol (symbol->string key)) usage)
+            ) ;or
+          ) ;p
          ) ;
       (if (pair? p) (%->num (cdr p)) 0.0)
     ) ;let
@@ -58,6 +68,7 @@
 ) ;define
 
 ;; 判定是否 assistant 消息：兼容 record 与 dict（pair）形态。
+
 (define (%assistant? m)
   (cond ((pi-assistant-message? m) #t)
         ((pair? m)
@@ -70,6 +81,7 @@
 ) ;define
 
 ;; 取 assistant 消息的 usage alist。
+
 (define (%assistant-usage m)
   (if (pi-assistant-message? m)
     (or (pi-assistant-message-usage m) '())
@@ -78,44 +90,49 @@
 ) ;define
 
 ;; 对列表中的所有 usage 按 key 求和。
+
 (define (%sum-usage-key usages key)
-  (let loop ((lst usages) (acc 0.0))
-    (if (null? lst)
-      acc
-      (loop (cdr lst) (+ acc (%usage-num (car lst) key)))
-    ) ;if
+  (let loop
+    ((lst usages) (acc 0.0))
+    (if (null? lst) acc (loop (cdr lst) (+ acc (%usage-num (car lst) key))))
   ) ;let
 ) ;define
 
 ;; 千分位格式化：整数部分按三位分组，例如 15808 -> "15,808"。
+
 (define (%group-digits n-str)
   (let* ((len (string-length n-str))
          ;; 自右向左每 3 个字符切一组
          (groups
-           (let loop ((i len) (acc '()))
+           (let loop
+             ((i len) (acc '()))
              (if (<= i 0)
                acc
                (let ((start (max 0 (- i 3))))
                  (loop start (cons (substring n-str start i) acc))
                ) ;let
              ) ;if
-           ) ;loop
-          ) ;groups
+           ) ;let
+         ) ;groups
         ) ;
     (string-join groups ",")
   ) ;let*
 ) ;define
 
 ;; 把非负实数格式化为带千分位的字符串（小数部分保留指定位，不加分隔）。
+
 (define (%format-grouped x digits)
   (if (not (number? x))
     "0"
-    (let* ((rounded (let ((scale (expt 10 digits)))
-                      (/ (round (* x scale)) scale)
-                    ) ;let
-                  ) ;rounded
+    (let* ((rounded
+             (let ((scale (expt 10 digits)))
+               (/ (round (* x scale)) scale)
+             ) ;let
+           ) ;rounded
            (int-part (inexact->exact (truncate rounded)))
-           (frac-part (inexact->exact (round (* (- rounded int-part) (expt 10 digits)))))
+           (frac-part
+             (inexact->exact (round (* (- rounded int-part) (expt 10 digits))))
+           ) ;frac-part
            (int-str (number->string int-part))
            (grouped (%group-digits int-str))
           ) ;
@@ -124,44 +141,56 @@
         (let* ((frac-str (number->string frac-part))
                (frac-padded
                  (let ((pad (- digits (string-length frac-str))))
-                   (if (> pad 0)
-                     (string-append (make-string pad #\0) frac-str)
-                     frac-str
-                   ) ;if
+                   (if (> pad 0) (string-append (make-string pad #\0) frac-str) frac-str)
                  ) ;let
                ) ;frac-padded
               ) ;
           (string-append grouped "." frac-padded)
         ) ;let*
       ) ;if
-    ) ;let
+    ) ;let*
   ) ;if
 ) ;define
 
 ;; 组装最终的 TPS 行。
+
 (define (%tps-line tps out in cr cw total elapsed-s)
-  (string-append "TPS " (%format-grouped tps 1) " tok/s. "
-    "out " (%format-grouped out 0) ", "
-    "in " (%format-grouped in 0) ", "
-    "cache r/w " (%format-grouped cr 0) "/" (%format-grouped cw 0) ", "
-    "total " (%format-grouped total 0) ", "
-    (%format-grouped elapsed-s 1) "s"
+  (string-append "TPS "
+    (%format-grouped tps 1)
+    " tok/s. "
+    "out "
+    (%format-grouped out 0)
+    ", "
+    "in "
+    (%format-grouped in 0)
+    ", "
+    "cache r/w "
+    (%format-grouped cr 0)
+    "/"
+    (%format-grouped cw 0)
+    ", "
+    "total "
+    (%format-grouped total 0)
+    ", "
+    (%format-grouped elapsed-s 1)
+    "s"
   ) ;string-append
 ) ;define
 
 ;; 取 stderr 端口：优先 *stderr*，否则 current-error-port。
+
 (define (%stderr-port)
   (if (defined? '*stderr*) *stderr* (current-error-port))
 ) ;define
 
 (define (tps-extension api . opt-context)
-  (pi-on! api 'agent_start
-    (lambda (payload ctx)
-      (%start-ms-set! (pi-current-monotonic-millis))
-    ) ;lambda
+  (pi-on! api
+    'agent_start
+    (lambda (payload ctx) (%start-ms-set! (pi-current-monotonic-millis)))
   ) ;pi-on!
 
-  (pi-on! api 'agent_end
+  (pi-on! api
+    'agent_end
     (lambda (payload ctx)
       (let ((start-ms (%start-ms)))
         ;; 无配对的 start 时戳则跳过（避免误触发）
@@ -171,10 +200,8 @@
                    (let ((p (and (pair? payload) (assq 'messages payload))))
                      (if (pair? p) (cdr p) '())
                    ) ;let
-                  ) ;messages
-                 (assistant-usages
-                   (map %assistant-usage (filter %assistant? messages))
-                  ) ;assistant-usages
+                 ) ;messages
+                 (assistant-usages (map %assistant-usage (filter %assistant? messages)))
                  (out (%sum-usage-key assistant-usages 'output))
                  (in (%sum-usage-key assistant-usages 'input))
                  (cr (%sum-usage-key assistant-usages 'cacheRead))
@@ -189,7 +216,7 @@
             (when (> out 0)
               (let ((line (%tps-line tps out in cr cw total elapsed-s))
                     (ctx-notify (and ctx (extension-context-notify ctx)))
-                   ) ;let
+                   ) ;
                 (unless (and (procedure? ctx-notify) (ctx-notify line))
                   (unless (pi-extension-notify line)
                     (let ((port (%stderr-port)))

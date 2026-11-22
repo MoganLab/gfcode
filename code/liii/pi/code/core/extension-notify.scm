@@ -17,17 +17,15 @@
 (define-library (liii pi code core extension-notify)
   (import (scheme base))
   (export pi-extension-notify-set! pi-extension-notify-reset!
-    pi-extension-notify pi-extension-notify?)
+    pi-extension-notify pi-extension-notify?
+  ) ;export
   (begin
 
     ;; 当前 arm 的通知回调；#f 表示未 arm（安全默认：回退 stderr）
     (define *notify-fn* #f)
 
     (define (pi-extension-notify-set! fn)
-      (if (or (not fn) (procedure? fn))
-        (set! *notify-fn* fn)
-        (set! *notify-fn* #f)
-      ) ;if
+      (if (or (not fn) (procedure? fn)) (set! *notify-fn* fn) (set! *notify-fn* #f))
     ) ;define
 
     (define (pi-extension-notify-reset!)
@@ -40,10 +38,7 @@
 
     ;; 触发通知；已 arm 时回调返回回调结果，否则返回 #f（调用方回退 stderr）
     (define (pi-extension-notify message)
-      (if (procedure? *notify-fn*)
-        (*notify-fn* message)
-        #f
-      ) ;if
+      (if (procedure? *notify-fn*) (*notify-fn* message) #f)
     ) ;define
 
   ) ;begin

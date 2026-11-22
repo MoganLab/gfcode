@@ -183,11 +183,15 @@
 
     (define (pi-emit! target event-type payload)
       (let* ((reg (target->registry target))
-             (ctx (if (extension-context? target)
-                    target
-                    (make-extension-context :registry reg
-                      :notify (and (pi-extension-notify?) pi-extension-notify)
-                      :has-ui (pi-extension-notify?)))
+             (ctx
+               (if (extension-context? target)
+                 target
+                 (make-extension-context
+                   :registry reg
+                   :notify   (and (pi-extension-notify?) pi-extension-notify)
+                   :has-ui   (pi-extension-notify?)
+                 ) ;make-extension-context
+               ) ;if
              ) ;ctx
              (evt-sym (normalize-event-type event-type))
              (listeners (extension-registry-get-listeners reg evt-sym))

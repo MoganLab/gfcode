@@ -37,8 +37,14 @@
 
     (let ((raw make-extension-context))
       (set! make-extension-context
-        (lambda* ((session-id #f) (cwd ".") (model #f) (registry #f) (extra '())
-                  (notify #f) (has-ui #f))
+        (lambda* ((session-id #f)
+                  (cwd ".")
+                  (model #f)
+                  (registry #f)
+                  (extra '())
+                  (notify #f)
+                  (has-ui #f)
+                 ) ;
           (when (and session-id (not (string? session-id)))
             (type-error "make-extension-context: session-id must be a string or #f")
           ) ;when
