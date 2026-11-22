@@ -26,16 +26,22 @@
   ) ;export
   (begin
 
-    ;; 从 config 取扩展事件桥接（由上层注入；缺失时不向扩展系统转发事件）
     (define (%ext-emit config)
       (let ((val (pi-cfg-ref config 'emit-extension-event)))
         (and (procedure? val) val)
       ) ;let
     ) ;define
 
+    (define (%resolve-effective-cfg config)
+      (let ((prepare (pi-cfg-ref config 'prepare-request #f)))
+        (if (procedure? prepare) (prepare config) config)
+      ) ;let
+    ) ;define
+
     (define* (pi-step-agent-turn config msgs system-prompt emit timeout request-fn)
-      (let* ((active-tools (pi-cfg-ref config 'tools '()))
-             (provider (pi-cfg-ref config 'provider "google"))
+      (let* ((eff-cfg (%resolve-effective-cfg config))
+             (active-tools (pi-cfg-ref eff-cfg 'tools '()))
+             (provider (pi-cfg-ref eff-cfg 'provider "google"))
              (on-stream-ev
                (if (procedure? emit)
                  (lambda (ev)
@@ -46,11 +52,11 @@
                  #f
                ) ;if
              ) ;on-stream-ev
-             (raw-resp (request-fn provider config msgs system-prompt
+             (raw-resp (request-fn provider eff-cfg msgs system-prompt
                          active-tools on-stream-ev timeout
                        ) ;request-fn
              ) ;raw-resp
-             (resp (pi-agent-attach-cost raw-resp config))
+             (resp (pi-agent-attach-cost raw-resp eff-cfg))
             ) ;
         (when (procedure? emit)
           (emit 'message_start resp)
@@ -176,8 +182,6 @@
                (deadline-sec #f)
                (session-timeout #f)
              ) ;pi-resolve-turn-system-prompt
-      ;; 系统提示词位于请求前缀最前端：非临界时必须与 base 字节级一致，
-      ;; 只有预算临界时才拼接一次静态告警块，避免逐轮变化击穿前缀缓存
       (let ((base (if (procedure? system-prompt) (system-prompt tool-calls) system-prompt))
            ) ;
         (if (number? turn)
@@ -191,12 +195,6 @@
       ) ;let
     ) ;define*
 
-    ;; 执行单轮：压缩 → steering 轮询注入 → 预算系统提示 → 请求 → 工具执行。
-    ;; 返回决策 alist，由 run-agent-loop 主循环解释：
-    ;;   ((action . continue)  ...) 工具已执行，继续下一轮
-    ;;   ((action . hard-stop) ...) error / aborted 硬退出，直接结算
-    ;;   ((action . stop-check)...) 自然停止，主循环轮询 steering/follow-up 后决定
-    ;; 三种决策统一携带 msgs / stop-reason / tool-calls / resp 四个键
     (define (%run-agent-turn config msgs compaction emit timeout request-fn
               system-prompt turn max-turns deadline-sec session-timeout
               last-tool-calls
@@ -252,8 +250,6 @@
       ) ;let
     ) ;define
 
-    ;; 自然停止处理：有注入消息则经 k 续跑（k 接收注入后的消息列表），
-    ;; 无则结算本轮并返回最终消息列表
     (define (%stop-or-continue msgs stop-reason tool-calls emit config resp k)
       (let ((next-msgs (%natural-stop-continue msgs config emit)))
         (if next-msgs

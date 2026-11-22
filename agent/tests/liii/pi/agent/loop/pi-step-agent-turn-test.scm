@@ -1,6 +1,11 @@
 ;; pi-step-agent-turn
 ;; 执行单步 Agent 轮次：调用模型请求函数、附加开销计算并提取工具调用与停止原因。
 ;;
+;; 每次请求前先解析最新选择：cfg 中的可选 prepare-request 过程排空选择通道
+;; 并返回本次有效的 cfg（运行中切模的生效点）；未配置时直接沿用传入 config，
+;; 保持 CLI、现有测试及非交互调用兼容。已开始的 request-fn 调用不被中断，
+;; 下一次 pi-step-agent-turn 才再次读取。
+;;
 ;; 语法
 ;; ----
 ;; (pi-step-agent-turn config msgs system-prompt emit timeout request-fn)
@@ -70,6 +75,33 @@
     (check stop-reason => "toolUse")
     (check (length tool-calls) => 1)
     (check (cdr (assoc 'id (car tool-calls))) => "c_1")
+  ) ;let-values
+) ;let*
+
+;; 3. prepare-request 钩子返回的 effective-cfg 传给 request-fn：
+;;    prepare 把 provider 从 google 改写为 custom，request-fn 收到 custom
+(let* ((req-provider (vector #f))
+       (mock-req
+         (lambda (provider cfg msgs sp tools on-stream to)
+           (vector-set! req-provider 0 provider)
+           (pi-assistant-message (list (list (cons 'type "text") (cons 'text "ok")))
+             :stop-reason "stop"
+             :usage       '((input . 1) (output . 1) (total . 2))
+           ) ;pi-assistant-message
+         ) ;lambda
+       ) ;mock-req
+       (prepare (lambda (cfg) (cons (cons 'provider "custom") cfg)))
+       (cfg (list (cons 'tools '())
+              (cons 'provider "google")
+              (cons 'prepare-request prepare)
+            ) ;list
+       ) ;cfg
+      ) ;
+  (let-values (((msgs stop-reason tool-calls resp)
+                (pi-step-agent-turn cfg '() "prompt" #f 10 mock-req)
+               ) ;
+              ) ;
+    (check (vector-ref req-provider 0) => "custom")
   ) ;let-values
 ) ;let*
 
