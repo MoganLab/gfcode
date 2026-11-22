@@ -24,6 +24,7 @@
     (liii pi tui interactive thinking)
     (liii pi tui interactive thinking-selector)
     (liii pi tui interactive app-bash)
+    (liii pi tui interactive app-selection)
   ) ;import
   (begin
 
@@ -75,6 +76,9 @@
         (when (and (pi-app-supports-thinking? app) (not (equal? old level)))
           (%record-thinking-change! app level)
         ) ;when
+        ;; 显式修改 thinking 后发布当前 provider/model 的完整最新快照，
+        ;; 避免被一个较早的 /model 快照覆盖（保证 /model 联动 thinking 不回归）
+        (pi-app-publish-request-selection! app)
       ) ;let
     ) ;define
 

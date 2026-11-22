@@ -304,6 +304,9 @@
              (bash-abort-chan (make-chan 1))
              (steering-chan (make-chan 16))
              (follow-up-chan (make-chan 16))
+             ;; 独立于 jobs-chan 的“最新请求选择”通道（latest-wins）：
+             ;; /model 与 /thinking 发布完整选择快照，Worker 请求前排空应用最后一项
+             (request-selection-chan (make-chan 16))
              (actual-record-sink (%make-pi-record-sink record-sink jobs-chan))
              (app (%make-pi-app actual-term
                     screen
@@ -364,7 +367,7 @@
                     (and thinking-level-explicit #t)
                     #f
                     #f
-                    #f
+                    request-selection-chan
                   ) ;%make-pi-app
              ) ;app
              (ed (%make-pi-editor app tl))
@@ -385,7 +388,7 @@
         ;; 无自定义 handler 时启动后台 agent worker
         (unless handler
           (go (pi-tui-agent-worker jobs-chan event-chan abort-chan session-file
-                steering-chan follow-up-chan
+                steering-chan follow-up-chan request-selection-chan
               ) ;pi-tui-agent-worker
           ) ;go
         ) ;unless

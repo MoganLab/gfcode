@@ -30,13 +30,10 @@
     ;; 右侧模型串：all-in-one 精简为 all-in-one/<chain-id>（不显示伪模型括号与
     ;; 自身等级），普通供应商保持 (provider) model • level；有实际节点时追加
     ;; " -> (provider) model • level"，等级为收敛后的最终生效值。
-    ;; opt-pending 为用户刚切换、尚未被请求确认的等级：此时在节点等级后加 "*"，
-    ;; 让用户立即看到切换已被记录、右侧仍是上一次请求的生效值。
     (define (pi-footer-model-part provider model thinking-level
-             supports-thinking? active-node . opt-pending
-            ) ;
-      (let* ((pending (if (pair? opt-pending) (car opt-pending) #f))
-             (aio? (equal? provider "all-in-one"))
+              supports-thinking? active-node
+            ) ;pi-footer-model-part
+      (let* ((aio? (equal? provider "all-in-one"))
              (base (if aio?
                      (string-append "all-in-one/" (or model ""))
                      (string-append (%provider-prefix provider)
@@ -50,30 +47,13 @@
       ) ;let*
     ) ;define
 
-    ;; 右侧模型串（含请求进行中切换模型时的 "正在请求 -> 新切换" 双段展示）：
-    ;; 若正在请求的是 all-in-one 且已有实际节点，左侧直接展示实际节点，不出现 all-in-one/<chain-id>
+    ;; 右侧模型串（含 all-in-one 实际节点展示）。
     (define (pi-footer-right-part provider model thinking-level
-              supports-thinking? active-node pending-from
+              supports-thinking? active-node
             ) ;pi-footer-right-part
-      (let ((new-part (pi-footer-model-part provider model thinking-level
-                        supports-thinking? active-node
-                      ) ;pi-footer-model-part
-            ) ;new-part
-           ) ;
-        (if (pair? pending-from)
-          (let* ((fp (list-ref pending-from 0))
-                 (fm (list-ref pending-from 1))
-                 (ftl (list-ref pending-from 2))
-                 (fs? (list-ref pending-from 3))
-                 (fnode (list-ref pending-from 4))
-                 (aio-node (and (equal? fp "all-in-one") (%active-node-label fnode)))
-                 (from-part (or aio-node (pi-footer-model-part fp fm ftl fs? fnode)))
-                ) ;
-            (string-append from-part " -> " new-part)
-          ) ;let*
-          new-part
-        ) ;if
-      ) ;let
+      (pi-footer-model-part provider model thinking-level supports-thinking?
+        active-node
+      ) ;pi-footer-model-part
     ) ;define
 
     (define (%provider-prefix provider)
