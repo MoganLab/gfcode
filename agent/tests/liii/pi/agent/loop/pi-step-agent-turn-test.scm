@@ -73,4 +73,31 @@
   ) ;let-values
 ) ;let*
 
+;; 3. prepare-request 钩子返回的 effective-cfg 传给 request-fn：
+;;    prepare 把 provider 从 google 改写为 custom，request-fn 收到 custom
+(let* ((req-provider (vector #f))
+       (mock-req
+         (lambda (provider cfg msgs sp tools on-stream to)
+           (vector-set! req-provider 0 provider)
+           (pi-assistant-message (list (list (cons 'type "text") (cons 'text "ok")))
+             :stop-reason "stop"
+             :usage       '((input . 1) (output . 1) (total . 2))
+           ) ;pi-assistant-message
+         ) ;lambda
+       ) ;mock-req
+       (prepare (lambda (cfg) (cons (cons 'provider "custom") cfg)))
+       (cfg (list (cons 'tools '())
+              (cons 'provider "google")
+              (cons 'prepare-request prepare)
+            ) ;list
+       ) ;cfg
+      ) ;
+  (let-values (((msgs stop-reason tool-calls resp)
+                (pi-step-agent-turn cfg '() "prompt" #f 10 mock-req)
+               ) ;
+              ) ;
+    (check (vector-ref req-provider 0) => "custom")
+  ) ;let-values
+) ;let*
+
 (check-report)
