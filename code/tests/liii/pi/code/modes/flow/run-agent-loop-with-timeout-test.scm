@@ -37,6 +37,7 @@
   (liii path)
   (liii shutil)
   (liii pi ai message)
+  (liii pi ai config runtime)
   (liii pi code all-in-one state)
   (liii pi code all-in-one types)
   (liii pi code modes flow)
@@ -178,6 +179,72 @@
     (check (pi-assistant-message-stop-reason (car (reverse res))) => "stop")
   ) ;let
   (rmtree dir #t)
+) ;let*
+
+;; 5. 运行中切模：prepare-request 在工具执行期间把 model-id 从 A 改为 B，
+;;    下一次请求收到的 config 是 B（普通供应商动态分发）
+(let* ((round 0)
+       (req-models '())
+       (exec
+         (lambda (name . args)
+           (list (cons 'content (list (pi-text-block "ok"))) (cons 'isError #f))
+         ) ;lambda
+       ) ;exec
+       ;; eff-proto 是被 prepare-request 返回的 base-cfg；初始为 model-A
+       (eff-proto (list (cons 'tools '("echo"))
+                    (cons 'execute-tool-call exec)
+                    (cons 'provider "google")
+                    (cons 'model-id "model-A")
+                  ) ;list
+       ) ;eff-proto
+       (prepare (lambda (cfg) eff-proto))
+       (request-fn
+         (lambda (provider config messages system-prompt tools on-event timeout)
+           (set! round (+ round 1))
+           (set! req-models (append req-models (list (pi-cfg-ref config 'model-id))))
+           (if (= round 1)
+             (begin
+               ;; 模拟工具执行期间切模到 B
+               (set! eff-proto (cons (cons 'model-id "model-B") eff-proto))
+               (pi-assistant-message
+                 (list (list (cons 'type "toolCall")
+                         (cons 'id "c1")
+                         (cons 'name "echo")
+                         (cons 'arguments (list))
+                       ) ;list
+                 ) ;list
+                 :stop-reason "toolUse"
+                 :usage       '((input . 1) (output . 1) (total . 2))
+               ) ;pi-assistant-message
+             ) ;begin
+             (pi-assistant-message (list (pi-text-block "done")) "stop")
+           ) ;if
+         ) ;lambda
+       ) ;request-fn
+       (cfg (list (cons 'tools '("echo"))
+              (cons 'execute-tool-call exec)
+              (cons 'provider "google")
+              (cons 'model-id "model-A")
+              (cons 'prepare-request prepare)
+            ) ;list
+       ) ;cfg
+      ) ;
+  (let ((res (run-agent-loop-with-timeout cfg
+               (list (pi-user-message "hi"))
+               ""
+               #f
+               '()
+               #f
+               #t
+               #f
+               request-fn
+             ) ;run-agent-loop-with-timeout
+        ) ;res
+       ) ;
+    (check round => 2)
+    (check (car req-models) => "model-A")
+    (check (cadr req-models) => "model-B")
+  ) ;let
 ) ;let*
 
 (check-report)
