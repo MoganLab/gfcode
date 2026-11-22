@@ -28,6 +28,9 @@
 (import (scheme base)
   (liii check)
   (liii path)
+  (liii pi ai config model-metadata)
+  (liii pi ai message)
+  (liii pi ai config runtime)
   (liii pi code core compaction flow)
 ) ;import
 
@@ -72,5 +75,41 @@
                600
              ) ;pi-make-compaction-option
 ) ;check-false
+
+;; 5. compactor 执行时重新读取 effective-cfg：安装 prepare-request 钩子后，
+;;    运行中切模（窗口从初始值变大）会被 compactor 感知，压缩判定使用新窗口。
+;;    这里用过高的阈值保证不实际压缩，仅验证 prepare-request 被调用且窗口读到新值。
+(write-settings #t)
+(let* ((called (vector 0))
+       (eff-cfg
+         (list (cons 'config-dir CONFIG-DIR)
+           (cons 'provider "google")
+           (cons 'model-id "big-model")
+           (cons 'model-meta
+             (pi-model-metadata "big-model" "big-model" "google" #f 2000000 0)
+           ) ;cons
+           (cons 'prepare-request
+             (lambda (cfg)
+               (vector-set! called 0 (+ 1 (vector-ref called 0)))
+               ;; 模拟切模后窗口变大
+               (pi-cfg-set cfg
+                 'model-meta
+                 (pi-model-metadata "big-model" "big-model" "google" #f 4000000 0)
+               ) ;pi-cfg-set
+             ) ;lambda
+           ) ;cons
+         ) ;list
+       ) ;eff-cfg
+       (opt (pi-make-compaction-option '() eff-cfg "session.jsonl" STATE 600))
+       (compactor (cdr (assoc 'compactor opt)))
+       ;; 一条超长但远低于 4M 窗口的消息，不会触发压缩
+       (msgs (list (pi-user-message (make-string 1000 #\a))))
+       (res (compactor msgs))
+      ) ;
+  ;; prepare-request 在 compactor 执行时被调用一次
+  (check (vector-ref called 0) => 1)
+  ;; 未触发压缩：返回原消息列表
+  (check (eq? res msgs) => #t)
+) ;let*
 
 (check-report)
