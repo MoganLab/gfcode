@@ -32,8 +32,6 @@
       ) ;let
     ) ;define
 
-    ;; TODO: 动态注入导致前缀缓存逐轮失效待解决（详见
-    ;; tests/liii/pi/agent/loop/README.md 4.3）。
     (define (%resolve-effective-cfg config)
       (let ((prepare (pi-cfg-ref config 'prepare-request #f)))
         (if (procedure? prepare) (prepare config) config)
@@ -184,14 +182,6 @@
                (deadline-sec #f)
                (session-timeout #f)
              ) ;pi-resolve-turn-system-prompt
-      ;; 系统提示词位于请求前缀最前端：非临界时必须与 base 字节级一致，
-      ;; 只有预算临界时才拼接一次静态告警块，避免逐轮变化击穿前缀缓存。
-      ;; TODO: base 为回调时（上层扩展动态注入，如 code-review 检测上一轮
-      ;; 编辑文件后追加的 "You edited: ..." 块），注入块随上一轮工具调用
-      ;; 逐轮出现/消失/变化，会使系统提示词之后的全部前缀缓存（工具定义 +
-      ;; 消息历史）每轮失效。后续需将动态注入移出系统提示词（如改为历史
-      ;; 末尾的 user 消息）或改用供应商多断点缓存，详见
-      ;; tests/liii/pi/agent/loop/README.md 4.3。
       (let ((base (if (procedure? system-prompt) (system-prompt tool-calls) system-prompt))
            ) ;
         (if (number? turn)
