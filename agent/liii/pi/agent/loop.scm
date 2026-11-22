@@ -287,7 +287,9 @@
       ) ;when
       ;; 桥接 agent_start 到扩展事件系统
       (let ((ext-emit (%ext-emit config)))
-        (when ext-emit (ext-emit 'agent_start '()))
+        (when ext-emit
+          (ext-emit 'agent_start '())
+        ) ;when
       ) ;let
       (let* ((start-sec (pi-current-monotonic-seconds))
              (deadline-sec (if (and (number? session-timeout) (> session-timeout 0))
