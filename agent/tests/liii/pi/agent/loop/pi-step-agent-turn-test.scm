@@ -1,6 +1,11 @@
 ;; pi-step-agent-turn
 ;; 执行单步 Agent 轮次：调用模型请求函数、附加开销计算并提取工具调用与停止原因。
 ;;
+;; 每次请求前先解析最新选择：cfg 中的可选 prepare-request 过程排空选择通道
+;; 并返回本次有效的 cfg（运行中切模的生效点）；未配置时直接沿用传入 config，
+;; 保持 CLI、现有测试及非交互调用兼容。已开始的 request-fn 调用不被中断，
+;; 下一次 pi-step-agent-turn 才再次读取。
+;;
 ;; 语法
 ;; ----
 ;; (pi-step-agent-turn config msgs system-prompt emit timeout request-fn)

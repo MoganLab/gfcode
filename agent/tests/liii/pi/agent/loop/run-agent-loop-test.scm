@@ -1,6 +1,11 @@
 ;; run-agent-loop
 ;; 驱动 Agent 对话主循环：执行多轮模型请求与工具调用，直至自然停止或达到限制。
 ;;
+;; 主循环内部按轮解释执行单轮决策：工具已执行则 continue 下一轮；error / aborted
+;; 硬退出直接结算；自然停止则先轮询 steering / follow-up（有注入消息则经续跑
+;; 过程携带新消息列表继续下一轮，无则结算本轮），决策统一携带 msgs /
+;; stop-reason / tool-calls / resp 四个键。
+;;
 ;; 语法
 ;; ----
 ;; (run-agent-loop config initial-messages system-prompt (emit #f) (timeout 600) (max-turns 0) (session-timeout 0) (compaction #f) (request-fn pi-request-provider-stream) (emit-initial? #t))
