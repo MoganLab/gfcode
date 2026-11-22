@@ -191,84 +191,85 @@
   (check (pi-app-cycle-thinking! app) => #f)
 ) ;let
 
-;; 请求进行中通过 /model 切换模型：
-;; - TUI 正文先显示“本轮结束之后，将会切换到 zai/glm-5”
-;; - 右下角左边为正在请求的模型，右边为新切换的模型
-;; - 请求结束后（agent_settled），正文再显示“已经切换到 zai/glm-5”，右下角恢复为新模型
+;; 请求进行中通过 /model 切换模型（立即生效）：
+;; - TUI 正文立即显示“Model: glm-5”（不再延迟到本轮结束）
+;; - 右下角立即显示新模型 (zai) glm-5 • medium，无“旧模型 -> 新模型”箭头
+;; - request-selection-chan 收到完整选择快照 (zai glm-5 medium #f)
+;; - 请求结束后（agent_settled）不追加二次“已经切换到”提示
 (let ((app (make-test-app :supports-thinking #t)))
   (pi-queue-set-busy! (pi-app-queue app))
   (pi-app-submit! app "/model zai/glm-5")
-  (check (pi-app-pending-model-switch app) => "zai/glm-5")
   (pi-app-render! app)
   (let ((plain
           (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
         ) ;plain
        ) ;
-    (check-true (string-contains? plain "本轮结束之后，将会切换到 zai/glm-5")
-    ) ;check-true
-    (check-true (string-contains? plain
-                  "(google) gemini-2.5-pro • high -> (zai) glm-5 • medium"
-                ) ;string-contains?
-    ) ;check-true
+    (check-true (string-contains? plain "Model: glm-5"))
+    (check-true (string-contains? plain "(zai) glm-5 • medium"))
+    (check-false (string-contains? plain "本轮结束之后"))
+    (check-false (string-contains? plain "->"))
   ) ;let
+  (check (chan-try-recv! (pi-app-request-selection-chan app) #f)
+    =>
+    '("zai" "glm-5" "medium" #f)
+  ) ;check
   (chan-send! (pi-app-event-chan app) '(agent_settled #f) 1000)
   (pi-app-poll-events! app)
-  (check (pi-app-pending-model-switch app) => #f)
   (let ((plain
           (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
         ) ;plain
        ) ;
-    (check-true (string-contains? plain "已经切换到 zai/glm-5"))
+    (check-false (string-contains? plain "已经切换到"))
     (check-true (string-contains? plain "(zai) glm-5 • medium"))
     (check-false (string-contains? plain "->"))
   ) ;let
 ) ;let
 
-;; 请求进行中连续两次切换模型（A -> B -> C）：
-;; 右下角左侧始终保持正在请求的模型 A，右侧更新为 C，结束后提示已经切换到 C
+;; 请求进行中连续两次切换模型（A -> B -> C）：立即显示 C，request-selection
+;; 通道 latest-wins 只保留 C；结束后不追加二次提示
 (let ((app (make-test-app :supports-thinking #t)))
   (pi-queue-set-busy! (pi-app-queue app))
   (pi-app-submit! app "/model zai/glm-5")
   (pi-app-submit! app "/model google/gemini-3-flash-preview")
-  (check (pi-app-pending-model-switch app) => "google/gemini-3-flash-preview")
   (pi-app-render! app)
   (let ((plain
           (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
         ) ;plain
        ) ;
-    (check-true (string-contains? plain
-                  "本轮结束之后，将会切换到 google/gemini-3-flash-preview"
-                ) ;string-contains?
+    (check-true (string-contains? plain "Model: gemini-3-flash-preview"))
+    (check-true (string-contains? plain "(google) gemini-3-flash-preview • medium")
     ) ;check-true
-    (check-true (string-contains? plain
-                  "(google) gemini-2.5-pro • high -> (google) gemini-3-flash-preview • medium"
-                ) ;string-contains?
-    ) ;check-true
+    (check-false (string-contains? plain "本轮结束之后"))
+    (check-false (string-contains? plain "->"))
   ) ;let
+  ;; latest-wins：通道里只剩最后一项 C（B 被排空丢弃）
+  (check (chan-try-recv! (pi-app-request-selection-chan app) #f)
+    =>
+    '("google" "gemini-3-flash-preview" "medium" #f)
+  ) ;check
   (chan-send! (pi-app-event-chan app) '(agent_settled #f) 1000)
   (pi-app-poll-events! app)
   (let ((plain
           (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
         ) ;plain
        ) ;
-    (check-true (string-contains? plain "已经切换到 google/gemini-3-flash-preview")
-    ) ;check-true
+    (check-false (string-contains? plain "已经切换到"))
     (check-false (string-contains? plain "->"))
   ) ;let
 ) ;let
 
-;; 请求进行中切换后再切回原请求模型（A -> B -> A）：清除待切换状态，不显示箭头
+;; 请求进行中切换后再切回原请求模型（A -> B -> A）：立即显示 A，无箭头、无提示
 (let ((app (make-test-app :supports-thinking #t)))
   (pi-queue-set-busy! (pi-app-queue app))
   (pi-app-submit! app "/model zai/glm-5")
   (pi-app-submit! app "/model google/gemini-2.5-pro")
-  (check (pi-app-pending-model-switch app) => #f)
   (pi-app-render! app)
   (let ((plain
           (string-join (map strip-ansi (alt-screen-lines (pi-app-screen app))) "\n")
         ) ;plain
        ) ;
     (check-false (string-contains? plain "->"))
+    (check-true (string-contains? plain "Model: gemini-2.5-pro"))
   ) ;let
   (chan-send! (pi-app-event-chan app) '(agent_settled #f) 1000)
   (pi-app-poll-events! app)
@@ -277,6 +278,7 @@
         ) ;plain
        ) ;
     (check-false (string-contains? plain "已经切换到"))
+    (check-false (string-contains? plain "->"))
   ) ;let
 ) ;let
 

@@ -21,6 +21,7 @@
   (liii tui)
   (liii go)
   (liii pi tui interactive app)
+  (liii pi tui interactive state)
   (liii pi tui interactive app-model)
 ) ;import
 
@@ -153,7 +154,13 @@
   (pi-app-submit! app "/model coding-fast")
   (check (pi-app-provider app) => "all-in-one")
   (check (pi-app-model app) => "coding-fast")
+  ;; all-in-one 不写 session_state/model_change 条目
   (check (chan-try-recv! (pi-app-jobs-chan app) #f) => #f)
+  ;; 但仍发布运行时选择快照，供 Worker 请求前应用
+  (check (chan-try-recv! (pi-app-request-selection-chan app) #f)
+    =>
+    '("all-in-one" "coding-fast" "high" #f)
+  ) ;check
 ) ;let*
 
 (check-report)

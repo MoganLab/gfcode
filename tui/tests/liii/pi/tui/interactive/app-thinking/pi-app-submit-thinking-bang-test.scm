@@ -18,6 +18,7 @@
 
 (import (scheme base)
   (liii check)
+  (liii go)
   (liii tui)
   (liii pi tui interactive app)
   (liii pi tui interactive state)
@@ -33,6 +34,11 @@
   (pi-app-submit-thinking! app "/thinking high")
   (check (pi-app-thinking-level app) => "high")
   (check (editor-text (pi-app-editor app)) => "")
+  ;; 显式修改 thinking 后发布当前 provider/model 的完整最新快照
+  (check (chan-try-recv! (pi-app-request-selection-chan app) #f)
+    =>
+    '("google" "gemini-3.8-flash" "high" #t)
+  ) ;check
 ) ;let*
 
 ;; 2. 无参数打开选择器
