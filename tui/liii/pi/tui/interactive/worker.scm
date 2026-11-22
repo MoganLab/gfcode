@@ -427,8 +427,7 @@
         ;; arm 扩展通知：worker 会话内生效（go 起的独立 s7 会话，全局状态独立），
         ;; 扩展经 ctx.ui.notify 输出的提示行由此投递回主线程渲染为聊天区状态行。
         ;; 与 set-pi-retry-logger! 同属会话级注入模式。
-        (pi-extension-notify-set!
-          (lambda (msg) (pi-tui-send-event! event-chan (list 'tps_report msg)) #t)
+        (pi-extension-notify-set! (lambda (msg) (pi-tui-send-event! event-chan (list 'tps_report msg)) #t)
         ) ;pi-extension-notify-set!
         (let loop
           ((current-cfg cfg))
