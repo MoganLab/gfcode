@@ -26,17 +26,14 @@
   ) ;export
   (begin
 
-    ;; 从 config 取扩展事件桥接（由上层注入；缺失时不向扩展系统转发事件）
     (define (%ext-emit config)
       (let ((val (pi-cfg-ref config 'emit-extension-event)))
         (and (procedure? val) val)
       ) ;let
     ) ;define
 
-    ;; 在每次新的 Provider 请求前解析最新选择（对齐上游 prepareRequest）。
-    ;; cfg 中的可选 prepare-request 过程排空选择通道并返回本次有效的 cfg；
-    ;; 未配置时直接沿用传入 config，保持 CLI、现有测试及非交互调用兼容。
-    ;; 已开始的 request-fn 调用不被中断，下一次 pi-step-agent-turn 才再次读取。
+    ;; TODO: 动态注入导致前缀缓存逐轮失效待解决（详见
+    ;; tests/liii/pi/agent/loop/README.md 4.3）。
     (define (%resolve-effective-cfg config)
       (let ((prepare (pi-cfg-ref config 'prepare-request #f)))
         (if (procedure? prepare) (prepare config) config)
@@ -208,12 +205,6 @@
       ) ;let
     ) ;define*
 
-    ;; 执行单轮：压缩 → steering 轮询注入 → 预算系统提示 → 请求 → 工具执行。
-    ;; 返回决策 alist，由 run-agent-loop 主循环解释：
-    ;;   ((action . continue)  ...) 工具已执行，继续下一轮
-    ;;   ((action . hard-stop) ...) error / aborted 硬退出，直接结算
-    ;;   ((action . stop-check)...) 自然停止，主循环轮询 steering/follow-up 后决定
-    ;; 三种决策统一携带 msgs / stop-reason / tool-calls / resp 四个键
     (define (%run-agent-turn config msgs compaction emit timeout request-fn
               system-prompt turn max-turns deadline-sec session-timeout
               last-tool-calls
@@ -269,8 +260,6 @@
       ) ;let
     ) ;define
 
-    ;; 自然停止处理：有注入消息则经 k 续跑（k 接收注入后的消息列表），
-    ;; 无则结算本轮并返回最终消息列表
     (define (%stop-or-continue msgs stop-reason tool-calls emit config resp k)
       (let ((next-msgs (%natural-stop-continue msgs config emit)))
         (if next-msgs
