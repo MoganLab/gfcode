@@ -131,34 +131,6 @@
       ) ;let
     ) ;define
 
-    (define* (run-agent-loop-with-timeout cfg
-               init-msgs
-               system-prompt
-               emit
-               parsed
-               (compaction #f)
-               (emit-initial? #t)
-               (probe-fn #f)
-               (request-fn #f)
-             ) ;run-agent-loop-with-timeout
-      (let* ((timeout (pi-resolve-timeout parsed cfg))
-             (max-turns (or (pi-args-ref parsed 'max-turns) (pi-cfg-ref cfg 'max-turns 0)))
-             (session-timeout (%resolve-session-timeout parsed cfg))
-            ) ;
-        (run-agent-loop cfg
-          init-msgs
-          system-prompt
-          emit
-          timeout
-          max-turns
-          session-timeout
-          compaction
-          (%make-request-dispatcher emit probe-fn request-fn)
-          emit-initial?
-        ) ;run-agent-loop
-      ) ;let*
-    ) ;define*
-
     ;; 构造请求分发过程：普通 Provider 与 all-in-one 的分发必须在每次请求时
     ;; 按本次 effective-cfg 动态判断，而不是在 run 启动时按初始 provider 固化，
     ;; 保证运行中在普通模型与 all-in-one 之间切换时仍进入正确适配器。
@@ -187,6 +159,34 @@
         ) ;if
       ) ;lambda
     ) ;define
+
+    (define* (run-agent-loop-with-timeout cfg
+               init-msgs
+               system-prompt
+               emit
+               parsed
+               (compaction #f)
+               (emit-initial? #t)
+               (probe-fn #f)
+               (request-fn #f)
+             ) ;run-agent-loop-with-timeout
+      (let* ((timeout (pi-resolve-timeout parsed cfg))
+             (max-turns (or (pi-args-ref parsed 'max-turns) (pi-cfg-ref cfg 'max-turns 0)))
+             (session-timeout (%resolve-session-timeout parsed cfg))
+            ) ;
+        (run-agent-loop cfg
+          init-msgs
+          system-prompt
+          emit
+          timeout
+          max-turns
+          session-timeout
+          compaction
+          (%make-request-dispatcher emit probe-fn request-fn)
+          emit-initial?
+        ) ;run-agent-loop
+      ) ;let*
+    ) ;define*
 
     (define (emit-json-event ev-type . args)
       (let ((ev (pi-build-json-event ev-type args)))
