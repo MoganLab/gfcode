@@ -11,6 +11,7 @@
     (liii pi code core extensions event)
     (liii pi code core extensions discovery)
     (liii pi code core extensions loader)
+    (liii pi code core extension-notify)
   ) ;import
   (export
     ;; ExtensionRegistry
@@ -47,6 +48,8 @@
     extension-context-model
     extension-context-registry
     extension-context-extra
+    extension-context-notify
+    extension-context-has-ui
 
     ;; ExtensionToolDef
     make-extension-tool-def
@@ -134,6 +137,12 @@
     ;; Event Lifecycle
     pi-on!
     pi-emit!
+
+    ;; Extension Notify（会话级注入点；仿 ai/abort.scm）
+    pi-extension-notify-set!
+    pi-extension-notify-reset!
+    pi-extension-notify?
+    pi-extension-notify
 
     ;; Discovery & Loader
     pi-scan-extension-dir

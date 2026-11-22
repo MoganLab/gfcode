@@ -12,7 +12,7 @@
   ) ;import
   (export make-extension-context extension-context? extension-context-session-id
     extension-context-cwd extension-context-model extension-context-registry
-    extension-context-extra
+    extension-context-extra extension-context-notify extension-context-has-ui
   ) ;export
   (begin
 
@@ -22,6 +22,8 @@
         (model #f)
         (registry #f)
         (extra '())
+        (notify #f)
+        (has-ui #f)
       ) ;make-extension-context
       extension-context?
       (session-id extension-context-session-id)
@@ -29,11 +31,14 @@
       (model extension-context-model)
       (registry extension-context-registry)
       (extra extension-context-extra)
+      (notify extension-context-notify)
+      (has-ui extension-context-has-ui)
     ) ;define*-record-type
 
     (let ((raw make-extension-context))
       (set! make-extension-context
-        (lambda* ((session-id #f) (cwd ".") (model #f) (registry #f) (extra '()))
+        (lambda* ((session-id #f) (cwd ".") (model #f) (registry #f) (extra '())
+                  (notify #f) (has-ui #f))
           (when (and session-id (not (string? session-id)))
             (type-error "make-extension-context: session-id must be a string or #f")
           ) ;when
@@ -50,7 +55,10 @@
             (unless (list? extra)
               (type-error "make-extension-context: extra must be a list")
             ) ;unless
-            (raw session-id cwd model reg extra)
+            (unless (or (not notify) (procedure? notify))
+              (type-error "make-extension-context: notify must be a procedure or #f")
+            ) ;unless
+            (raw session-id cwd model reg extra notify has-ui)
           ) ;let
         ) ;lambda*
       ) ;set!
