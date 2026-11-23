@@ -14,14 +14,19 @@
 
 ;; 未过期：直接返回 access；env API Key 仍优先。
 (let* ((tmp (make-temp-dir "gf-resolve-oauth-" ""))
-       (_ (pi-save-auth-oauth! "kimi-coding" "fresh-acc" "ref"
-            (+ (pi-current-time-millis) 3600000) #f tmp
+       (_ (pi-save-auth-oauth! "kimi-coding"
+            "fresh-acc"
+            "ref"
+            (+ (pi-current-time-millis) 3600000)
+            #f
+            tmp
           ) ;pi-save-auth-oauth!
        ) ;_
        (creds (pi-load-auth tmp))
       ) ;
   (check (pi-resolve-provider-key "kimi-coding" creds '() tmp) => "fresh-acc")
-  (check (pi-resolve-provider-key "kimi-coding" creds '(("KIMI_API_KEY" . "sk-env")) tmp)
+  (check (pi-resolve-provider-key "kimi-coding" creds '(("KIMI_API_KEY"
+                                                         . "sk-env")) tmp)
     =>
     "sk-env"
   ) ;check
@@ -31,8 +36,12 @@
 
 ;; 已过期：仍返回配置快照中的 access，不在配置阶段刷新或修改文件。
 (let* ((tmp (make-temp-dir "gf-resolve-oauth-" ""))
-       (_ (pi-save-auth-oauth! "kimi-coding" "expired-acc" "ref"
-            (- (pi-current-time-millis) 1000) #f tmp
+       (_ (pi-save-auth-oauth! "kimi-coding"
+            "expired-acc"
+            "ref"
+            (- (pi-current-time-millis) 1000)
+            #f
+            tmp
           ) ;pi-save-auth-oauth!
        ) ;_
        (creds (pi-load-auth tmp))

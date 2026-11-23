@@ -1,6 +1,8 @@
 ;; pi-make-refresh-oauth-hook
-;; 401 强制刷新只更新独立内存 store；请求配置和 auth.json 均保持不变。
+;; 401 强制刷新更新内存 store，并把轮换后的 refresh/expires 落盘 auth.json
+;; （access token 短命，仅保留内存；盘上 access 保持登录时的旧值）。
 ;; 后续 request-oauth-key 即使使用配置副本，也读取最新 access token。
+;; invalid_grant 时同时清除内存 store 与 auth.json 条目。
 
 (import (scheme base)
   (scheme file)
@@ -24,7 +26,9 @@
   (path->string (path-join (path-temp-dir) "pi-make-refresh-oauth-hook-test"))
 ) ;define
 
-(when (file-exists? TMP-DIR) (rmtree TMP-DIR))
+(when (file-exists? TMP-DIR)
+  (rmtree TMP-DIR)
+) ;when
 (path-mkdir TMP-DIR :parents #t :exist-ok #t)
 
 (define stub-file
@@ -48,9 +52,13 @@
 (define (write-auth! host refresh-token)
   (path-write-text (path->string (path-join (path TMP-DIR) (path "auth.json")))
     (string-append "{\"kimi-coding\":{\"type\":\"oauth\",\"access\":\"old-acc\","
-      "\"refresh\":\"" refresh-token "\",\"expires\":"
+      "\"refresh\":\""
+      refresh-token
+      "\",\"expires\":"
       (number->string (+ (pi-current-time-millis) 3600000))
-      ",\"region\":\"" host "\"}}"
+      ",\"region\":\""
+      host
+      "\"}}"
     ) ;string-append
   ) ;path-write-text
 ) ;define
@@ -65,8 +73,7 @@
        (host (string-append "http://127.0.0.1:" (number->string port)))
       ) ;
   (write-auth! host "stub-refresh-token")
-  (let* ((cfg (pi-sync-oauth-refresh-hook
-                (make-pi-config :config-dir TMP-DIR :provider "kimi-coding" :api-key "old-acc")
+  (let* ((cfg (pi-sync-oauth-refresh-hook (make-pi-config :config-dir TMP-DIR :provider "kimi-coding" :api-key "old-acc")
                 '()
               ) ;pi-sync-oauth-refresh-hook
          ) ;cfg
@@ -77,9 +84,9 @@
     (check (pi-request-api-key copy) => "stub-access-token-2")
     (check (pi-cfg-ref cfg 'api-key) => "old-acc")
     (check (pi-cfg-ref copy 'api-key) => "old-acc")
-    ;; 刷新不写盘，登录时的凭据文件保持原样。
+    ;; 刷新后 access 仅内存，盘上 access 仍为旧值；轮换后的 refresh token 落盘。
     (check (pi-credential-access (stored-credential)) => "old-acc")
-    (check (pi-credential-refresh (stored-credential)) => "stub-refresh-token")
+    (check (pi-credential-refresh (stored-credential)) => "stub-refresh-token-2")
     ;; 后续读取不再触发刷新；再次强刷会使用轮换后的 refresh token。
     (check (pi-request-api-key cfg) => "stub-access-token-2")
   ) ;let*
@@ -92,8 +99,7 @@
        (host (string-append "http://127.0.0.1:" (number->string port)))
       ) ;
   (write-auth! host "stub-refresh-token")
-  (let* ((cfg (pi-sync-oauth-refresh-hook
-                (make-pi-config :config-dir TMP-DIR :provider "kimi-coding" :api-key "old-acc")
+  (let* ((cfg (pi-sync-oauth-refresh-hook (make-pi-config :config-dir TMP-DIR :provider "kimi-coding" :api-key "old-acc")
                 '()
               ) ;pi-sync-oauth-refresh-hook
          ) ;cfg
@@ -104,28 +110,34 @@
     ((lambda (store)
        (pi-oauth-store-clear! store)
        (pi-oauth-store-load! store
-         (list (pi-credential "kimi-coding" #f "oauth" "expired-acc"
-                 "stub-refresh-token" (- (pi-current-time-millis) 1000) host
+         (list (pi-credential "kimi-coding"
+                 #f
+                 "oauth"
+                 "expired-acc"
+                 "stub-refresh-token"
+                 (- (pi-current-time-millis) 1000)
+                 host
                ) ;pi-credential
          ) ;list
        ) ;pi-oauth-store-load!
      ) ;lambda
-      (pi-cfg-ref cfg 'oauth-store)
-    ) ;lambda
+     (pi-cfg-ref cfg 'oauth-store)
+    ) ;
     (check (pi-request-api-key cfg) => "stub-access-token-2")
     (check (pi-credential-access (stored-credential)) => "old-acc")
+    ;; 过期刷新同样把轮换后的 refresh token 落盘。
+    (check (pi-credential-refresh (stored-credential)) => "stub-refresh-token-2")
   ) ;let*
   (process-kill proc)
 ) ;let*
 
-;; 刷新 unauthorized：清内存、返回 #f，但不删除 auth.json。
+;; 刷新 unauthorized：清内存与 auth.json 条目，返回 #f。
 (let* ((proc (process-spawn (list "python3" stub-file "refresh-401") :stdout 'pipe))
        (port (parse-port-line (process-read-line proc)))
        (host (string-append "http://127.0.0.1:" (number->string port)))
       ) ;
   (write-auth! host "stub-refresh-token")
-  (let* ((cfg (pi-sync-oauth-refresh-hook
-                (make-pi-config :config-dir TMP-DIR :provider "kimi-coding")
+  (let* ((cfg (pi-sync-oauth-refresh-hook (make-pi-config :config-dir TMP-DIR :provider "kimi-coding")
                 '()
               ) ;pi-sync-oauth-refresh-hook
          ) ;cfg
@@ -133,8 +145,7 @@
         ) ;
     (check next => #f)
     (check (pi-request-api-key cfg) => #f)
-    (check (length (pi-load-auth TMP-DIR)) => 1)
-    (check (pi-credential-access (stored-credential)) => "old-acc")
+    (check (length (pi-load-auth TMP-DIR)) => 0)
   ) ;let*
   (process-kill proc)
 ) ;let*
@@ -143,8 +154,8 @@
 (path-write-text (path->string (path-join (path TMP-DIR) (path "auth.json")))
   "{\"google\":{\"type\":\"api_key\",\"key\":\"fixture-google-key\"}}"
 ) ;path-write-text
-(let ((cfg (pi-sync-oauth-refresh-hook
-             (make-pi-config :config-dir TMP-DIR :provider "kimi-coding") '()
+(let ((cfg (pi-sync-oauth-refresh-hook (make-pi-config :config-dir TMP-DIR :provider "kimi-coding")
+             '()
            ) ;pi-sync-oauth-refresh-hook
       ) ;cfg
      ) ;

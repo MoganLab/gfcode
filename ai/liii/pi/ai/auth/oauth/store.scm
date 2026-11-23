@@ -9,12 +9,8 @@
 ;; 配置对象，也不写 auth.json。
 (define-library (liii pi ai auth oauth store)
   (import (scheme base) (liii list) (liii pi ai config credential))
-  (export pi-make-oauth-store
-    pi-oauth-store?
-    pi-oauth-store-ref
-    pi-oauth-store-set!
-    pi-oauth-store-load!
-    pi-oauth-store-remove!
+  (export pi-make-oauth-store pi-oauth-store? pi-oauth-store-ref
+    pi-oauth-store-set! pi-oauth-store-load! pi-oauth-store-remove!
     pi-oauth-store-clear!
   ) ;export
   (begin
@@ -37,7 +33,9 @@
     (define (pi-find-credential provider credentials)
       (find
         (lambda (cred)
-          (and (pi-credential-oauth? cred) (equal? (pi-credential-provider cred) provider))
+          (and (pi-credential-oauth? cred)
+            (equal? (pi-credential-provider cred) provider)
+          ) ;and
         ) ;lambda
         credentials
       ) ;find
@@ -45,7 +43,8 @@
 
     (define (pi-oauth-store-set! store cred)
       (let ((provider (pi-credential-provider cred)))
-        (vector-set! store 0
+        (vector-set! store
+          0
           (cons cred
             (filter
               (lambda (old) (not (equal? (pi-credential-provider old) provider)))
@@ -64,7 +63,8 @@
 
     (define (pi-oauth-store-remove! store provider)
       (let ((p-str (if (symbol? provider) (symbol->string provider) provider)))
-        (vector-set! store 0
+        (vector-set! store
+          0
           (filter
             (lambda (cred) (not (equal? (pi-credential-provider cred) p-str)))
             (vector-ref store 0)

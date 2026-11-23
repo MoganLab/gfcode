@@ -5,8 +5,9 @@
 ;;
 
 ;; OAuth 凭据在独立的内存 store 中维护，请求配置保持副本语义。
-;; 初始 sync 从 auth.json 载入 store；每次请求动态读取 access token，
-;; 过期或收到 401 时刷新并仅更新内存，不写 auth.json。
+;; access token 仅存在于内存（短命，不值得落盘）；refresh token 轮换后
+;; 连同 expires 一起写回 auth.json，确保重启后能用新 refresh token 继续刷新。
+;; invalid_grant 时同时清除内存与 auth.json 条目（对应原 OAuth2 语义）。
 (define-library (liii pi code config oauth-hook)
   (import (scheme base)
     (scheme process-context)
@@ -25,22 +26,51 @@
 
     (define (pi-oauth-store-for-config cfg captured-env captured-dir)
       (or (pi-cfg-ref cfg 'oauth-store #f)
-        (pi-make-oauth-store
-          (if (pair? captured-env)
-            (pi-load-auth captured-dir captured-env)
-            (pi-load-auth captured-dir)
-          ) ;if
-        ) ;or
-      ) ;let
+        (pi-make-oauth-store (if (pair? captured-env)
+                               (pi-load-auth captured-dir captured-env)
+                               (pi-load-auth captured-dir)
+                             ) ;if
+        ) ;pi-make-oauth-store
+      ) ;or
     ) ;define
 
-    (define (%refresh! store cred captured-env)
+    ;; 刷新成功时把 refresh/expires 落盘（保留盘上旧 access，不写入新 access：
+    ;; access 短命不值得持久化，重启后由 request-oauth-key 检测到过期再刷新）。
+    ;; 落盘失败仅记日志，不阻断本次请求。
+    (define (%persist-refresh! captured-dir new-cred)
+      (let* ((dir captured-dir)
+             (provider (pi-credential-provider new-cred))
+             (disk-cred (pi-find-oauth-credential provider (pi-load-auth dir)))
+             (disk-access (if disk-cred
+                            (pi-credential-access disk-cred)
+                            (pi-credential-access new-cred)
+                          ) ;if
+             ) ;disk-access
+            ) ;
+        (pi-save-auth-oauth! provider
+          disk-access
+          (pi-credential-refresh new-cred)
+          (pi-credential-expires new-cred)
+          (pi-credential-region new-cred)
+          dir
+        ) ;pi-save-auth-oauth!
+      ) ;let*
+    ) ;define
+
+    (define (%refresh! store cred captured-env captured-dir)
       ;; resolve 的 opt-env 约定为 (env-alist)，不能直接把 env-alist 传入，
       ;; 否则下游会把首个环境变量 pair 当作完整 alist 交给 assoc。
+      ;; save! 更新内存 store 并落盘 refresh/expires；remove! 清内存与盘上条目。
       (let ((next (pi-force-refresh-oauth-credential-key cred
                     (if (pair? captured-env) (list captured-env) '())
-                    (lambda (c) (pi-oauth-store-set! store c))
-                    (lambda (p) (pi-oauth-store-remove! store p))
+                    (lambda (c)
+                      (pi-oauth-store-set! store c)
+                      (%persist-refresh! captured-dir c)
+                    ) ;lambda
+                    (lambda (p)
+                      (pi-oauth-store-remove! store p)
+                      (pi-remove-auth-provider! p captured-dir)
+                    ) ;lambda
                   ) ;pi-force-refresh-oauth-credential-key
             ) ;next
            ) ;
@@ -57,12 +87,11 @@
                (cred (and p (pi-oauth-store-ref store p)))
               ) ;
           (and cred
-            (let ((access (pi-credential-access cred))
-                  (expires (pi-credential-expires cred))
-                 ) ;
-              (if (and access expires (> expires (+ (pi-current-time-millis) 60000)))
+            (let ((access (pi-credential-access cred)) (expires (pi-credential-expires cred)))
+              (if
+                (and access expires (> expires (+ (pi-current-time-millis) 60000)))
                 access
-                (%refresh! store cred captured-env)
+                (%refresh! store cred captured-env captured-dir)
               ) ;if
             ) ;let
           ) ;and
@@ -70,14 +99,14 @@
       ) ;lambda
     ) ;define
 
-    ;; 401 后强制刷新：只更新内存 store，不修改请求配置，也不落盘。
+    ;; 401 后强制刷新：更新内存 store 并把 refresh/expires 落盘；access 仅内存。
     (define (pi-make-refresh-oauth-hook captured-env captured-dir)
       (lambda (cfg current-key)
         (let* ((p (pi-cfg-ref cfg 'provider #f))
                (store (pi-oauth-store-for-config cfg captured-env captured-dir))
                (cred (and p (pi-oauth-store-ref store p)))
               ) ;
-          (and cred (%refresh! store cred captured-env))
+          (and cred (%refresh! store cred captured-env captured-dir))
         ) ;let*
       ) ;lambda
     ) ;define
@@ -98,9 +127,7 @@
             (cons 'request-oauth-key
               (if cred (pi-make-request-oauth-key-hook env dir-str) #f)
             ) ;cons
-            (cons 'refresh-oauth-key
-              (if cred (pi-make-refresh-oauth-hook env dir-str) #f)
-            ) ;cons
+            (cons 'refresh-oauth-key (if cred (pi-make-refresh-oauth-hook env dir-str) #f))
           ) ;list
         ) ;pi-cfg-merge
       ) ;let*

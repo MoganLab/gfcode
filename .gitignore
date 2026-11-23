@@ -1,1 +1,3 @@
 __pycache__
+# local test-run logs captured from stdout (e.g. oauth-test-output.txt)
+*-test-output.txt

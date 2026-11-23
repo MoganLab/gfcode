@@ -22,10 +22,13 @@
 (check-set-mode! 'report-failed)
 
 (define TMP-DIR
-  (path->string (path-join (path-temp-dir) "pi-request-provider-oauth-refresh-test"))
+  (path->string (path-join (path-temp-dir) "pi-request-provider-oauth-refresh-test")
+  ) ;path->string
 ) ;define
 
-(when (file-exists? TMP-DIR) (rmtree TMP-DIR))
+(when (file-exists? TMP-DIR)
+  (rmtree TMP-DIR)
+) ;when
 (path-mkdir TMP-DIR :parents #t :exist-ok #t)
 
 (define stub-file
@@ -60,7 +63,8 @@
 (let* ((proc (process-spawn (list "python3" stub-file) :stdout 'pipe))
        (port (parse-port-line (process-read-line proc)))
        (base-url (string-append "http://127.0.0.1:" (number->string port)))
-       (oauth-proc (process-spawn (list "python3" oauth-stub-file "refresh-ok") :stdout 'pipe))
+       (oauth-proc (process-spawn (list "python3" oauth-stub-file "refresh-ok") :stdout 'pipe)
+       ) ;oauth-proc
        (oauth-port (parse-port-line (process-read-line oauth-proc)))
        (oauth-host (string-append "http://127.0.0.1:" (number->string oauth-port)))
        (auth-file (path->string (path-join (path TMP-DIR) (path "auth.json"))))
@@ -69,29 +73,33 @@
     (string-append "{\"kimi-coding\":{\"type\":\"oauth\",\"access\":\"old-access\","
       "\"refresh\":\"stub-refresh-token\",\"expires\":"
       (number->string (+ (pi-current-time-millis) 3600000))
-      ",\"region\":\"" oauth-host "\"}}"
+      ",\"region\":\""
+      oauth-host
+      "\"}}"
     ) ;string-append
   ) ;path-write-text
-  (let ((cfg (pi-sync-oauth-refresh-hook
-               (make-pi-config
-                 :config-dir  TMP-DIR
-                 :provider     "kimi-coding"
-                 :provider-api "openai-completions"
-                 :model-id     "kimi-for-coding"
-                 :model-meta
-                 (pi-model-metadata "kimi-for-coding" "Kimi" "kimi-coding" base-url 4096 128)
-                 :api-key  "old-access"
-                 :settings '((retry (enabled . #f)))
-                 :extras   (list (cons 'headers '()))
-               ) ;make-pi-config
-               ;; 使用真实进程环境变量，覆盖首个 pair 被误当成完整 env-alist 的回归。
-               (get-environment-variables)
-             ) ;pi-sync-oauth-refresh-hook
+  (let ((cfg
+          (pi-sync-oauth-refresh-hook
+            (make-pi-config
+              :config-dir   TMP-DIR
+              :provider     "kimi-coding"
+              :provider-api "openai-completions"
+              :model-id     "kimi-for-coding"
+              :model-meta
+              (pi-model-metadata "kimi-for-coding" "Kimi" "kimi-coding" base-url 4096 128)
+              :api-key  "old-access"
+              :settings '((retry (enabled . #f)))
+              :extras   (list (cons 'headers '()))
+            ) ;make-pi-config
+            ;; 使用真实进程环境变量，覆盖首个 pair 被误当成完整 env-alist 的回归。
+            (get-environment-variables)
+          ) ;pi-sync-oauth-refresh-hook
         ) ;cfg
        ) ;
     (let ((first (request cfg "first")))
       (when (not (equal? (pi-assistant-message-stop-reason first) "stop"))
-        (display (pi-assistant-message-error-message first)) (newline)
+        (display (pi-assistant-message-error-message first))
+        (newline)
       ) ;when
       (check (pi-assistant-message-stop-reason first) => "stop")
       (check (response-text first) => "PlainOK:stub-access-token-2")
@@ -107,9 +115,9 @@
       (check (response-text second) => "PlainOK:stub-access-token-2")
       (check (pi-cfg-ref copy 'api-key) => "old-access")
     ) ;let*
-    ;; 刷新只更新内存，登录凭据文件不被改写。
+    ;; 刷新后 access 仅内存，盘上 access 仍为旧值；轮换后的 refresh token 落盘。
     (check-true (string-contains? (path-read-text auth-file) "old-access"))
-    (check-true (string-contains? (path-read-text auth-file) "stub-refresh-token"))
+    (check-true (string-contains? (path-read-text auth-file) "stub-refresh-token-2"))
     (check-false (string-contains? (path-read-text auth-file) "stub-access-token-2"))
   ) ;let
   (process-kill oauth-proc)
