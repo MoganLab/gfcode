@@ -102,7 +102,7 @@
     ) ;let
   ) ;let
   (path-unlink auth-file #t)
-  (path-rmdir tmp #t)
+  (path-rmdir tmp)
   (process-kill proc)
 ) ;let*
 
@@ -130,7 +130,7 @@
   (unless (path-exists? auth-file)
     #f
   ) ;unless
-  (path-rmdir tmp #t)
+  (path-rmdir tmp)
 ) ;let*
 
 (check-report)
