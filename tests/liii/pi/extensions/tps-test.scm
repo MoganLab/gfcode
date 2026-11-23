@@ -75,8 +75,8 @@
     (check-true (string-contains? line "TPS"))
     (check-true (string-contains? line "out 414"))
     (check-true (string-contains? line "in 848"))
-    (check-true (string-contains? line "cache r/w 15,808/0"))
-    (check-true (string-contains? line "total 17,070"))
+    (check-true (string-contains? line "cache r/w 15.8K/0"))
+    (check-true (string-contains? line "total 17.1K"))
   ) ;let*
 
   ;; 3. record 形态的 assistant 消息：pi-assistant-message 携带 usage
@@ -113,7 +113,7 @@
          (line (capture-tps-line api (list fake-msg)))
         ) ;
     (check-true (string-contains? line "out 200"))
-    (check-true (string-contains? line "in 1,000"))
+    (check-true (string-contains? line "in 1.0K"))
   ) ;let*
 
   ;; 5. 多条 assistant 消息累加
