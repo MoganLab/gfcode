@@ -1,4 +1,9 @@
 {
+  "package": {
+    "name": "pi",
+    "organization": "liii",
+    "description": "Pi coding agent for Goldfish Scheme"
+  },
   "domains": {
     "ai": {
       "root": "ai/",
