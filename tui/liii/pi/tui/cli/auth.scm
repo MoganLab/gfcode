@@ -46,6 +46,7 @@
             ((or (string=? provider "opencode") (string=? provider "opencode-go"))
              "OPENCODE_API_KEY"
             ) ;
+            ((string=? provider "qwen-token-plan-cn") "QWEN_TOKEN_PLAN_TEAM_CN_API_KEY")
             (else #f)
       ) ;cond
     ) ;define
