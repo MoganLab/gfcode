@@ -1,6 +1,25 @@
 ;; OAuth 凭据保存在独立的内存 store 中。
 ;; 第一次请求旧 token 收到 401，刷新后成功；第二次即使使用新的配置副本，
 ;; 也从共享 store 读取新 token，不再次刷新，不修改配置或 auth.json。
+;;
+;; 语法
+;; ----
+;; (pi-sync-oauth-refresh-hook cfg . opt-env)
+;; (pi-request cfg ...) 经由 request-oauth-key / refresh-oauth-key 钩子取 key
+;;
+;; 参数
+;; ----
+;; cfg : pi-config?
+;; 含 provider 与 config-dir 的请求配置。
+;;
+;; opt-env : list?
+;; 可选 (env-alist)，缺省取当前进程环境变量。
+;;
+;; 返回值
+;; ----
+;; pi-config?
+;; 注入共享 oauth-store 与钩子后的配置；401 刷新后新 token 生效，
+;; 轮换的 refresh token 落盘、access 仅内存。
 
 (import (scheme base)
   (scheme file)
@@ -127,4 +146,5 @@
 ) ;let*
 
 (rmtree TMP-DIR)
+
 (check-report)

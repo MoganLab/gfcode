@@ -3,6 +3,24 @@
 ;; （access token 短命，仅保留内存；盘上 access 保持登录时的旧值）。
 ;; 后续 request-oauth-key 即使使用配置副本，也读取最新 access token。
 ;; invalid_grant 时同时清除内存 store 与 auth.json 条目。
+;;
+;; 语法
+;; ----
+;; (pi-make-refresh-oauth-hook captured-env captured-dir)
+;;
+;; 参数
+;; ----
+;; captured-env : list?
+;; 环境变量 alist（可为空表）。
+;;
+;; captured-dir : (or string? path?)
+;; 配置目录（含 auth.json）。
+;;
+;; 返回值
+;; ----
+;; procedure?
+;; (lambda (cfg current-key) ...)：刷新成功返回新 access token（string?），
+;; 无 oauth 凭据或 invalid_grant 时返回 #f。
 
 (import (scheme base)
   (scheme file)
@@ -164,4 +182,5 @@
 ) ;let
 
 (rmtree TMP-DIR)
+
 (check-report)
