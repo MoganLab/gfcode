@@ -94,15 +94,17 @@
         (display (pi-assistant-message-error-message first)) (newline)
       ) ;when
       (check (pi-assistant-message-stop-reason first) => "stop")
-      (check (response-text first) => "PlainOK:new-access")
+      (check (response-text first) => "PlainOK:stub-access-token-2")
       (check (pi-cfg-ref cfg 'api-key) => "old-access")
     ) ;let
     ;; 同时改变多个字段，强制走 dispatch 的补齐\/复制路径。
-    (let* ((copy (pi-cfg-merge cfg '((tools . #f) (settings . #f) (model-meta . #f))))
+    ;; 注意：不能覆盖 model-meta，否则 base-url 会回退到 provider 默认值，
+    ;; 导致请求发往真实 API 而非 stub 服务器。
+    (let* ((copy (pi-cfg-merge cfg '((tools . #f) (settings . #f))))
            (second (request copy "second"))
           ) ;
       (check (pi-assistant-message-stop-reason second) => "stop")
-      (check (response-text second) => "PlainOK:new-access")
+      (check (response-text second) => "PlainOK:stub-access-token-2")
       (check (pi-cfg-ref copy 'api-key) => "old-access")
     ) ;let*
     ;; 刷新只更新内存，登录凭据文件不被改写。

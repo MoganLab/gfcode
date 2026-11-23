@@ -19,7 +19,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802 (BaseHTTPRequestHandler API)
         length = int(self.headers.get("content-length") or 0)
         self.rfile.read(length)
-        if self.headers.get("Authorization") != "Bearer new-access":
+        if self.headers.get("Authorization") != "Bearer stub-access-token-2":
             self._send(401, {"error": {"message": "expired access token"}})
             return
         self._send(200, {
@@ -29,7 +29,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             "model": "kimi-for-coding",
             "choices": [{
                 "index": 0,
-                "message": {"role": "assistant", "content": "PlainOK:new-access"},
+                "message": {"role": "assistant", "content": "PlainOK:stub-access-token-2"},
                 "finish_reason": "stop",
             }],
             "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
