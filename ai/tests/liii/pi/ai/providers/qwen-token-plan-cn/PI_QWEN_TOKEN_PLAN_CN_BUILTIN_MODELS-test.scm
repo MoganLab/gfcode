@@ -20,7 +20,7 @@
 (check-set-mode! 'report-failed)
 
 (check-true (pair? PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS))
-(check (length PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS) => 14)
+(check (length PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS) => 10)
 
 ;; 模型条目辅助查表：按 id 建索引
 
@@ -52,18 +52,26 @@
 (check-true (pair? (model-by-id "qwen3.8-flash")))
 (check-true (pair? (model-by-id "deepseek-v4-pro")))
 (check-true (pair? (model-by-id "deepseek-v4.1-flash")))
+(check-true (pair? (model-by-id "deepseek-v4.1-flash-1017")))
+(check-true (pair? (model-by-id "glm-5.3")))
 (check-true (pair? (model-by-id "glm-5.3-prime")))
 (check-true (pair? (model-by-id "glm-5.2")))
-(check-true (pair? (model-by-id "kimi-k2.7-code")))
 (check-true (pair? (model-by-id "kimi-k3.1-pro-prime")))
-(check-true (pair? (model-by-id "MiniMax-M2.5")))
 
-;; 不含已退役 / 排除的模型
+;; 不含已退役 / 当前订阅不可用 / 排除的模型
 (check-false (model-by-id "qwen3.8-max-preview"))
 (check-false (model-by-id "deepseek-v3.2"))
 (check-false (model-by-id "deepseek-v4-flash"))
 (check-false (model-by-id "qwen3.7-max"))
 (check-false (model-by-id "qwen3.6-flash"))
+;; 以下模型上游返回 403 AccessDenied.Unpurchased（当前团队订阅未购买），
+;; 从内置目录移除
+(check-false (model-by-id "MiniMax-M2.5"))
+(check-false (model-by-id "glm-5"))
+(check-false (model-by-id "glm-5.1"))
+(check-false (model-by-id "kimi-k2.5"))
+(check-false (model-by-id "kimi-k2.6"))
+(check-false (model-by-id "kimi-k2.7-code"))
 
 ;; qwen3.8-max 元数据
 (let ((m (model-by-id "qwen3.8-max")))
@@ -105,16 +113,6 @@
   (check (thinking-map-ref m "max") => "max")
 ) ;let
 
-;; MiniMax-M2.5：无 thinkingLevelMap、supportsReasoningEffort=#f
-(let ((m (model-by-id "MiniMax-M2.5")))
-  (check (cdr (assoc "contextWindow" m)) => 196608)
-  (check (cdr (assoc "maxTokens" m)) => 32768)
-  (check (cdr (assoc "input" m)) => '("text"))
-  (check (compat-ref m "thinkingFormat") => "qwen")
-  (check (compat-ref m "supportsReasoningEffort") => #f)
-  (check-false (assoc "thinkingLevelMap" m))
-) ;let
-
 ;; qwen4-max：对齐 qwen3.8 系列映射（effort ['low','medium','xhigh']）
 (let ((m (model-by-id "qwen4-max")))
   (check (cdr (assoc "name" m)) => "Qwen4 Max")
@@ -145,7 +143,35 @@
   (check (thinking-map-ref m "medium") => 'null)
 ) ;let
 
-;; glm-5.3-prime：effort ['low','high','max']（对齐 glm-5.3 同族）
+;; deepseek-v4.1-flash-1017：与 deepseek-v4.1-flash 同规格（1M/384K/多模态），
+;; effort ['low','high','max']，其余档位 null
+(let ((m (model-by-id "deepseek-v4.1-flash-1017")))
+  (check (cdr (assoc "name" m)) => "DeepSeek V4.1 Flash 1017")
+  (check (cdr (assoc "contextWindow" m)) => 1000000)
+  (check (cdr (assoc "maxTokens" m)) => 384000)
+  (check (cdr (assoc "input" m)) => '("text" "image"))
+  (check (compat-ref m "thinkingFormat") => "qwen")
+  (check (compat-ref m "supportsReasoningEffort") => #t)
+  (check (thinking-map-ref m "low") => "low")
+  (check (thinking-map-ref m "high") => "high")
+  (check (thinking-map-ref m "max") => "max")
+  (check (thinking-map-ref m "medium") => 'null)
+) ;let
+
+;; glm-5.3：effort ['low','high','max']（普通团队订阅可用，与 prime 同族）
+(let ((m (model-by-id "glm-5.3")))
+  (check (cdr (assoc "name" m)) => "GLM-5.3")
+  (check (cdr (assoc "contextWindow" m)) => 1000000)
+  (check (cdr (assoc "maxTokens" m)) => 131072)
+  (check (cdr (assoc "input" m)) => '("text"))
+  (check (compat-ref m "supportsReasoningEffort") => #t)
+  (check (thinking-map-ref m "low") => "low")
+  (check (thinking-map-ref m "high") => "high")
+  (check (thinking-map-ref m "max") => "max")
+  (check (thinking-map-ref m "medium") => 'null)
+) ;let
+
+;; glm-5.3-prime：effort ['low','high','max']（需更高订阅，对齐 glm-5.3 同族）
 (let ((m (model-by-id "glm-5.3-prime")))
   (check (cdr (assoc "name" m)) => "GLM-5.3 Prime")
   (check (cdr (assoc "contextWindow" m)) => 1000000)
@@ -169,13 +195,6 @@
   (check (thinking-map-ref m "high") => "high")
   (check (thinking-map-ref m "max") => "max")
   (check (thinking-map-ref m "medium") => 'null)
-) ;let
-
-;; kimi-k2.7-code：无 thinkingLevelMap、supportsReasoningEffort=#f
-(let ((m (model-by-id "kimi-k2.7-code")))
-  (check (cdr (assoc "input" m)) => '("text" "image"))
-  (check (compat-ref m "supportsReasoningEffort") => #f)
-  (check-false (assoc "thinkingLevelMap" m))
 ) ;let
 
 (check-report)

@@ -75,16 +75,7 @@
     ;; 每条记录含 id/name/baseUrl/contextWindow/maxTokens/reasoning/input/compat
     ;; /thinkingLevelMap 字段，供 openai-thinking-request-params 取思考格式与映射。
     (define PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS
-      '((("id" . "MiniMax-M2.5")
-         ("name" . "MiniMax-M2.5")
-         ("baseUrl"
-          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
-         ("contextWindow" . 196608)
-         ("maxTokens" . 32768)
-         ("reasoning" . #t)
-         ("input" "text")
-         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #f)))
-        (("id" . "deepseek-v4-pro")
+      '((("id" . "deepseek-v4-pro")
          ("name" . "DeepSeek V4 Pro")
          ("baseUrl"
           . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
@@ -118,34 +109,21 @@
           ("high" . "high")
           ("xhigh" . null)
           ("max" . "max")))
-        (("id" . "glm-5")
-         ("name" . "GLM-5")
+        ;; 阿里云百炼新版快照：DeepSeek V4.1 Flash 1017（与 deepseek-v4.1-flash
+        ;; 同规格：1M 上下文 / 384K maxTokens / 多模态，reasoning effort
+        ;; ['low','high','max']，其余档位映射为 null）
+        (("id" . "deepseek-v4.1-flash-1017")
+         ("name" . "DeepSeek V4.1 Flash 1017")
          ("baseUrl"
           . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
-         ("contextWindow" . 202752)
-         ("maxTokens" . 16384)
+         ("contextWindow" . 1000000)
+         ("maxTokens" . 384000)
          ("reasoning" . #t)
-         ("input" "text")
+         ("input" "text" "image")
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
          ("thinkingLevelMap"
           ("minimal" . null)
-          ("low" . null)
-          ("medium" . null)
-          ("high" . "high")
-          ("xhigh" . null)
-          ("max" . "max")))
-        (("id" . "glm-5.1")
-         ("name" . "GLM-5.1")
-         ("baseUrl"
-          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
-         ("contextWindow" . 202752)
-         ("maxTokens" . 128000)
-         ("reasoning" . #t)
-         ("input" "text")
-         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
-         ("thinkingLevelMap"
-          ("minimal" . null)
-          ("low" . null)
+          ("low" . "low")
           ("medium" . null)
           ("high" . "high")
           ("xhigh" . null)
@@ -166,8 +144,26 @@
           ("high" . "high")
           ("xhigh" . null)
           ("max" . "max")))
-        ;; 阿里云百炼新上线：GLM-5.3 Prime（Prime 通道，reasoning effort 对齐
-        ;; 同族 glm-5.3 的 ['low','high','max']，上下文规格沿用 glm-5.3）
+        ;; 阿里云百炼上线：GLM-5.3（普通团队订阅可用，reasoning effort 对齐
+        ;; 同族 ['low','high','max']，上下文 1M / maxTokens 131072）
+        (("id" . "glm-5.3")
+         ("name" . "GLM-5.3")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("contextWindow" . 1000000)
+         ("maxTokens" . 131072)
+         ("reasoning" . #t)
+         ("input" "text")
+         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
+         ("thinkingLevelMap"
+          ("minimal" . null)
+          ("low" . "low")
+          ("medium" . null)
+          ("high" . "high")
+          ("xhigh" . null)
+          ("max" . "max")))
+        ;; 阿里云百炼新上线：GLM-5.3 Prime（Prime 通道，需更高订阅，reasoning effort
+        ;; 对齐同族 glm-5.3 的 ['low','high','max']，上下文规格沿用 glm-5.3）
         (("id" . "glm-5.3-prime")
          ("name" . "GLM-5.3 Prime")
          ("baseUrl"
@@ -184,33 +180,6 @@
           ("high" . "high")
           ("xhigh" . null)
           ("max" . "max")))
-        (("id" . "kimi-k2.5")
-         ("name" . "Kimi K2.5")
-         ("baseUrl"
-          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
-         ("contextWindow" . 262144)
-         ("maxTokens" . 98304)
-         ("reasoning" . #t)
-         ("input" "text" "image")
-         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #f)))
-        (("id" . "kimi-k2.6")
-         ("name" . "Kimi K2.6")
-         ("baseUrl"
-          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
-         ("contextWindow" . 262144)
-         ("maxTokens" . 262144)
-         ("reasoning" . #t)
-         ("input" "text" "image")
-         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #f)))
-        (("id" . "kimi-k2.7-code")
-         ("name" . "Kimi K2.7 Code")
-         ("baseUrl"
-          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
-         ("contextWindow" . 262144)
-         ("maxTokens" . 262144)
-         ("reasoning" . #t)
-         ("input" "text" "image")
-         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #f)))
         ;; 阿里云百炼新上线：Kimi K3.1 Pro Prime（Prime 通道，always-on 思考；
         ;; reasoning effort ['low','high','max']，1M 上下文 + 多模态输入）
         (("id" . "kimi-k3.1-pro-prime")

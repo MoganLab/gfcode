@@ -46,7 +46,7 @@
 (check (length (find-provider-models "ollama")) => 3)
 (check (length (find-provider-models "zai-coding-cn")) => 10)
 (check (length (find-provider-models "opencode")) => 27)
-(check (length (find-provider-models "qwen-token-plan-cn")) => 14)
+(check (length (find-provider-models "qwen-token-plan-cn")) => 10)
 (check (length (find-provider-models "all-in-one")) => 2)
 
 ;; 验证关键模型存在
@@ -73,8 +73,13 @@
 ) ;check-true
 (check-true (has-model? (find-provider-models "qwen-token-plan-cn") "deepseek-v4.1-flash")
 ) ;check-true
+(check-true (has-model? (find-provider-models "qwen-token-plan-cn")
+              "deepseek-v4.1-flash-1017"
+            ) ;has-model?
+) ;check-true
 (check-true (has-model? (find-provider-models "qwen-token-plan-cn") "glm-5.3-prime")
 ) ;check-true
+(check-true (has-model? (find-provider-models "qwen-token-plan-cn") "glm-5.3"))
 (check-true (has-model? (find-provider-models "qwen-token-plan-cn") "kimi-k3.1-pro-prime")
 ) ;check-true
 
