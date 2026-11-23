@@ -116,6 +116,7 @@
              (is-mm? (string=? p-str "minimax-cn"))
              (is-zai? (or (string=? p-str "zai-coding-cn") (string=? p-str "zai")))
              (is-opencode? (or (string=? p-str "opencode") (string=? p-str "opencode-go")))
+             (is-qwen? (string=? p-str "qwen-token-plan-cn"))
              (is-aio? (string=? p-str "all-in-one"))
              (def-url (cond (is-ant? "https://api.anthropic.com")
                             (is-kimi? "https://api.kimi.com/coding/v1")
@@ -124,13 +125,14 @@
                             (is-mm? "https://api.minimaxi.com/anthropic")
                             (is-zai? "https://open.bigmodel.cn/api/coding/paas/v4")
                             (is-opencode? "https://opencode.ai/zen/go/v1")
+                            (is-qwen? "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
                             ((string=? p-str "ollama") "http://localhost:11434/v1")
                             (else "https://generativelanguage.googleapis.com/v1beta")
                       ) ;cond
              ) ;def-url
              (m
                (or (%find-model-in-list (%get-provider-models models-store p-str) model-id)
-                 (and (or is-ant? is-mm? is-zai? is-opencode? is-aio?)
+                 (and (or is-ant? is-mm? is-zai? is-opencode? is-qwen? is-aio?)
                    (%find-model-in-list (%dict-ref PI_PROVIDER_BUILTIN_MODELS p-str '()) model-id)
                  ) ;and
                ) ;or
@@ -152,6 +154,7 @@
                            (is-mm? 1000000)
                            (is-zai? 1000000)
                            (is-opencode? 1000000)
+                           (is-qwen? 1000000)
                            (else 128000)
                      ) ;cond
              ) ;def-cw
@@ -163,6 +166,7 @@
                            (is-mm? 512000)
                            (is-zai? 131072)
                            (is-opencode? 131072)
+                           (is-qwen? 131072)
                            (else 16384)
                      ) ;cond
              ) ;def-mt
