@@ -14,11 +14,11 @@
     (liii error)
     (liii os)
     (liii pi ai template)
-
     (liii pi ai config credential)
     (liii pi ai auth oauth kimi-coding-oauth)
     (liii pi ai auth oauth resolve)
     (liii pi ai auth storage)
+    (liii pi ai auth whitelist)
   ) ;import
   (export pi-load-auth
     pi-resolve-provider-key
@@ -331,8 +331,13 @@
              (existing (or (%read-json-file auth-file-str) '()))
              (existing-alist (if (pair? existing) existing '()))
              (updated (%update-auth-alist existing-alist p-str k-str))
+             (auth-path (pi-auth-write-json! dir-path updated))
             ) ;
-        (pi-auth-write-json! dir-path updated)
+        ;; auth.json 落盘后把该 provider 合并进 models/providers.json 白名单，
+        ;; 使 /model 与 --list-models 立即把该 provider 视为已启用（对齐上游 login
+        ;; 后 refresh catalog 的语义）。白名单写失败不影响已成功保存的凭证。
+        (pi-auth-save-provider-whitelist! (path->string dir-path) p-str)
+        auth-path
       ) ;let*
     ) ;define
 

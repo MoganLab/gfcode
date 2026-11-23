@@ -33,6 +33,7 @@
     (liii pi tui interactive footer)
     (liii pi tui interactive app-recovery)
     (liii pi tui interactive app-login)
+    (liii pi tui interactive app-model)
   ) ;import
   (begin
 
@@ -274,6 +275,30 @@
       ) ;if
     ) ;define
 
+    (define (%pi-app-handle-models-updated! app ev)
+      ;; worker reload_models 成功后回灌主 app：按新白名单重建 models/default-model
+      ;; 并重渲（对齐上游 completeProviderAuthentication 中 updateAvailableProviderCount
+      ;; + footer.invalidate + requestRender）。重建全程 catch，失败只记日志不崩溃。
+      (catch #t
+        (lambda ()
+          (let ((dir-str (and (> (length ev) 1) (cadr ev))))
+            (let-values (((models default-model)
+                          (if (and (string? dir-str) (not (string-null? dir-str)))
+                            (pi-app-model-catalog dir-str)
+                            (pi-app-model-catalog)
+                          ) ;if
+                         ) ;
+                        ) ;
+              (%pi-app-models-set! app models)
+              (%pi-app-default-model-set! app default-model)
+            ) ;let-values
+            (pi-app-render! app)
+          ) ;let
+        ) ;lambda
+        (lambda args #f)
+      ) ;catch
+    ) ;define
+
     (define (%pi-app-handle-event! app ev)
       (case (car ev)
             ((bash_complete) (%pi-app-handle-bash-complete! app ev))
@@ -332,6 +357,9 @@
              (pi-app-remove-pending-message! app (cadr ev))
              (pi-app-add-user-message! app (cadr ev))
             ) ;
+            ;; worker reload_models 成功后回灌主 app：按新白名单重建
+            ;; pi-app-models/default-model 并重渲，使 /model 即时可见新登录 provider
+            ((models_updated) (%pi-app-handle-models-updated! app ev))
             (else #t)
       ) ;case
     ) ;define
