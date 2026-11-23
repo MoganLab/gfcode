@@ -109,28 +109,34 @@
   (let* ((scale (expt 10 digits))
          (rounded (/ (round (* x scale)) scale))
          (int-part (inexact->exact (truncate rounded)))
-         (int-str (number->string int-part)))
+         (int-str (number->string int-part))
+        ) ;
     (if (= digits 0)
       int-str
-      (let* ((frac-part (inexact->exact (round (* (- rounded int-part) scale))))
+      (let* ((frac-part
+               (inexact->exact (round (* (- rounded int-part) scale)))
+             ) ;frac-part
              (frac-str (number->string frac-part))
-             (pad (- digits (string-length frac-str))))
-        (string-append int-str "."
-          (if (> pad 0) (string-append (make-string pad #\0) frac-str) frac-str)))))
+             (pad (- digits (string-length frac-str)))
+            ) ;
+        (string-append int-str
+          "."
+          (if (> pad 0) (string-append (make-string pad #\0) frac-str) frac-str)
+        ) ;string-append
+      ) ;let*
+    ) ;if
+  ) ;let*
 ) ;define
 
 ;; human readable 紧凑记法：把非负实数格式化为带 K/M 后缀的字符串。
 ;; raw-digits 控制原值档位（<1000）的小数位；km-digits 控制 K/M 档位的小数位。
 
 (define (%human-readable x raw-digits km-digits)
-  (cond
-    ((not (number? x)) "0")
-    ((< x 1000)
-     (%fixed-decimals x raw-digits))
-    ((< x 1000000)
-     (string-append (%fixed-decimals (/ x 1000.0) km-digits) "K"))
-    (else
-     (string-append (%fixed-decimals (/ x 1000000.0) km-digits) "M")))
+  (cond ((not (number? x)) "0")
+        ((< x 1000) (%fixed-decimals x raw-digits))
+        ((< x 1000000) (string-append (%fixed-decimals (/ x 1000.0) km-digits) "K"))
+        (else (string-append (%fixed-decimals (/ x 1000000.0) km-digits) "M"))
+  ) ;cond
 ) ;define
 
 ;; 组装最终的 TPS 行。
