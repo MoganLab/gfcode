@@ -62,37 +62,49 @@
 
     ;; 规范化配置：补齐 downstream 必需字段，防止缺失键触发 type-error
     (define (%normalize-config config provider api tools)
-      (let* ((cfg (if (or (pi-config? config) (pair? config)) config (make-pi-config)))
-             (c1 (if (pi-cfg-ref cfg 'provider) cfg (pi-cfg-set cfg 'provider provider)))
-             (c2 (if (pi-cfg-ref c1 'provider-api) c1 (pi-cfg-set c1 'provider-api api)))
-             (c3 (if (pi-cfg-ref c2 'tools) c2 (pi-cfg-set c2 'tools (or tools '()))))
-             (c4 (if (pi-cfg-ref c3 'proxy-url) c3 (pi-cfg-set c3 'proxy-url #f)))
-             (c5 (if (pi-cfg-ref c4 'settings) c4 (pi-cfg-set c4 'settings '())))
-             (c5h (if (pi-cfg-ref c5 'headers) c5 (pi-cfg-set c5 'headers '())))
-             (raw-meta (pi-cfg-ref c5h 'model-meta))
-             ;; model-meta 统一为 record：旧 alist（含会话 JSON 载入）规范化，
-             ;; 缺失时用注册表默认值补齐；不再把 record 降级为 alist
-             (c6
-               (let ((m
-                       (if (pi-model-metadata? raw-meta)
-                         raw-meta
-                         (pi-model-metadata ""
-                           ""
-                           provider
-                           (or (pi-provider-base-url provider) "")
-                           #f
-                           4096
-                           #t
-                         ) ;pi-model-metadata
-                       ) ;if
-                     ) ;m
-                    ) ;
-                 (pi-cfg-set c5 'model-meta m)
-               ) ;let
-             ) ;c6
-            ) ;
-        c6
-      ) ;let*
+      ;; 已完整规范化的配置必须保留对象身份：OAuth 刷新会原地更新 api-key，
+      ;; 若这里无条件复制 model-meta，刷新只写入临时副本，下一轮仍用旧 token。
+      (if (and (or (pi-config? config) (pair? config))
+            (pi-cfg-ref config 'provider)
+            (pi-cfg-ref config 'provider-api)
+            (pi-cfg-ref config 'tools)
+            (pi-cfg-ref config 'settings)
+            (pi-cfg-ref config 'headers)
+            (pi-model-metadata? (pi-cfg-ref config 'model-meta))
+          ) ;and
+        config
+        (let* ((cfg (if (or (pi-config? config) (pair? config)) config (make-pi-config)))
+               (c1 (if (pi-cfg-ref cfg 'provider) cfg (pi-cfg-set cfg 'provider provider)))
+               (c2 (if (pi-cfg-ref c1 'provider-api) c1 (pi-cfg-set c1 'provider-api api)))
+               (c3 (if (pi-cfg-ref c2 'tools) c2 (pi-cfg-set c2 'tools (or tools '()))))
+               (c4 (if (pi-cfg-ref c3 'proxy-url) c3 (pi-cfg-set c3 'proxy-url #f)))
+               (c5 (if (pi-cfg-ref c4 'settings) c4 (pi-cfg-set c4 'settings '())))
+               (c5h (if (pi-cfg-ref c5 'headers) c5 (pi-cfg-set c5 'headers '())))
+               (raw-meta (pi-cfg-ref c5h 'model-meta))
+               ;; model-meta 统一为 record：旧 alist（含会话 JSON 载入）规范化，
+               ;; 缺失时用注册表默认值补齐；不再把 record 降级为 alist
+               (c6
+                 (let ((m
+                         (if (pi-model-metadata? raw-meta)
+                           raw-meta
+                           (pi-model-metadata ""
+                             ""
+                             provider
+                             (or (pi-provider-base-url provider) "")
+                             #f
+                             4096
+                             #t
+                           ) ;pi-model-metadata
+                         ) ;if
+                       ) ;m
+                      ) ;
+                   (pi-cfg-set c5 'model-meta m)
+                 ) ;let
+               ) ;c6
+              ) ;
+          c6
+        ) ;let*
+      ) ;if
     ) ;define
 
     ;; 按 provider 注册表声明的协议（api 字段）把请求路由到对应协议实现

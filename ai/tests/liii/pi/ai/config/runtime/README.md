@@ -14,4 +14,5 @@ bin/gf test library/tests/liii/pi/ai/config/runtime/
 - `make-pi-config` - 构造带默认值与关键字参数的 `<pi-config>` 记录
 - `pi-cfg-ref` - 读取配置中指定键的取值
 - `pi-cfg-set` - 返回更新指定键后的新配置
+- `pi-cfg-api-key-set!` - OAuth 刷新后原地同步 access token 到当前配置
 - `pi-cfg-merge` - 批量合并多个配置键值对

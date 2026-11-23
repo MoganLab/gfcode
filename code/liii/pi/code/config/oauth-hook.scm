@@ -38,19 +38,29 @@
                (cred (pi-find-oauth-credential p creds))
               ) ;
           (if cred
-            (pi-force-refresh-oauth-credential-key cred
-              (if (pair? captured-env) captured-env '())
-              (lambda (c)
-                (pi-save-auth-oauth! (pi-credential-provider c)
-                  (pi-credential-access c)
-                  (pi-credential-refresh c)
-                  (pi-credential-expires c)
-                  (pi-credential-region c)
-                  captured-dir
-                ) ;pi-save-auth-oauth!
-              ) ;lambda
-              (lambda (pp) (pi-remove-auth-provider! pp captured-dir))
-            ) ;pi-force-refresh-oauth-credential-key
+            (let ((next
+                    (pi-force-refresh-oauth-credential-key cred
+                      (if (pair? captured-env) captured-env '())
+                      (lambda (c)
+                        (pi-save-auth-oauth! (pi-credential-provider c)
+                          (pi-credential-access c)
+                          (pi-credential-refresh c)
+                          (pi-credential-expires c)
+                          (pi-credential-region c)
+                          captured-dir
+                        ) ;pi-save-auth-oauth!
+                      ) ;lambda
+                      (lambda (pp) (pi-remove-auth-provider! pp captured-dir))
+                    ) ;pi-force-refresh-oauth-credential-key
+                  ) ;next
+                 ) ;
+              ;; 当前 401 重试和后续请求都必须使用刷新后的 access token；
+              ;; 否则每次请求都会带着旧 token 再触发一次 401/refresh。
+              (when (string? next)
+                (pi-cfg-api-key-set! cfg next)
+              ) ;when
+              next
+            ) ;let
             #f
           ) ;if
         ) ;let*

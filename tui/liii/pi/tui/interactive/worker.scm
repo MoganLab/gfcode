@@ -377,6 +377,11 @@
                       ) ;lambda
                     ) ;window-getter
                    ) ;
+               ;; OAuth 401 刷新会原地更新 job-cfg；同步有效配置容器，
+               ;; 避免下一条消息继续携带刷新前的 access token。
+               (when eff-box
+                 (pi-effective-cfg-set! eff-box job-cfg)
+               ) ;when
                (set! effective-cfg job-cfg)
                (pi-tui-run-worker parsed
                  cfg-with-prepare

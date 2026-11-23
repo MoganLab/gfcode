@@ -82,22 +82,40 @@
   (make-pi-config :config-dir TMP-DIR :provider "kimi-coding")
 ) ;define
 
-;; 1. refresh 成功：返回新 access，auth.json 落盘新凭据
+;; 1. refresh 成功：返回新 access，auth.json 与当前请求配置同步更新。
+;; 后续请求经 pi-cfg-ref 读取 api-key 时不得再拿到旧 token。
 (let* ((proc (process-spawn (list "python3" stub-file "refresh-ok") :stdout 'pipe))
        (port (parse-port-line (process-read-line proc)))
        (host (string-append "http://127.0.0.1:" (number->string port)))
       ) ;
   (write-auth! host "stub-refresh-token")
   (let* ((hook (pi-make-refresh-oauth-hook '() TMP-DIR))
-         (next (hook (make-cfg) "old-acc"))
+         (cfg (make-cfg))
+         (next (hook cfg "old-acc"))
         ) ;
     (check next => "stub-access-token-2")
+    (check (pi-cfg-ref cfg 'api-key) => "stub-access-token-2")
     (check (length (pi-load-auth TMP-DIR)) => 1)
     (check (pi-resolve-provider-key "kimi-coding" (pi-load-auth TMP-DIR) '() TMP-DIR)
       =>
       "stub-access-token-2"
     ) ;check
   ) ;let*
+  (process-kill proc)
+) ;let*
+
+;; alist 请求配置也必须原地同步，保持协议层支持的两种配置形态一致。
+(let* ((proc (process-spawn (list "python3" stub-file "refresh-ok") :stdout 'pipe))
+       (port (parse-port-line (process-read-line proc)))
+       (host (string-append "http://127.0.0.1:" (number->string port)))
+       (cfg (list (cons 'provider "kimi-coding") (cons 'api-key "old-acc")))
+      ) ;
+  (write-auth! host "stub-refresh-token")
+  (check ((pi-make-refresh-oauth-hook '() TMP-DIR) cfg "old-acc")
+    =>
+    "stub-access-token-2"
+  ) ;check
+  (check (pi-cfg-ref cfg 'api-key) => "stub-access-token-2")
   (process-kill proc)
 ) ;let*
 
