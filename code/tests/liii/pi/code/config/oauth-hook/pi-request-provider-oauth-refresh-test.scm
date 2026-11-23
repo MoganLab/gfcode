@@ -117,8 +117,10 @@
     ) ;let*
     ;; 刷新后 access 仅内存，盘上 access 仍为旧值；轮换后的 refresh token 落盘。
     (check-true (string-contains? (path-read-text auth-file) "old-access"))
-    (check-true (string-contains? (path-read-text auth-file) "stub-refresh-token-2"))
-    (check-false (string-contains? (path-read-text auth-file) "stub-access-token-2"))
+    (check-true (string-contains? (path-read-text auth-file) "stub-refresh-token-2")
+    ) ;check-true
+    (check-false (string-contains? (path-read-text auth-file) "stub-access-token-2")
+    ) ;check-false
   ) ;let
   (process-kill oauth-proc)
   (process-kill proc)

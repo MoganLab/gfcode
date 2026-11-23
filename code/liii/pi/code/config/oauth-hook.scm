@@ -41,10 +41,7 @@
       (let* ((dir captured-dir)
              (provider (pi-credential-provider new-cred))
              (disk-cred (pi-find-oauth-credential provider (pi-load-auth dir)))
-             (disk-access (if disk-cred
-                            (pi-credential-access disk-cred)
-                            (pi-credential-access new-cred)
-                          ) ;if
+             (disk-access (if disk-cred (pi-credential-access disk-cred) (pi-credential-access new-cred))
              ) ;disk-access
             ) ;
         (pi-save-auth-oauth! provider
@@ -63,10 +60,7 @@
       ;; save! 更新内存 store 并落盘 refresh/expires；remove! 清内存与盘上条目。
       (let ((next (pi-force-refresh-oauth-credential-key cred
                     (if (pair? captured-env) (list captured-env) '())
-                    (lambda (c)
-                      (pi-oauth-store-set! store c)
-                      (%persist-refresh! captured-dir c)
-                    ) ;lambda
+                    (lambda (c) (pi-oauth-store-set! store c) (%persist-refresh! captured-dir c))
                     (lambda (p)
                       (pi-oauth-store-remove! store p)
                       (pi-remove-auth-provider! p captured-dir)
