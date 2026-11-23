@@ -129,6 +129,7 @@
       (let ((cfg-dir
               (path->string (path (or opt-config-dir (gf-get-config-dir))))
             ) ;cfg-dir
+            (oauth-host (kimi-oauth-host))
             (cancel-chan (make-chan 1))
            ) ;
         (editor-set-focused! (pi-app-editor app) #f)
@@ -156,7 +157,12 @@
             ) ;lambda
           ) ;make-component
         ) ;%pi-app-active-selector-set!
-        (go (%kimi-oauth-login-worker provider cfg-dir (pi-app-event-chan app) cancel-chan)
+        (go (%kimi-oauth-login-worker provider
+              cfg-dir
+              oauth-host
+              (pi-app-event-chan app)
+              cancel-chan
+            ) ;%kimi-oauth-login-worker
         ) ;go
         (pi-app-render! app)
       ) ;let
@@ -164,7 +170,7 @@
 
     ;; 后台 worker：设备授权 → device_code 事件 → 轮询 → done 事件。
     ;; 取消探测：主线程 Esc 时向 cancel-chan 发信号（非阻塞探测）
-    (define (%kimi-oauth-login-worker provider cfg-dir event-chan cancel-chan)
+    (define (%kimi-oauth-login-worker provider cfg-dir oauth-host event-chan cancel-chan)
       (define (cancelled?)
         (let ((sig (catch #t (lambda () (chan-try-recv! cancel-chan #f)) (lambda args #f))))
           (and sig (not (eof-object? sig)) #t)
@@ -184,7 +190,13 @@
       ) ;define
       (let ((result
               (catch #t
-                (lambda () (kimi-oauth-login notify! cancelled? provider))
+                (lambda ()
+                  (kimi-oauth-login notify!
+                    cancelled?
+                    provider
+                    (list (cons "KIMI_CODE_OAUTH_HOST" oauth-host))
+                  ) ;kimi-oauth-login
+                ) ;lambda
                 (lambda (tag . info)
                   (list 'error
                     tag

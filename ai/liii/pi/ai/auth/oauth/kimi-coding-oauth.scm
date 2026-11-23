@@ -84,21 +84,12 @@
       ) ;let*
     ) ;define
 
-    ;; opt-env 兼容两种形态：env-alist 本身，或 lookup-env-var 的
-    ;; (env-alist) 包装形态（variadic  rest 参直接传入时多一层）
+    ;; opt-env 是 variadic 参数列表；调用方给出 env-alist 时，保留完整
+    ;; alist 并包成 lookup-env-var 需要的 (env-alist) 形态。
     (define (%non-empty-env name opt-env)
-      (let* ((env
-               (if (and (pair? opt-env) (pair? (car opt-env)) (string? (caar opt-env)))
-                 (car opt-env)
-                 opt-env
-               ) ;if
-             ) ;env
-             (v
-               (lookup-env-var name (if (and (pair? env) (pair? (car env))) (list env) '()))
-             ) ;v
-            ) ;
+      (let ((v (lookup-env-var name (if (pair? opt-env) (list (car opt-env)) '()))))
         (and (string? v) (not (string-null? (string-trim-both v))) (string-trim-both v))
-      ) ;let*
+      ) ;let
     ) ;define
 
     ;; 仅信任 http/https 绝对 URL（对应 pi trustedHttpUrl）：登录流程会把

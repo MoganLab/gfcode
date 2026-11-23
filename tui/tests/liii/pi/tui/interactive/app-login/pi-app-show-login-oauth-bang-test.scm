@@ -85,19 +85,7 @@
   (putenv "GF_CONFIG_DIR" tmp)
   (putenv "KIMI_CODE_OAUTH_HOST" host)
   (pi-app-show-login-oauth! app "kimi-coding" tmp)
-  (sleep 1.5)
-  (let drain
-    ()
-    (let ((ev (chan-try-recv! (pi-app-event-chan app) #f)))
-      (when ev
-        (display (list "RAWEV" ev))
-        (newline)
-        (drain)
-      ) ;when
-    ) ;let
-  ) ;let
-  ;; drain 后 selector 仍是占位（device_code 已被消费掉）
-  ;; 占位组件已挂载
+  ;; 占位组件已挂载；事件必须交给 pi-app-poll-events!，不能直接取走。
   (check-true (component? (pi-app-active-selector app)))
   ;; 轮询事件直至 device-code 组件出现（最多 ~10s）
   (let wait
@@ -109,35 +97,12 @@
       (wait (+ n 1))
     ) ;when
   ) ;let
-  (begin
-    (display (list "SELCODE" (login-device-code-user-code (pi-app-active-selector app)))
-    ) ;display
-    (newline)
-    (let ((ls (chat-lines app)))
-      (for-each
-        (lambda (l)
-          (when (string-contains? l "HOST=")
-            (display (list "LINE" l))
-            (newline)
-          ) ;when
-        ) ;lambda
-        ls
-      ) ;for-each
-    ) ;let
-  ) ;begin
-  (check-true (login-device-code? (pi-app-active-selector app)))
-  (display (list "DBG"
-             port
-             host
-             (getenv "KIMI_CODE_OAUTH_HOST")
-             (login-device-code-user-code (pi-app-active-selector app))
-           ) ;list
-  ) ;display
-  (newline)
-  (check (login-device-code-user-code (pi-app-active-selector app))
-    =>
-    "ABCD-1234"
-  ) ;check
+  (let ((selector (pi-app-active-selector app)))
+    (check-true (login-device-code? selector))
+    (when (login-device-code? selector)
+      (check (login-device-code-user-code selector) => "ABCD-1234")
+    ) ;when
+  ) ;let
   ;; 继续轮询直至登录完成（授权由 stub 自动完成）
   (let wait
     ((n 0))
@@ -147,11 +112,6 @@
       (wait (+ n 1))
     ) ;when
   ) ;let
-  (when (pi-app-active-selector app)
-    (display (list "ENDSEL" (login-device-code-user-code (pi-app-active-selector app)))
-    ) ;display
-    (newline)
-  ) ;when
   (check-false (pi-app-active-selector app))
   (check-true (any (lambda (l) (string-contains? l "Saved OAuth credential for kimi-coding"))
                 (chat-lines app)
