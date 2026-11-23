@@ -137,4 +137,30 @@
   (check removed => '())
 ) ;let*
 
+;; 4. save! 抛异常（如 worker 会话符号未绑定）：不阻断，仍返回新 access
+(let* ((proc (process-spawn (list "python3" stub-file "refresh-ok") :stdout 'pipe))
+       (port (parse-port-line (process-read-line proc)))
+       (host (string-append "http://127.0.0.1:" (number->string port)))
+       (cred (pi-credential "kimi-coding"
+               #f
+               "oauth"
+               "old-acc"
+               "stub-refresh-token"
+               (+ (pi-current-time-millis) 3600000)
+               host
+             ) ;pi-credential
+       ) ;cred
+      ) ;
+  (check
+    (pi-force-refresh-oauth-credential-key cred
+      '()
+      (lambda (c) (error 'save-failed "disk full"))
+      (lambda (p) #f)
+    ) ;pi-force-refresh-oauth-credential-key
+    =>
+    "stub-access-token-2"
+  ) ;check
+  (process-kill proc)
+) ;let*
+
 (check-report)

@@ -10,9 +10,11 @@
 ;; Models.getAuth() 在 store lock 内 refresh 的简化版）。
 (define-library (liii pi ai auth oauth resolve)
   (import (scheme base)
+    (scheme write)
     (liii pi ai config credential)
     (liii pi ai auth oauth kimi-coding-oauth)
     (liii pi ai time)
+    (liii pi ai log)
   ) ;import
   (export pi-find-oauth-credential
     pi-resolve-oauth-credential-key
@@ -71,7 +73,21 @@
             ) ;
         (cond
          ((pi-credential? refreshed)
-          (catch #t (lambda () (save! refreshed)) (lambda args #f))
+          ;; 落盘失败不阻断本次请求（新 access 仍可用），但须留痕：
+          ;; 静默吞错会掩盖 worker 会话符号未绑定等问题，导致新 token
+          ;; 不落盘、下次启动仍用旧 token 反复 401
+          (catch #t
+            (lambda () (save! refreshed))
+            (lambda (tag . args)
+              (pi-log-error! (string-append "[oauth-refresh] save failed provider="
+                               (or provider "")
+                               " error="
+                               (object->string (cons tag args))
+                             ) ;string-append
+              ) ;pi-log-error!
+              #f
+            ) ;lambda
+          ) ;catch
           (pi-credential-access refreshed)
          ) ;
          ((and (pair? refreshed) (eq? (car refreshed) 'kimi-oauth-unauthorized))

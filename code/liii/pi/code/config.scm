@@ -19,7 +19,7 @@
     (liii pi code cli args)
     (liii pi code core tools)
     (liii pi ai auth)
-    (liii pi ai auth oauth resolve)
+    (liii pi code config oauth-hook)
     (liii pi ai models)
     (liii pi ai thinking)
     (liii pi ai providers registry)
@@ -44,6 +44,8 @@
     pi-resolve-provider-key pi-resolve-model-metadata pi-resolve-request-headers
     resolve-pi-config resolve-goldpi-config resolve-active-tools
     pi-missing-credential-msg augment-pi-config
+    ;; 1404：切模/reload 后按 provider 重同步 oauth 401 刷新钩子
+    pi-sync-oauth-refresh-hook
   ) ;export
   (begin
     ;; pi-get-agent-dir 已下沉至 (liii pi code core tools read)，此处经 import 再导出
@@ -369,54 +371,15 @@
               ;; 1404：若 provider 在 auth.json 有 oauth 凭据，注入 refresh-oauth-key
               ;; 钩子，供请求层收到 401 后强制刷新重试一次。无 oauth 凭据不注入
               ;; （非 oauth provider 的 401 按现状失败）。钩子返回新 access / 'unauthorized / #f。
-              (if (pi-has-oauth-credential? provider auth)
-                (let ((captured-env (if (pair? opt-env) (car opt-env) '()))
-                      (captured-dir config-dir-str)
-                     ) ;
-                  (pi-cfg-set base-cfg
-                    'refresh-oauth-key
-                    (%make-refresh-oauth-hook captured-env captured-dir)
-                  ) ;pi-cfg-set
-                ) ;let
-                base-cfg
-              ) ;if
+              (pi-sync-oauth-refresh-hook base-cfg
+                (if (pair? opt-env) (car opt-env) '())
+              ) ;pi-sync-oauth-refresh-hook
             ) ;let
           ) ;let*
         ) ;let-values
       ) ;let*
     ) ;define
 
-    ;; 1404：构造 401 后强制刷新 oauth 凭据的闭包钩子。落盘/清除回调
-    ;; 注入 auth.json 目录（captured-dir），env 表 captured-env 透传。
-    (define (%make-refresh-oauth-hook captured-env captured-dir)
-      (lambda (cfg current-key)
-        (let* ((p (pi-cfg-ref cfg 'provider #f))
-               (creds (if (pair? captured-env)
-                        (pi-load-auth captured-dir captured-env)
-                        (pi-load-auth captured-dir)
-                      ) ;if
-               ) ;creds
-               (cred (pi-find-oauth-credential p creds))
-              ) ;
-          (if cred
-            (pi-force-refresh-oauth-credential-key cred
-              (if (pair? captured-env) captured-env '())
-              (lambda (c)
-                (pi-save-auth-oauth! (pi-credential-provider c)
-                  (pi-credential-access c)
-                  (pi-credential-refresh c)
-                  (pi-credential-expires c)
-                  (pi-credential-region c)
-                  captured-dir
-                ) ;pi-save-auth-oauth!
-              ) ;lambda
-              (lambda (pp) (pi-remove-auth-provider! pp captured-dir))
-            ) ;pi-force-refresh-oauth-credential-key
-            #f
-          ) ;if
-        ) ;let*
-      ) ;lambda
-    ) ;define
     (define resolve-goldpi-config resolve-pi-config)
 
     ;; 应用扩展注册的 config augmenter：内置/用户扩展经此
