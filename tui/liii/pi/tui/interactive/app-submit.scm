@@ -24,6 +24,7 @@
     (liii pi tui interactive app-resume)
     (liii pi tui interactive app-config)
     (liii pi tui interactive app-login)
+    (liii pi tui interactive app-exit)
     (liii pi tui interactive app-bash)
     (liii pi tui interactive app-events)
     (liii pi tui interactive render)
@@ -88,6 +89,7 @@
                 ((pi-app-resume-command? clean) (pi-app-submit-resume! app clean))
                 ((pi-app-config-command? clean) (pi-app-submit-config! app))
                 ((pi-app-login-command? clean) (pi-app-submit-login! app clean))
+                ((pi-app-exit-command? clean) (pi-app-submit-exit! app))
                 (else
                   ;; bash 模式：!cmd 直接经 bash 执行（对齐 pi 的 !/!! 前缀行为）；
                   ;; 命令为空（仅 "!" 或 "!!"）时回退为普通消息提交（对齐 pi 的 fall-through）

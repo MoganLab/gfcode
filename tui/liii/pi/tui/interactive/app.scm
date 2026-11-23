@@ -368,6 +368,7 @@
                     #f
                     #f
                     request-selection-chan
+                    #f
                   ) ;%make-pi-app
              ) ;app
              (ed (%make-pi-editor app tl))

@@ -43,7 +43,8 @@
     %pi-app-thinking-level-explicit?-set! pi-app-recovery-card
     %pi-app-recovery-card-set! pi-app-tool-timer-last-tick
     %pi-app-tool-timer-last-tick-set! pi-app-tool-timer-last-tick-set!
-    pi-app-request-selection-chan
+    pi-app-request-selection-chan pi-app-exit-requested?
+    %pi-app-exit-requested-set!
   ) ;export
   (import (scheme base) (liii date-time) (liii pi tui interactive selection))
   (begin
@@ -64,7 +65,7 @@
         hide-thinking? on-save-hide-thinking selection flash tokens
         rendered-frame dock-length working-border-row skills
         enable-skill-commands scroll-hint-rect thinking-level-explicit
-        recovery-card tool-timer-last-tick request-selection-chan
+        recovery-card tool-timer-last-tick request-selection-chan exit-requested
       ) ;%make-pi-app
       pi-app?
       (term pi-app-term)
@@ -183,6 +184,9 @@
       ;; Worker 在每次新 Provider 请求前排空并只应用最后一项，从而实现
       ;; 运行中切模立即对下一次请求生效，而不需要额外的串行任务。
       (request-selection-chan pi-app-request-selection-chan)
+      ;; /exit 命令请求退出主循环的标志：pi-app-submit! 识别 /exit 后置位，
+      ;; 主循环每轮顶部检测到即退出，复用与 Ctrl+D 完全一致的退出清理路径
+      (exit-requested pi-app-exit-requested? %pi-app-exit-requested-set!)
     ) ;define-record-type
 
     (define %pi-app-term pi-app-term)

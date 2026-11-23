@@ -161,159 +161,165 @@
               ;; 优先轮询来自后台 Worker 的事件流上屏；随后检测终端缩放
               (pi-app-poll-events! app)
               (%pi-app-handle-resize! app)
-              (let ((k (terminal-poll-key term)))
-                (cond
-                  ;; Ctrl+C：若有激活选区则优先复制到剪贴板，不清空输入框；
-                  ;; 无选区时仅清空输入框，从不退出、也不中断正在跑的任务。
-                  ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-c))
-                   (cond ((pi-app-selection-active? app)
-                          (when (pi-app-copy-selection! app)
-                            (pi-app-render! app)
-                          ) ;when
-                          (loop)
-                         ) ;
-                         (else (unless (string-null? (editor-text ed))
-                                 (editor-set-text! ed "")
-                               ) ;unless
-                           (pi-app-render! app)
-                           (loop)
-                         ) ;else
-                   ) ;cond
-                  ) ;
-                  ;; Ctrl+V：优先尝试读取外部剪贴板图片（图片转临时文件路径并粘贴）；
-                  ;; 无图片时读取文本，复用编辑器的 bracketed paste 处理
-                  ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-v))
-                   (%pi-app-handle-paste! app clipboard-reader clipboard-image-reader)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ;; Ctrl+D：输入框严格为空时退出（EOF 语义）；
-                  ;; 非空时不再吞掉按键，落到下方通用分支交给编辑器
-                  ;; 前向删除光标右侧字符（与 Delete 键一致）。
-                  ;; 同一次按键只执行一种语义：删除后恰好变空也不退出，
-                  ;; 下一次独立 Ctrl+D 才按 EOF 语义退出。
-                  ((and (not (pi-app-active-selector app))
-                     (eq? k 'ctrl-d)
-                     (string-null? (editor-text ed))
-                   ) ;and
-                   #t
-                  ) ;
-                  ;; 按 Escape 时（对齐上游 pi 的 onEscape 优先级链）：
-                  ;;   busy：发 abort 信号中断任务（worker 检查点探测后
-                  ;;   以 aborted 结算）；队列空闲：仅撤回至 editor；
-                  ;;   ! 命令运行中：另发 bash 中止信号（abortBash 语义）
-                  ((and (not (pi-app-active-selector app))
-                     (not (pi-app-slash-command-menu app))
-                     (eq? k 'escape)
-                   ) ;and
-                   (pi-app-handle-escape! app)
-                   (loop)
-                  ) ;
-                  ;; alt+up：仅撤回排队消息到编辑器，不中止运行中任务
-                  ;; （对齐上游 app.message.dequeue 键位）
-                  ((and (not (pi-app-active-selector app))
-                     (not (pi-app-slash-command-menu app))
-                     (eq? k 'alt-up)
-                   ) ;and
-                   (%pi-app-restore-to-editor! app)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ;; 按 shift+tab 时：循环切换 thinking level，
-                  ;; footer 右下角标签与编辑器边框/Working 颜色同步更新
-                  ((and (not (pi-app-active-selector app)) (eq? k 'shift-tab))
-                   (pi-app-cycle-thinking! app)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ;; 按 ctrl+t 时：全局切换思考块显示/隐藏（对齐上游
-                  ;; app.thinking.toggle），已上屏卡片折叠为单行 Thinking...，
-                  ;; 状态写入 settings.json 的 hideThinkingBlock 键
-                  ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-t))
-                   (pi-app-toggle-thinking! app)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ;; 对话记录滚动：page-up/page-down 整页，
-                  ;; ctrl+shift+up/down 单行，ctrl+home/ctrl+end 跳到首尾
-                  ;; （对齐上游 tui.altScreen.top / tui.altScreen.bottom）
-                  ((and (not (pi-app-active-selector app)) (eq? k 'page-up))
-                   (pi-app-scroll-up! app)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ((and (not (pi-app-active-selector app)) (eq? k 'page-down))
-                   (pi-app-scroll-down! app)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ((and (not (pi-app-active-selector app)) (eq? k 'shift-ctrl-up))
-                   (pi-app-scroll-line-up! app)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ((and (not (pi-app-active-selector app)) (eq? k 'shift-ctrl-down))
-                   (pi-app-scroll-line-down! app)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-home))
-                   (pi-app-scroll-top! app)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-end))
-                   (pi-app-scroll-bottom! app)
-                   (pi-app-render! app)
-                   (loop)
-                  ) ;
-                  ;; 鼠标事件：滚轮上下滚动对话记录。
-                  ;; 连续到达的鼠标事件一次取走：滚轮合并为一次滚动、只渲染一帧，
-                  ;; 避免单事件渲染耗时大于事件到达间隔时输入不断积压（越滚越慢）
-                  ((and (mouse-event? k) (not (pi-app-active-selector app)))
-                   (let ((events (cons k (terminal-drain-mouse-events term))))
-                     (when (pi-app-handle-mouse-events! app events)
+              ;; /exit 命令请求退出：置位后离开主循环，复用与 Ctrl+D 完全
+              ;; 一致的退出清理路径（中止在途任务、退出备用屏、打印会话记录）
+              (if (pi-app-exit-requested? app)
+                #t
+                (let ((k (terminal-poll-key term)))
+                  (cond
+                    ;; Ctrl+C：若有激活选区则优先复制到剪贴板，不清空输入框；
+                    ;; 无选区时仅清空输入框，从不退出、也不中断正在跑的任务。
+                    ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-c))
+                     (cond ((pi-app-selection-active? app)
+                            (when (pi-app-copy-selection! app)
+                              (pi-app-render! app)
+                            ) ;when
+                            (loop)
+                           ) ;
+                           (else (unless (string-null? (editor-text ed))
+                                   (editor-set-text! ed "")
+                                 ) ;unless
+                             (pi-app-render! app)
+                             (loop)
+                           ) ;else
+                     ) ;cond
+                    ) ;
+                    ;; Ctrl+V：优先尝试读取外部剪贴板图片（图片转临时文件路径并粘贴）；
+                    ;; 无图片时读取文本，复用编辑器的 bracketed paste 处理
+                    ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-v))
+                     (%pi-app-handle-paste! app clipboard-reader clipboard-image-reader)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ;; Ctrl+D：输入框严格为空时退出（EOF 语义）；
+                    ;; 非空时不再吞掉按键，落到下方通用分支交给编辑器
+                    ;; 前向删除光标右侧字符（与 Delete 键一致）。
+                    ;; 同一次按键只执行一种语义：删除后恰好变空也不退出，
+                    ;; 下一次独立 Ctrl+D 才按 EOF 语义退出。
+                    ((and (not (pi-app-active-selector app))
+                       (eq? k 'ctrl-d)
+                       (string-null? (editor-text ed))
+                     ) ;and
+                     #t
+                    ) ;
+                    ;; 按 Escape 时（对齐上游 pi 的 onEscape 优先级链）：
+                    ;;   busy：发 abort 信号中断任务（worker 检查点探测后
+                    ;;   以 aborted 结算）；队列空闲：仅撤回至 editor；
+                    ;;   ! 命令运行中：另发 bash 中止信号（abortBash 语义）
+                    ((and (not (pi-app-active-selector app))
+                       (not (pi-app-slash-command-menu app))
+                       (eq? k 'escape)
+                     ) ;and
+                     (pi-app-handle-escape! app)
+                     (loop)
+                    ) ;
+                    ;; alt+up：仅撤回排队消息到编辑器，不中止运行中任务
+                    ;; （对齐上游 app.message.dequeue 键位）
+                    ((and (not (pi-app-active-selector app))
+                       (not (pi-app-slash-command-menu app))
+                       (eq? k 'alt-up)
+                     ) ;and
+                     (%pi-app-restore-to-editor! app)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ;; 按 shift+tab 时：循环切换 thinking level，
+                    ;; footer 右下角标签与编辑器边框/Working 颜色同步更新
+                    ((and (not (pi-app-active-selector app)) (eq? k 'shift-tab))
+                     (pi-app-cycle-thinking! app)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ;; 按 ctrl+t 时：全局切换思考块显示/隐藏（对齐上游
+                    ;; app.thinking.toggle），已上屏卡片折叠为单行 Thinking...，
+                    ;; 状态写入 settings.json 的 hideThinkingBlock 键
+                    ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-t))
+                     (pi-app-toggle-thinking! app)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ;; 对话记录滚动：page-up/page-down 整页，
+                    ;; ctrl+shift+up/down 单行，ctrl+home/ctrl+end 跳到首尾
+                    ;; （对齐上游 tui.altScreen.top / tui.altScreen.bottom）
+                    ((and (not (pi-app-active-selector app)) (eq? k 'page-up))
+                     (pi-app-scroll-up! app)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ((and (not (pi-app-active-selector app)) (eq? k 'page-down))
+                     (pi-app-scroll-down! app)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ((and (not (pi-app-active-selector app)) (eq? k 'shift-ctrl-up))
+                     (pi-app-scroll-line-up! app)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ((and (not (pi-app-active-selector app)) (eq? k 'shift-ctrl-down))
+                     (pi-app-scroll-line-down! app)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-home))
+                     (pi-app-scroll-top! app)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-end))
+                     (pi-app-scroll-bottom! app)
+                     (pi-app-render! app)
+                     (loop)
+                    ) ;
+                    ;; 鼠标事件：滚轮上下滚动对话记录。
+                    ;; 连续到达的鼠标事件一次取走：滚轮合并为一次滚动、只渲染一帧，
+                    ;; 避免单事件渲染耗时大于事件到达间隔时输入不断积压（越滚越慢）
+                    ((and (mouse-event? k) (not (pi-app-active-selector app)))
+                     (let ((events (cons k (terminal-drain-mouse-events term))))
+                       (when (pi-app-handle-mouse-events! app events)
+                         (pi-app-render! app)
+                       ) ;when
+                     ) ;let
+                     (loop)
+                    ) ;
+                    ;; 按 ctrl+o 时：全局切换 bash/工具输出卡片的展开与折叠
+                    ((eq? k 'ctrl-o) (pi-app-toggle-tool-output! app) (pi-app-render! app) (loop))
+                    ;; 复制选区：Ctrl+Shift+C；alt-c 来自 Option+C（终端把 Option 配置为 Meta/Esc+ 时）。
+                    ;; 注意：macOS 的 Command 键由终端拦截，Command+C 不会到达这里，
+                    ;; 该场景由上方鼠标释放时的 copy-on-select 覆盖。
+                    ((memq k '(shift-ctrl-c ctrl-shift-c shift-ctrl-C alt-c
+                                alt-C))
+                     (when (pi-app-copy-selection! app)
                        (pi-app-render! app)
                      ) ;when
-                   ) ;let
-                   (loop)
-                  ) ;
-                  ;; 按 ctrl+o 时：全局切换 bash/工具输出卡片的展开与折叠
-                  ((eq? k 'ctrl-o) (pi-app-toggle-tool-output! app) (pi-app-render! app) (loop))
-                  ;; 复制选区：Ctrl+Shift+C；alt-c 来自 Option+C（终端把 Option 配置为 Meta/Esc+ 时）。
-                  ;; 注意：macOS 的 Command 键由终端拦截，Command+C 不会到达这里，
-                  ;; 该场景由上方鼠标释放时的 copy-on-select 覆盖。
-                  ((memq k '(shift-ctrl-c ctrl-shift-c shift-ctrl-C alt-c alt-C))
-                   (when (pi-app-copy-selection! app)
-                     (pi-app-render! app)
-                   ) ;when
-                   (loop)
-                  ) ;
-                  ((not k)
-                   ;; 空闲轮询：busy 时推进 Working spinner 动画（内部自带 80ms 节拍）。
-                   ;; 自适应休眠：busy 保持 10ms 保证流式上屏与动画顺滑；
-                   ;; 空闲时只等用户按键，睡 50ms（键盘延迟无感，
-                   ;; 每秒唤醒从 100 次降到 20 次，显著降低空闲 CPU 底噪）
-                   (pi-app-working-tick! app)
-                   (when (pi-app-flash-tick! app)
-                     (pi-app-render! app)
-                   ) ;when
-                   (pi-app-tool-timer-tick! app)
-                   (let* ((sel (pi-app-active-selector app))
-                          (step (and (session-selector? sel) (session-selector-step-index! sel)))
-                         ) ;
-                     (when (eq? step 'updated)
+                     (loop)
+                    ) ;
+                    ((not k)
+                     ;; 空闲轮询：busy 时推进 Working spinner 动画（内部自带 80ms 节拍）。
+                     ;; 自适应休眠：busy 保持 10ms 保证流式上屏与动画顺滑；
+                     ;; 空闲时只等用户按键，睡 50ms（键盘延迟无感，
+                     ;; 每秒唤醒从 100 次降到 20 次，显著降低空闲 CPU 底噪）
+                     (pi-app-working-tick! app)
+                     (when (pi-app-flash-tick! app)
                        (pi-app-render! app)
                      ) ;when
-                     (unless step
-                       (sleep (if (pi-queue-busy? q) 0.01 0.05))
-                     ) ;unless
-                   ) ;let*
-                   (loop)
-                  ) ;
-                  (else (pi-app-handle-input! app k) (pi-app-render! app) (loop))
-                ) ;cond
-              ) ;let
+                     (pi-app-tool-timer-tick! app)
+                     (let* ((sel (pi-app-active-selector app))
+                            (step (and (session-selector? sel) (session-selector-step-index! sel)))
+                           ) ;
+                       (when (eq? step 'updated)
+                         (pi-app-render! app)
+                       ) ;when
+                       (unless step
+                         (sleep (if (pi-queue-busy? q) 0.01 0.05))
+                       ) ;unless
+                     ) ;let*
+                     (loop)
+                    ) ;
+                    (else (pi-app-handle-input! app k) (pi-app-render! app) (loop))
+                  ) ;cond
+                ) ;let
+              ) ;if
             ) ;let
           ) ;lambda
           (lambda ()

@@ -24,6 +24,7 @@
         (list (cons 'name "login")
           (cons 'description "Configure provider authentication")
         ) ;list
+        (list (cons 'name "exit") (cons 'description "Exit gf"))
       ) ;list
     ) ;define
 
