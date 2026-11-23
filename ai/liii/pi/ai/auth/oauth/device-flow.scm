@@ -31,6 +31,40 @@
     ;; 分片睡眠粒度：每片醒来检查 cancelled?，取消响应 ≤ 0.1s
     (define %sleep-slice-seconds 0.1)
 
+    ;; 计算 polling interval（毫秒），RFC 8628：无效 interval-seconds 回退 5s
+    (define (%resolve-interval-ms interval-seconds)
+      (max %minimum-interval-ms
+        (inexact->exact
+          (floor
+            (* (if (and (number? interval-seconds) (> interval-seconds 0))
+                 interval-seconds
+                 %default-poll-interval-seconds
+               ) ;if
+              1000
+            ) ;*
+          ) ;floor
+        ) ;inexact->exact
+      ) ;max
+    ) ;define
+
+    ;; 处理 slow_down 结果：返回 (new-interval-ms . new-count)。
+    ;; 服务端给了新 interval 就采信（对齐 pi：WSL/VM 时钟漂移下只靠客户端累加
+    ;; 会永远提前轮询）；否则按 RFC 8628 +5s。非 slow_down 原样返回。
+    (define (%apply-slow-down result interval-ms slow-down-count)
+      (if (eq? (and (pair? result) (car result)) 'slow_down)
+        (let ((server-interval (and (pair? (cdr result)) (cadr result))))
+          (cons
+            (if (and (number? server-interval) (> server-interval 0))
+              (max %minimum-interval-ms (inexact->exact (floor (* server-interval 1000))))
+              (max %minimum-interval-ms (+ interval-ms %slow-down-increment-ms))
+            ) ;if
+            (+ slow-down-count 1)
+          ) ;cons
+        ) ;let
+        (cons interval-ms slow-down-count)
+      ) ;if
+    ) ;define
+
     ;; 可取消睡眠：分片 sleep，任一片间发现 cancelled? 即抛取消错误
     (define (%abortable-sleep seconds cancelled?)
       (let loop
@@ -65,20 +99,7 @@
       (let* ((start-ms (pi-current-monotonic-millis))
              (deadline-ms (and (number? expires-in-seconds) (+ start-ms (* expires-in-seconds 1000)))
              ) ;deadline-ms
-             (interval-ms
-               (max %minimum-interval-ms
-                 (inexact->exact
-                   (floor
-                     (* (if (and (number? interval-seconds) (> interval-seconds 0))
-                          interval-seconds
-                          %default-poll-interval-seconds
-                        ) ;if
-                       1000
-                     ) ;*
-                   ) ;floor
-                 ) ;inexact->exact
-               ) ;max
-             ) ;interval-ms
+             (interval-ms (%resolve-interval-ms interval-seconds))
              (slow-down-count 0)
             ) ;
         (define (remaining-ms)
@@ -118,21 +139,12 @@
                      ) ;error
                     ) ;
                     (else
-                      (when (eq? (and (pair? result) (car result)) 'slow_down)
-                        (set! slow-down-count (+ slow-down-count 1))
-                        ;; 服务端给了新 interval 就采信（对齐 pi：WSL/VM 时钟漂移
-                        ;; 下只靠客户端累加会永远提前轮询）；否则按 RFC 8628 +5s
-                        (let ((server-interval (and (pair? (cdr result)) (cadr result))))
-                          (set! interval-ms
-                            (if (and (number? server-interval) (> server-interval 0))
-                              (max %minimum-interval-ms (inexact->exact (floor (* server-interval 1000))))
-                              (max %minimum-interval-ms (+ interval-ms %slow-down-increment-ms))
-                            ) ;if
-                          ) ;set!
-                        ) ;let
-                      ) ;when
-                      (sleep-interval!)
-                      (loop)
+                      (let ((next (%apply-slow-down result interval-ms slow-down-count)))
+                        (set! interval-ms (car next))
+                        (set! slow-down-count (cdr next))
+                        (sleep-interval!)
+                        (loop)
+                      ) ;let
                     ) ;else
               ) ;case
             ) ;let

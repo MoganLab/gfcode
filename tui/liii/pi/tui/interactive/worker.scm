@@ -2,7 +2,6 @@
 ;; Copyright (C) 2026 The Goldfish Scheme Authors
 ;;
 ;; Licensed under the MIT License
-;;
 
 (define-library (liii pi tui interactive worker)
   ;; worker 线程通过重新 import 库并求值 procedure-source 执行，调用链内部函数须全部导出
