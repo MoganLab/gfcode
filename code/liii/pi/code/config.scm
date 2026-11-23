@@ -46,31 +46,14 @@
   ) ;export
   (begin
     ;; pi-get-agent-dir 已下沉至 (liii pi code core tools read)，此处经 import 再导出
+    ;; gf-get-config-dir 同样下沉至 (liii pi code core tools read)，以打破
+    ;; discovery → config → cli args → discovery 的循环导入（此处经 import 再导出）。
     ;; JSON 配置文件目录：settings.json / auth.json / models/providers.json /
     ;; models/（provider 与模型配置）/ models-store.json / web-search.json 等所在目录。
     ;; 优先级：显式目录参数 > GF_CONFIG_DIR > PI_CODING_AGENT_DIR
     ;;         > ~/.gf/agent
     ;; 返回绝对路径（path 对象）；会话目录（sessions/）与扩展目录（extensions/）
     ;; 仍归属 agent 目录（pi-get-agent-dir）。
-    (define (gf-get-config-dir . opt-dir)
-      (let ((custom (and (pair? opt-dir) (car opt-dir)))
-            (env-gf (get-environment-variable "GF_CONFIG_DIR"))
-            (env-pi (get-environment-variable "PI_CODING_AGENT_DIR"))
-           ) ;
-        (cond
-         ((and (string? custom) (not (string-null? (string-trim-both custom))))
-          (pi-abs-path custom)
-         ) ;
-         ((and (string? env-gf) (not (string-null? (string-trim-both env-gf))))
-          (pi-abs-path env-gf)
-         ) ;
-         ((and (string? env-pi) (not (string-null? (string-trim-both env-pi))))
-          (pi-abs-path env-pi)
-         ) ;
-         (else (pi-abs-path "~/.gf/agent"))
-        ) ;cond
-      ) ;let
-    ) ;define
 
     ;; 从 cfg 中取 JSON 配置文件目录（path 对象）：
     ;; 优先 config-dir，缺失时回退 agent-dir
@@ -242,7 +225,7 @@
     (define (resolve-pi-config parsed-args . opt-env)
       (let* ((env-agent-dir (lookup-env-var "PI_CODING_AGENT_DIR" opt-env))
              (agent-dir (pi-get-agent-dir env-agent-dir))
-             ;; JSON 配置文件目录：~/.gf/agent 存在时优先，否则回退 ~/.pi/agent
+             ;; JSON 配置文件目录：固定 ~/.gf/agent（不再回退 ~/.pi/agent）
              (config-dir (gf-get-config-dir env-agent-dir))
              (config-dir-str (path->string config-dir))
              (_ (when (not env-agent-dir) (ensure-all-in-one-config! config-dir-str)))

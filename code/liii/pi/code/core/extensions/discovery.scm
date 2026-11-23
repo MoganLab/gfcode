@@ -192,6 +192,17 @@
              (cwd-dir (pi-keyword-value :cwd options (getcwd)))
              (explicit (pi-keyword-value :explicit-extensions options '()))
              (include-builtin? (pi-keyword-value :include-builtin? options #t))
+             ;; gf 配置目录（GF_CONFIG_DIR → ~/.gf/agent）的扩展层：
+             ;; 与 skills 发现逻辑对齐，使用户可在 ~/.gf/agent/extensions
+             ;; 配置全局扩展（如 tps.scm），不必进入仓库即可生效。
+             ;; agent-dir 默认亦为 ~/.gf/agent，二者默认重合；仅当显式设置
+             ;; PI_CODING_AGENT_DIR 与 GF_CONFIG_DIR 不同时才作为独立层叠加。
+             (gf-config-dir (pi-keyword-value :config-dir options (gf-get-config-dir)))
+             (gf-config-dir-str (if (or (string? gf-config-dir) (path? gf-config-dir))
+                                  (path->string (path-join gf-config-dir "extensions"))
+                                  #f
+                                ) ;if
+             ) ;gf-config-dir-str
              (global-dir-str (if (or (string? agent-dir) (path? agent-dir))
                                (path->string (path-join agent-dir "extensions"))
                                #f
@@ -204,17 +215,21 @@
                ) ;if
              ) ;project-dir-str
              (builtin-list (%dir-entries-if-valid builtin-dir))
+             (gf-config-list (%dir-entries-if-valid gf-config-dir-str))
              (global-list (%dir-entries-if-valid global-dir-str))
              (project-list (%dir-entries-if-valid project-dir-str))
              (explicit-list (%resolve-explicit-items explicit cwd-dir))
              (builtin-names (map car (%extension-entries builtin-list)))
              ;; 用户级可覆盖内置；项目级可覆盖普通用户级，但不能覆盖内置名称。
              ;; include-builtin? 为 #f 时仍用内置名称仲裁，仅不重复返回内置文件。
-             (global-entries (%merge-extension-layer (if include-builtin? (%extension-entries builtin-list) '())
-                               global-list
-                               '()
-                             ) ;%merge-extension-layer
-             ) ;global-entries
+             ;; 层级：内置 → gf 配置目录（~/.gf/agent/extensions）→
+             ;;       agent 目录（~/.gf/agent/extensions，默认与上层重合）→ 项目级 → 显式。
+             (gf-config-entries (%merge-extension-layer (if include-builtin? (%extension-entries builtin-list) '())
+                                  gf-config-list
+                                  '()
+                                ) ;%merge-extension-layer
+             ) ;gf-config-entries
+             (global-entries (%merge-extension-layer gf-config-entries global-list '()))
              (project-entries (%merge-extension-layer global-entries project-list builtin-names)
              ) ;project-entries
              (all-entries (%merge-extension-layer project-entries explicit-list '()))

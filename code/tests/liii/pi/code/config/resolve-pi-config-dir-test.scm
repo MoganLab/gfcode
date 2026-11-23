@@ -32,10 +32,10 @@
 
 (check-set-mode! 'report-failed)
 
-;; resolve-pi-config 的配置文件目录（config-dir）与 agent 目录（agent-dir）分离：
+;; resolve-pi-config 的配置文件目录（config-dir）与 agent 目录（agent-dir）统一：
 ;;   - JSON 配置文件（settings.json / auth.json / models*.json 等）
-;;     走 config-dir：固定 ~/.gf/agent（不回退 ~/.pi/agent）
-;;   - 会话（sessions/）与扩展（extensions/）仍走 agent-dir：~/.pi/agent/sessions/...
+;;     与会话（sessions/）、扩展（extensions/）均归属 ~/.gf/agent，
+;;     不再兼容 ~/.pi/agent。
 
 (define (%normalize dir)
   (if (os-windows?)
@@ -87,19 +87,19 @@
          (agent-dir (pi-cfg-ref cfg 'agent-dir))
          (sdir (resolve-session-dir args cfg cwd))
         ) ;
-    ;; 1. 配置目录固定 ~/.gf/agent，agent 目录仍是 ~/.pi/agent
+    ;; 1. 配置目录与 agent 目录均固定 ~/.gf/agent（不再回退 ~/.pi/agent）
     (check-true (string-ends? (%normalize config-dir) "pi-config-dir-resolve-home/.gf/agent")
     ) ;check-true
-    (check-true (string-ends? (%normalize agent-dir) "pi-config-dir-resolve-home/.pi/agent")
+    (check-true (string-ends? (%normalize agent-dir) "pi-config-dir-resolve-home/.gf/agent")
     ) ;check-true
 
     ;; 2. settings.json / auth.json 从 ~/.gf/agent 读取
     (check (pi-cfg-ref cfg 'model-id) => "gemini-2.5-flash")
     (check (pi-cfg-ref cfg 'api-key) => "gf-agent-key")
 
-    ;; 3. 会话目录仍归属 ~/.pi/agent/sessions
+    ;; 3. 会话目录归属 ~/.gf/agent/sessions
     (check-true (string-contains? (%normalize sdir)
-                  "pi-config-dir-resolve-home/.pi/agent/sessions/"
+                  "pi-config-dir-resolve-home/.gf/agent/sessions/"
                 ) ;string-contains?
     ) ;check-true
   ) ;let*

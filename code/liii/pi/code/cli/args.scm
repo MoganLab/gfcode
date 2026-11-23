@@ -23,19 +23,22 @@
   ) ;export
   (begin
 
-    (define *builtin-extensions-loaded* #f)
+    (define *extensions-loaded* #f)
 
-    (define (ensure-builtin-extensions! reg)
-      (unless *builtin-extensions-loaded*
-        (set! *builtin-extensions-loaded* #t)
-        (let ((paths (pi-scan-extension-dir (pi-default-builtin-extensions-dir))))
-          (pi-load-extensions paths reg)
-        ) ;let
+    ;; 统一扩展加载入口：经 pi-discover-extensions 做层级仲裁
+    ;; （内置 → gf 配置目录 → agent 目录 → 项目级），同名只加载胜出副本。
+    ;; 若先加载内置、再补加载用户级同名副本，listeners / prompt-injectors /
+    ;; validators / augmenters 等 append 型注册会重复挂载（事件双发、注入双份），
+    ;; 故内置与用户级必须一次性按仲裁结果加载，不能分两批。
+    (define (ensure-extensions-loaded! reg)
+      (unless *extensions-loaded*
+        (set! *extensions-loaded* #t)
+        (pi-load-extensions (pi-discover-extensions) reg)
       ) ;unless
       reg
     ) ;define
 
-    (add-registry-initializer! ensure-builtin-extensions!)
+    (add-registry-initializer! ensure-extensions-loaded!)
 
     (define (parse-positionals rest file-args messages)
       (if (null? rest)
@@ -233,7 +236,7 @@
 
     (define (pi-validate-review-flags parsed)
       (let* ((reg (or (current-extension-registry) (default-extension-registry)))
-             (_ (ensure-builtin-extensions! reg))
+             (_ (ensure-extensions-loaded! reg))
              (validators (extension-registry-validators reg))
             ) ;
         (for-each (lambda (v) (v parsed)) validators)
@@ -243,7 +246,7 @@
 
     (define (parse-pi-args argv)
       (let* ((reg (or (current-extension-registry) (default-extension-registry)))
-             (_ (ensure-builtin-extensions! reg))
+             (_ (ensure-extensions-loaded! reg))
              (ext-flags (extension-registry-flags reg))
              (ext-defaults
                (map (lambda (f) (cons (extension-flag-def-key f) (extension-flag-def-default f)))
