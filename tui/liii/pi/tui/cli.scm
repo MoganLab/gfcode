@@ -33,8 +33,6 @@
     (liii pi tui config app)
     (liii pi code core extensions types)
     (liii pi code core extensions registry)
-    (liii pi code core extensions discovery)
-    (liii pi code core extensions loader)
     (liii pi code core extensions install)
     (liii pi code core skills)
     (liii pi code config settings)
@@ -298,14 +296,11 @@
     ) ;define
 
     (define (%ensure-extensions-loaded!)
-      ;; 内置扩展由 args.scm 提前加载；这里仍传入内置目录用于同名冲突仲裁，
-      ;; 但不重复返回内置文件。用户级可覆盖内置，项目级不能覆盖内置名称。
-      (let* ((reg (default-extension-registry))
-             (paths (pi-discover-extensions :include-builtin? #f))
-            ) ;
-        (pi-load-extensions paths reg)
-        reg
-      ) ;let*
+      ;; 全部扩展层（内置 + gf 配置 + agent + 项目）由 default-extension-registry
+      ;; 的 initializer（ensure-extensions-loaded!）按 discovery 仲裁一次性加载，
+      ;; 同名只加载胜出副本；此处不可再补加载用户层，否则 append 型注册
+      ;; （listeners / prompt-injectors / validators / augmenters）会重复挂载。
+      (default-extension-registry)
     ) ;define
 
     (define (%handle-install-command args)

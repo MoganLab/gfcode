@@ -413,9 +413,9 @@
                (follow-up-chan #f)
                (request-selection-chan #f)
              ) ;pi-tui-agent-worker
-      (pi-load-extensions (pi-discover-extensions :include-builtin? #f)
-        (default-extension-registry)
-      ) ;pi-load-extensions
+      ;; 扩展加载须早于 parse-pi-args（扩展 flag 才能参与解析）；initializer
+      ;; 已按 discovery 仲裁一次性加载全部层级，不可再补加载用户层致重复挂载。
+      (default-extension-registry)
       (let* ((parsed (parse-pi-args (cdr (command-line))))
              (cfg (augment-pi-config (resolve-pi-config parsed (get-environment-variables))
                     parsed
