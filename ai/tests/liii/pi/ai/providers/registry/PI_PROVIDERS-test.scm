@@ -24,5 +24,6 @@
 (check-true (pair? (assoc "google" PI_PROVIDERS)))
 (check-true (pair? (assoc "opencode" PI_PROVIDERS)))
 (check-true (pair? (assoc "opencode-go" PI_PROVIDERS)))
+(check-true (pair? (assoc "qwen-token-plan-cn" PI_PROVIDERS)))
 
 (check-report)

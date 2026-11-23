@@ -42,6 +42,10 @@
   =>
   '("OPENCODE_API_KEY" "OPENCODE_GO_API_KEY")
 ) ;check
+(check (pi-provider-env-keys "qwen-token-plan-cn")
+  =>
+  '("QWEN_TOKEN_PLAN_TEAM_CN_API_KEY" "QWEN_TOKEN_PLAN_CN_API_KEY")
+) ;check
 
 ;; 未注册 provider 返回空表
 (check (pi-provider-env-keys "unknown-provider") => '())

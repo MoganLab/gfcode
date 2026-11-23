@@ -17,6 +17,7 @@
     (liii pi ai providers zai-coding-cn)
     (liii pi ai providers ollama)
     (liii pi ai providers opencode)
+    (liii pi ai providers qwen-token-plan-cn)
     (liii pi ai providers quota)
   ) ;import
   (export PI_PROVIDERS PI_SUPPORTED_PROVIDERS PI_PROVIDER_BUILTIN_MODELS
@@ -41,6 +42,7 @@
         (cons "ollama" PI_OLLAMA_PROVIDER)
         (cons "opencode" PI_OPENCODE_PROVIDER)
         (cons "opencode-go" PI_OPENCODE_PROVIDER)
+        (cons "qwen-token-plan-cn" PI_QWEN_TOKEN_PLAN_CN_PROVIDER)
       ) ;list
     ) ;define
 
@@ -48,7 +50,7 @@
     ;; zai-coding-cn 覆盖）；需要其它端点时用自定义 provider：models/<id>.json
     (define PI_SUPPORTED_PROVIDERS
       '("google" "anthropic" "kimi-coding" "deepseek" "minimax-cn"
-        "zai-coding-cn" "ollama" "opencode")
+        "zai-coding-cn" "ollama" "opencode" "qwen-token-plan-cn")
     ) ;define
 
     ;; 各 provider 的内置模型目录（id -> models），与 PI_PROVIDERS 同源
@@ -62,6 +64,7 @@
         (cons "zai-coding-cn" PI_ZAI_CODING_CN_BUILTIN_MODELS)
         (cons "ollama" PI_OLLAMA_BUILTIN_MODELS)
         (cons "opencode" PI_OPENCODE_BUILTIN_MODELS)
+        (cons "qwen-token-plan-cn" PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS)
       ) ;list
     ) ;define
 

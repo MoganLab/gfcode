@@ -164,6 +164,11 @@
                (%env-var-non-empty "OPENCODE_GO_API_KEY" opt-env)
              ) ;or
             ) ;
+            ((string=? p-str "qwen-token-plan-cn")
+             (or (%env-var-non-empty "QWEN_TOKEN_PLAN_TEAM_CN_API_KEY" opt-env)
+               (%env-var-non-empty "QWEN_TOKEN_PLAN_CN_API_KEY" opt-env)
+             ) ;or
+            ) ;
             (else #f)
       ) ;cond
     ) ;define

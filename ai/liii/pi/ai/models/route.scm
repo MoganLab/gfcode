@@ -70,6 +70,7 @@
               ((or (equal? p "minimax") (equal? p "minimax-cn")) "MiniMax-M3.1-Flash")
               ((equal? p "ollama") "qwen2.5-coder:latest")
               ((or (equal? p "opencode") (equal? p "opencode-go")) "deepseek-v4.1-flash")
+              ((equal? p "qwen-token-plan-cn") "qwen3.8-max")
               (else "gemini-3.8-flash")
         ) ;cond
       ) ;let
@@ -191,6 +192,9 @@
             ((equal? provider "deepseek") (%safe-lookup-env "DEEPSEEK_MODEL" opt-env))
             ((equal? provider "ollama") (%safe-lookup-env "OLLAMA_MODEL" opt-env))
             ((equal? provider "minimax-cn") (%safe-lookup-env "MINIMAX_CN_MODEL" opt-env))
+            ((equal? provider "qwen-token-plan-cn")
+             (%safe-lookup-env "QWEN_TOKEN_PLAN_CN_MODEL" opt-env)
+            ) ;
             (else #f)
       ) ;cond
     ) ;define
