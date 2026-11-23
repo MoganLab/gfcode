@@ -4,6 +4,7 @@
 
 (import (scheme base)
   (scheme file)
+  (scheme process-context)
   (liii check)
   (liii path)
   (liii shutil)
@@ -83,7 +84,8 @@
                  :settings '((retry (enabled . #f)))
                  :extras   (list (cons 'headers '()))
                ) ;make-pi-config
-               '()
+               ;; 使用真实进程环境变量，覆盖首个 pair 被误当成完整 env-alist 的回归。
+               (get-environment-variables)
              ) ;pi-sync-oauth-refresh-hook
         ) ;cfg
        ) ;

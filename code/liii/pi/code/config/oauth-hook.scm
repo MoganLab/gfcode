@@ -35,8 +35,10 @@
     ) ;define
 
     (define (%refresh! store cred captured-env)
+      ;; resolve 的 opt-env 约定为 (env-alist)，不能直接把 env-alist 传入，
+      ;; 否则下游会把首个环境变量 pair 当作完整 alist 交给 assoc。
       (let ((next (pi-force-refresh-oauth-credential-key cred
-                    captured-env
+                    (if (pair? captured-env) (list captured-env) '())
                     (lambda (c) (pi-oauth-store-set! store c))
                     (lambda (p) (pi-oauth-store-remove! store p))
                   ) ;pi-force-refresh-oauth-credential-key
