@@ -184,8 +184,7 @@
       ) ;define
       (let ((result
               (catch #t
-                (lambda ()
-                  (kimi-oauth-login notify! cancelled? provider))
+                (lambda () (kimi-oauth-login notify! cancelled? provider))
                 (lambda (tag . info)
                   (list 'error
                     tag

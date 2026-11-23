@@ -40,7 +40,9 @@
       (user-code login-device-code-state-user-code)
       (verification-uri login-device-code-state-verification-uri)
       (on-cancel login-device-code-state-on-cancel)
-      (cancelled? login-device-code-state-cancelled? login-device-code-state-cancelled?-set!)
+      (cancelled? login-device-code-state-cancelled?
+        login-device-code-state-cancelled?-set!
+      ) ;cancelled?
       (browser-opened? login-device-code-state-browser-opened?
         login-device-code-state-browser-opened?-set!
       ) ;browser-opened?
@@ -78,9 +80,7 @@
       (let ((state (%state comp)))
         (login-device-code-state-browser-opened?-set! state #t)
         (catch #t
-          (lambda ()
-            (web-browser-open (login-device-code-state-verification-uri state))
-          ) ;lambda
+          (lambda () (web-browser-open (login-device-code-state-verification-uri state)))
           (lambda args #f)
         ) ;catch
       ) ;let
@@ -100,17 +100,25 @@
              ) ;code-line
              (uri (login-device-code-state-verification-uri state))
              (waiting (%colored %muted "  Waiting for authorization in browser…"))
-             (opened-hint
-               (if (login-device-code-state-browser-opened? state)
-                 (%colored %muted "  Browser opened. Complete authorization there.")
-                 (%colored %muted "  Browser not opened? Visit the URL above manually.")
-               ) ;if
+             (opened-hint (if (login-device-code-state-browser-opened? state)
+                            (%colored %muted "  Browser opened. Complete authorization there.")
+                            (%colored %muted "  Browser not opened? Visit the URL above manually.")
+                          ) ;if
              ) ;opened-hint
              (hint (%colored %muted "  enter to open browser · esc to cancel"))
             ) ;
-        (list border "" title "" code-line ""
+        (list border
+          ""
+          title
+          ""
+          code-line
+          ""
           (string-append "  " (%colored %accent uri))
-          "" waiting opened-hint "" hint
+          ""
+          waiting
+          opened-hint
+          ""
+          hint
         ) ;list
       ) ;let*
     ) ;define
