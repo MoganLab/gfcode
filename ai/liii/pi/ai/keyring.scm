@@ -12,9 +12,15 @@
 
 (define-library (liii pi ai keyring)
   (import (scheme base) (liii pi ai config runtime))
-  (export pi-request-api-key pi-key-rotation? pi-rotate-api-key!)
-  (begin
+  (export pi-request-api-key
+    pi-key-rotation?
+    pi-rotate-api-key!
+    ;; 1404：oauth 凭据收到 401 后强制刷新重试一次
+    pi-oauth-refresh-enabled?
+    pi-refresh-oauth-key!
+  ) ;export
 
+  (begin
     (define (%config-ref config key)
       (pi-cfg-ref config key)
     ) ;define
@@ -44,6 +50,24 @@
         ) ;cond
       ) ;let
     ) ;define*
+
+    ;; 1404：是否启用 401 后 oauth 强制刷新：由配置是否注入
+    ;; refresh-oauth-key 钩子决定（仅 oauth provider 注入）。
+    (define (pi-oauth-refresh-enabled? config)
+      (procedure? (%config-ref config 'refresh-oauth-key))
+    ) ;define
+
+    ;; 1404：401 后强制刷新 oauth 凭据：
+    ;; 钩子签名 (lambda (config current-key) ...) 返回
+    ;;   string?  - 新 access token，调用方用其重试一次
+    ;;   'unauthorized - refresh 失败（401/403/invalid_grant），凭据已清除，需重 /login
+    ;;   #f       - 非 oauth/无凭据/不适用，调用方按现状 401 报错
+    ;; 无钩子时返回 #f（调用方走既有 401 报错路径）。
+    (define (pi-refresh-oauth-key! config current-key)
+      (let ((hook (%config-ref config 'refresh-oauth-key)))
+        (if (procedure? hook) (hook config current-key) #f)
+      ) ;let
+    ) ;define
 
   ) ;begin
 ) ;define-library

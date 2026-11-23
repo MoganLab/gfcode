@@ -13,11 +13,14 @@
   (begin
 
     ;; Provider 配置：api 为协议实现标识（对应 api/ 目录），baseUrl 为默认端点，
-    ;; envKeys 为依次尝试的 API key 环境变量（对应上游 pi providers/<id>.ts 的角色）
+    ;; envKeys 为依次尝试的 API key 环境变量（对应上游 pi providers/<id>.ts 的角色）；
+    ;; oauth 登记订阅 OAuth 登录方式（RFC 8628 设备码，见
+    ;; (liii pi ai auth oauth kimi-coding-oauth)），供 /login 选择器识别
     (define PI_KIMI_CODING_PROVIDER
       '((api . "openai-completions")
         (baseUrl . "https://api.kimi.com/coding/v1")
-        (envKeys "KIMI_API_KEY"))
+        (envKeys "KIMI_API_KEY")
+        (oauth . "kimi-code"))
     ) ;define
 
     ;; 「额度耗尽」识别：Kimi Coding Plan

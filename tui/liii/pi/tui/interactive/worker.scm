@@ -2,7 +2,6 @@
 ;; Copyright (C) 2026 The Goldfish Scheme Authors
 ;;
 ;; Licensed under the MIT License
-;;
 
 (define-library (liii pi tui interactive worker)
   ;; worker 线程通过重新 import 库并求值 procedure-source 执行，调用链内部函数须全部导出
@@ -20,6 +19,10 @@
     (liii path)
     (liii pi ai abort)
     (liii pi ai auth)
+    ;; 1404：oauth 401 刷新钩子的 save!/remove! 闭包经 procedure-source 在
+    ;; worker 会话重建，pi-credential-* 访问器须在本会话可见，否则 save!
+    ;; 抛 unbound 被吞、新 token 不落盘（下次启动仍用旧 token 反复 401）
+    (liii pi ai config credential)
     (liii pi ai config model-metadata)
     (liii pi ai models meta)
     (liii pi ai models route)
@@ -87,30 +90,10 @@
       ) ;pi-cfg-merge
     ) ;define
 
-    ;; 覆盖 cfg 的模型相关项（会话内 /model 切换后下一条消息生效，对齐上游 setModel）
+    ;; 覆盖 cfg 的模型相关项（会话内 /model 切换后下一条消息生效，对齐上游 setModel）。
+    ;; 1404：委派 worker-model 的共享实现，含 oauth 401 刷新钩子重同步。
     (define (pi-cfg-with-model cfg provider model-id)
-      (let* ((config-dir (pi-cfg-config-dir cfg))
-             (models-store (pi-cfg-ref cfg 'models-store '()))
-             (auth (pi-load-auth config-dir))
-             (api-key (pi-resolve-provider-key provider auth))
-             (raw-meta (pi-resolve-model-metadata provider model-id models-store))
-             (meta (pi-ensure-catalog-meta raw-meta provider model-id models-store))
-             (supports (pi-model-supports-thinking? models-store provider model-id))
-            ) ;
-        (pi-cfg-merge cfg
-          (list (cons 'provider provider)
-            (cons 'provider-api (pi-cfg-provider-api cfg provider model-id))
-            (cons 'headers
-              (pi-resolve-request-headers models-store provider model-id api-key)
-            ) ;cons
-            (cons 'model-id model-id)
-            (cons 'model-meta meta)
-            (cons 'api-key api-key)
-            (cons 'supports-thinking supports)
-            (cons 'proxy-url (pi-cfg-provider-proxy cfg provider))
-          ) ;list
-        ) ;pi-cfg-merge
-      ) ;let*
+      (pi-worker-merge-model cfg provider model-id)
     ) ;define
 
     (define (%job-explicit job cfg)
@@ -216,14 +199,19 @@
              ) ;dir
              (dir-str (if (string? dir) dir (path->string dir)))
              (cur-p (pi-cfg-ref cfg 'provider))
-             (new-key (and cur-p (pi-resolve-provider-key cur-p (pi-load-auth dir-str))))
+             (new-key (and cur-p (pi-resolve-provider-key cur-p (pi-load-auth dir-str) '() dir-str))
+             ) ;new-key
             ) ;
-        (%cfg-override cfg
-          (list (cons 'models-store (pi-build-user-catalog dir-str))
-            (cons 'settings (pi-load-settings dir))
-            (cons 'api-key new-key)
-          ) ;list
-        ) ;%cfg-override
+        ;; 1404：/login 或刷新凭据后 reload 须重同步 oauth 401 刷新钩子，
+        ;; 否则启动时无 oauth 凭据的会话登录后仍按现状 401 失败
+        (pi-sync-oauth-refresh-hook
+          (%cfg-override cfg
+            (list (cons 'models-store (pi-build-user-catalog dir-str))
+              (cons 'settings (pi-load-settings dir))
+              (cons 'api-key new-key)
+            ) ;list
+          ) ;%cfg-override
+        ) ;pi-sync-oauth-refresh-hook
       ) ;let*
     ) ;define
 

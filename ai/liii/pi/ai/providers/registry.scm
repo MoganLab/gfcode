@@ -24,7 +24,7 @@
     PI_ALL_IN_ONE_PROVIDER PI_ALL_IN_ONE_BUILTIN_MODELS pi-provider-record
     pi-provider-api pi-provider-base-url pi-provider-env-keys
     pi-provider-builtin-models pi-provider-quota-error-handler
-    pi-provider-quota-error
+    pi-provider-quota-error pi-provider-oauth
   ) ;export
   (begin
 
@@ -102,6 +102,14 @@
     (define (pi-provider-env-keys provider)
       (let ((record (pi-provider-record provider)))
         (if record (%field record 'envKeys '()) '())
+      ) ;let
+    ) ;define
+
+    ;; provider 登记的订阅 OAuth 登录方式标识（如 "kimi-code"）；
+    ;; 未登记返回 #f，/login 选择器据此展示二级选择
+    (define (pi-provider-oauth provider)
+      (let ((record (pi-provider-record provider)))
+        (and record (%field record 'oauth #f))
       ) ;let
     ) ;define
 

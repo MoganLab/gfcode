@@ -3,6 +3,7 @@
 ;;
 ;; Licensed under the MIT License
 ;;
+;;
 
 ;; 模型选择与请求前刷新逻辑：独立于 jobs-chan 的“最新请求选择”通道，
 ;; 在每次新 Provider 请求前解析最新选择并派生完整 effective-cfg。
@@ -18,8 +19,13 @@
     (liii pi ai models route)
     (liii pi code config)
   ) ;import
-  (export pi-make-effective-cfg-box pi-effective-cfg-ref pi-effective-cfg-set!
-    pi-worker-make-prepare-request pi-worker-apply-selection
+  (export pi-make-effective-cfg-box
+    pi-effective-cfg-ref
+    pi-effective-cfg-set!
+    pi-worker-make-prepare-request
+    pi-worker-apply-selection
+    ;; worker 线程重新求值调用链上的助手须导出
+    pi-worker-merge-model
   ) ;export
   (begin
 
@@ -69,24 +75,30 @@
       (let* ((config-dir (pi-cfg-config-dir cfg))
              (models-store (pi-cfg-ref cfg 'models-store '()))
              (auth (pi-load-auth config-dir))
-             (api-key (pi-resolve-provider-key provider auth))
+             (api-key (pi-resolve-provider-key provider auth '() config-dir))
              (raw-meta (pi-resolve-model-metadata provider model-id models-store))
              (meta (pi-ensure-catalog-meta raw-meta provider model-id models-store))
              (supports (pi-model-supports-thinking? models-store provider model-id))
             ) ;
-        (pi-cfg-merge cfg
-          (list (cons 'provider provider)
-            (cons 'provider-api (pi-cfg-provider-api cfg provider model-id))
-            (cons 'headers
-              (pi-resolve-request-headers models-store provider model-id api-key)
-            ) ;cons
-            (cons 'model-id model-id)
-            (cons 'model-meta meta)
-            (cons 'api-key api-key)
-            (cons 'supports-thinking supports)
-            (cons 'proxy-url (pi-cfg-provider-proxy cfg provider))
-          ) ;list
-        ) ;pi-cfg-merge
+        ;; 1404：切模（含同 provider）后按新 provider 重同步 oauth 401
+        ;; 刷新钩子：切到 oauth provider 时注入，切走时清除残留钩子。
+        ;; 否则同 provider 切模不走 augment，会话中途 /login 后钩子缺失，
+        ;; 401 无法强制刷新重试。
+        (pi-sync-oauth-refresh-hook
+          (pi-cfg-merge cfg
+            (list (cons 'provider provider)
+              (cons 'provider-api (pi-cfg-provider-api cfg provider model-id))
+              (cons 'headers
+                (pi-resolve-request-headers models-store provider model-id api-key)
+              ) ;cons
+              (cons 'model-id model-id)
+              (cons 'model-meta meta)
+              (cons 'api-key api-key)
+              (cons 'supports-thinking supports)
+              (cons 'proxy-url (pi-cfg-provider-proxy cfg provider))
+            ) ;list
+          ) ;pi-cfg-merge
+        ) ;pi-sync-oauth-refresh-hook
       ) ;let*
     ) ;define
 

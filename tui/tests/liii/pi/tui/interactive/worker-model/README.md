@@ -12,6 +12,7 @@
 
 - `pi-worker-make-prepare-request` - 构造 prepare-request 过程（排空通道、latest-wins、派生并保存 effective-cfg）
 - `pi-worker-apply-selection` - 把一条选择快照应用到 base-cfg，派生完整配置（跨 provider 执行 augment）
+- `pi-worker-merge-model` - 覆盖模型相关项并按新 provider 重同步 oauth 401 刷新钩子（含同 provider 切模）
 - `pi-make-effective-cfg-box` / `pi-effective-cfg-ref` / `pi-effective-cfg-set!` - runtime/effective-cfg 容器
 
 详见当前目录下的单元测试用例。

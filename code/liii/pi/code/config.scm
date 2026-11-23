@@ -19,6 +19,7 @@
     (liii pi code cli args)
     (liii pi code core tools)
     (liii pi ai auth)
+    (liii pi code config oauth-hook)
     (liii pi ai models)
     (liii pi ai thinking)
     (liii pi ai providers registry)
@@ -33,16 +34,38 @@
     (liii pi code core extensions event)
     (liii pi code core extensions types)
   ) ;import
-  (export pi-resolve-config-value json-dict-ref pi-get-agent-dir pi-config?
-    make-pi-config pi-cfg-ref pi-cfg-set pi-cfg-merge gf-get-config-dir
-    pi-cfg-config-dir pi-read-json-file pi-load-settings
-    pi-save-default-thinking-level! pi-save-hide-thinking-block!
-    pi-save-default-model! pi-model-supports-thinking? pi-cfg-provider-proxy
-    pi-model-available-thinking-levels pi-cfg-provider-api
-    pi-load-compaction-settings pi-resolve-proxy-url pi-load-auth
-    pi-resolve-provider-key pi-resolve-model-metadata pi-resolve-request-headers
-    resolve-pi-config resolve-goldpi-config resolve-active-tools
-    pi-missing-credential-msg augment-pi-config
+  (export pi-resolve-config-value
+    json-dict-ref
+    pi-get-agent-dir
+    pi-config?
+    make-pi-config
+    pi-cfg-ref
+    pi-cfg-set
+    pi-cfg-merge
+    gf-get-config-dir
+    pi-cfg-config-dir
+    pi-read-json-file
+    pi-load-settings
+    pi-save-default-thinking-level!
+    pi-save-hide-thinking-block!
+    pi-save-default-model!
+    pi-model-supports-thinking?
+    pi-cfg-provider-proxy
+    pi-model-available-thinking-levels
+    pi-cfg-provider-api
+    pi-load-compaction-settings
+    pi-resolve-proxy-url
+    pi-load-auth
+    pi-resolve-provider-key
+    pi-resolve-model-metadata
+    pi-resolve-request-headers
+    resolve-pi-config
+    resolve-goldpi-config
+    resolve-active-tools
+    pi-missing-credential-msg
+    augment-pi-config
+    ;; 1404：切模/reload 后按 provider 重同步 oauth 401 刷新钩子
+    pi-sync-oauth-refresh-hook
   ) ;export
   (begin
     ;; pi-get-agent-dir 已下沉至 (liii pi code core tools read)，此处经 import 再导出
@@ -287,9 +310,10 @@
                          (pi-load-auth config-dir)
                        ) ;if
                  ) ;auth
+                 ;; 尾参 config-dir：oauth 凭据过期时透明刷新的落盘目录
                  (api-key-raw (if (pair? opt-env)
-                                (pi-resolve-provider-key provider auth (car opt-env))
-                                (pi-resolve-provider-key provider auth)
+                                (pi-resolve-provider-key provider auth (car opt-env) config-dir-str)
+                                (pi-resolve-provider-key provider auth '() config-dir-str)
                               ) ;if
                  ) ;api-key-raw
                  (api-key api-key-raw)
@@ -330,40 +354,50 @@
                           ) ;if
                  ) ;headers
                 ) ;
-            (pi-cfg-set (make-pi-config
-                          :agent-dir  agent-dir
-                          :config-dir config-dir
-                          :provider   provider
-                          :provider-api
-                          ;; 模型文件里可声明 api（如 deepseek 走 openai-completions）；
-                          ;; 未声明时回退 provider 级配置。provider 文件的 baseUrl 与
-                          ;; models/<provider>/<model>.json 的 baseUrl 由 user-models.scm 的
-                          ;; %compose-model 按字段合并，模型文件优先。
-                          (%resolve-provider-api models-store provider model-id)
-                          :api-key                  api-key
-                          :model-id                 model-id
-                          :model-meta               meta
-                          :models-store             models-store
-                          :thinking-level           thinking-level
-                          :thinking-level-explicit? cli-thinking-explicit?
-                          :thinking-level-source
-                          (if cli-thinking-explicit? 'cli 'default)
-                          :supports-thinking    supports-thinking
-                          :cli-proxy            cli-proxy
-                          :proxy-url            proxy-url
-                          :tools                tools
-                          :tool-resolver        get-tool-definition
-                          :execute-tool-call    execute-tool-call
-                          :emit-extension-event (%make-extension-emitter)
-                          :settings             settings
-                        ) ;make-pi-config
-              'headers
-              headers
-            ) ;pi-cfg-set
+            (let ((base-cfg (pi-cfg-set (make-pi-config
+                                          :agent-dir  agent-dir
+                                          :config-dir config-dir
+                                          :provider   provider
+                                          :provider-api
+                                          ;; 模型文件里可声明 api（如 deepseek 走 openai-completions）；
+                                          ;; 未声明时回退 provider 级配置。provider 文件的 baseUrl 与
+                                          ;; models/<provider>/<model>.json 的 baseUrl 由 user-models.scm 的
+                                          ;; %compose-model 按字段合并，模型文件优先。
+                                          (%resolve-provider-api models-store provider model-id)
+                                          :api-key        api-key
+                                          :model-id       model-id
+                                          :model-meta     meta
+                                          :models-store   models-store
+                                          :thinking-level thinking-level
+                                          :thinking-level-explicit?
+                                          cli-thinking-explicit?
+                                          :thinking-level-source
+                                          (if cli-thinking-explicit? 'cli 'default)
+                                          :supports-thinking supports-thinking
+                                          :cli-proxy         cli-proxy
+                                          :proxy-url         proxy-url
+                                          :tools             tools
+                                          :tool-resolver     get-tool-definition
+                                          :execute-tool-call execute-tool-call
+                                          :emit-extension-event
+                                          (%make-extension-emitter)
+                                          :settings settings
+                                        ) ;make-pi-config
+                              'headers
+                              headers
+                            ) ;pi-cfg-set
+                  ) ;base-cfg
+                 ) ;
+              ;; 1404：若 provider 在 auth.json 有 oauth 凭据，注入 refresh-oauth-key
+              ;; 钩子，供请求层收到 401 后强制刷新重试一次。无 oauth 凭据不注入
+              ;; （非 oauth provider 的 401 按现状失败）。钩子返回新 access / 'unauthorized / #f。
+              (pi-sync-oauth-refresh-hook base-cfg (if (pair? opt-env) (car opt-env) '()))
+            ) ;let
           ) ;let*
         ) ;let-values
       ) ;let*
     ) ;define
+
     (define resolve-goldpi-config resolve-pi-config)
 
     ;; 应用扩展注册的 config augmenter：内置/用户扩展经此
