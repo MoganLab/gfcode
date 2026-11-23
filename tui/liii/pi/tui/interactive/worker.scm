@@ -196,7 +196,8 @@
              ) ;dir
              (dir-str (if (string? dir) dir (path->string dir)))
              (cur-p (pi-cfg-ref cfg 'provider))
-             (new-key (and cur-p (pi-resolve-provider-key cur-p (pi-load-auth dir-str) '() dir-str)))
+             (new-key (and cur-p (pi-resolve-provider-key cur-p (pi-load-auth dir-str) '() dir-str))
+             ) ;new-key
              ;; 重建成功后投递 models_updated，触发 app-events 重建 models/default-model
              (models-store (pi-build-user-catalog dir-str))
             ) ;
