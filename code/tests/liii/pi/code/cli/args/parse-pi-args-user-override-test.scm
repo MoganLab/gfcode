@@ -36,16 +36,12 @@
 ;; 扩展加载 initializer 每进程只执行一次。
 
 (define (%probe-source mark)
-  (string-append
-    "(import (scheme base) (liii pi code core extensions))\n"
-    "(define (probe-ext api . ctx)\n"
-    "  (register-flag! api\n"
+  (string-append "(import (scheme base) (liii pi code core extensions))\n"
+    "(define (probe-ext api . ctx)\n" "  (register-flag! api\n"
     "    (make-extension-flag-def \"--probe-mark\" \"probe\" :key 'probe-mark\n"
-    "      :takes-arg? #t))\n"
-    "  (pi-on! api 'agent_end (lambda (payload c) '" mark "))\n"
-    "  (register-prompt-injector! api (lambda (tool-calls) #f))\n"
-    "  '" mark ")\n"
-    "probe-ext\n"
+    "      :takes-arg? #t))\n" "  (pi-on! api 'agent_end (lambda (payload c) '"
+    mark "))\n" "  (register-prompt-injector! api (lambda (tool-calls) #f))\n"
+    "  '" mark ")\n" "probe-ext\n"
   ) ;string-append
 ) ;define
 
@@ -61,8 +57,12 @@
       ) ;
   (path-mkdir builtin :parents #t :exist-ok #t)
   (path-mkdir user-ext :parents #t :exist-ok #t)
-  (path-write-text (path-join builtin "user-override-probe.scm") (%probe-source "builtin"))
-  (path-write-text (path-join user-ext "user-override-probe.scm") (%probe-source "user"))
+  (path-write-text (path-join builtin "user-override-probe.scm")
+    (%probe-source "builtin")
+  ) ;path-write-text
+  (path-write-text (path-join user-ext "user-override-probe.scm")
+    (%probe-source "user")
+  ) ;path-write-text
   (putenv "HOME" (path->string home))
   (when (os-windows?)
     (putenv "USERPROFILE" (path->string home))
@@ -99,7 +99,10 @@
     (putenv "PI_BUILTIN_EXTENSIONS_DIR" saved-builtin)
     (unsetenv "PI_BUILTIN_EXTENSIONS_DIR")
   ) ;if
-  (if saved-agent (putenv "PI_CODING_AGENT_DIR" saved-agent) (unsetenv "PI_CODING_AGENT_DIR"))
+  (if saved-agent
+    (putenv "PI_CODING_AGENT_DIR" saved-agent)
+    (unsetenv "PI_CODING_AGENT_DIR")
+  ) ;if
   (if saved-gf (putenv "GF_CONFIG_DIR" saved-gf) (unsetenv "GF_CONFIG_DIR"))
   (rmtree (path->string root) #t)
 ) ;let*
