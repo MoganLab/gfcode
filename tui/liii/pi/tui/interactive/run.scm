@@ -163,6 +163,9 @@
               (%pi-app-handle-resize! app)
               (let ((k (terminal-poll-key term)))
                 (cond
+                  ;; /exit 命令请求退出：置位后离开主循环，复用与 Ctrl+D 完全
+                  ;; 一致的退出清理路径（中止在途任务、退出备用屏、打印会话记录）
+                  ((pi-app-exit-requested? app) #t)
                   ;; Ctrl+C：若有激活选区则优先复制到剪贴板，不清空输入框；
                   ;; 无选区时仅清空输入框，从不退出、也不中断正在跑的任务。
                   ((and (not (pi-app-active-selector app)) (eq? k 'ctrl-c))
