@@ -34,7 +34,7 @@
   (check (map car catalog)
     =>
     '("google" "kimi-coding" "custom-kimi" "all-in-one" "anthropic" "deepseek"
-      "minimax-cn" "ollama" "opencode" "zai-coding-cn")
+      "minimax-cn" "ollama" "opencode" "qwen-token-plan-cn" "zai-coding-cn")
   ) ;check
   (check (cdr (assoc "enabled" google)) => #t)
   (check (cdr (assoc "enabled" deepseek)) => #f)

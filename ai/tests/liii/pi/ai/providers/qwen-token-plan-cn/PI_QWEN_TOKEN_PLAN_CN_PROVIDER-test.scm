@@ -19,7 +19,10 @@
 (check-set-mode! 'report-failed)
 
 (check-true (pair? PI_QWEN_TOKEN_PLAN_CN_PROVIDER))
-(check (cdr (assoc 'api PI_QWEN_TOKEN_PLAN_CN_PROVIDER)) => "openai-completions")
+(check (cdr (assoc 'api PI_QWEN_TOKEN_PLAN_CN_PROVIDER))
+  =>
+  "openai-completions"
+) ;check
 (check (cdr (assoc 'baseUrl PI_QWEN_TOKEN_PLAN_CN_PROVIDER))
   =>
   "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1"

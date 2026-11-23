@@ -72,7 +72,9 @@
   ) ;check
 ) ;let
 (let ((env '(("QWEN_TOKEN_PLAN_TEAM_CN_API_KEY" . "team")
-             ("QWEN_TOKEN_PLAN_CN_API_KEY" . "shared"))))
+             ("QWEN_TOKEN_PLAN_CN_API_KEY" . "shared"))
+      ) ;env
+     ) ;
   (check (pi-resolve-provider-key "qwen-token-plan-cn" '() env) => "team")
 ) ;let
 (let ((auth '(("qwen-token-plan-cn" . "auth-cn-key"))))

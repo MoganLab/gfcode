@@ -123,7 +123,8 @@
         (list (cons "enable_thinking" #f))
         (if (%json-true? (%compat-ref model "supportsReasoningEffort" #t))
           (list (cons "enable_thinking" #t)
-            (cons "reasoning_effort" (%mapped-effort model level)))
+            (cons "reasoning_effort" (%mapped-effort model level))
+          ) ;list
           (list (cons "enable_thinking" #t))
         ) ;if
       ) ;if

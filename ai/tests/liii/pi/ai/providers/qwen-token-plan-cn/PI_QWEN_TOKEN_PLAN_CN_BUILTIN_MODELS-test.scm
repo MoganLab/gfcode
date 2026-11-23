@@ -23,6 +23,7 @@
 (check (length PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS) => 10)
 
 ;; 模型条目辅助查表：按 id 建索引
+
 (define (model-by-id mid)
   (let loop
     ((rest PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS))

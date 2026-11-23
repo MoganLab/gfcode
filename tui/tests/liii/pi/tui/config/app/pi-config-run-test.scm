@@ -216,8 +216,8 @@
        (st (pi-config-state dir :env '()))
        (providers (pi-config-state-providers st))
        (n (length providers))
-       (target-p (list-ref providers (- n 2)))
-       (prev-p (list-ref providers (- n 3)))
+       (target-p (list-ref providers (- n 3)))
+       (prev-p (list-ref providers (- n 4)))
       ) ;
   ;; 夹具形状：opencode 模型数（27）多于前一个 ollama（3）
   (check (pi-config-provider-id target-p) => "opencode")
@@ -228,12 +228,12 @@
     #t
   ) ;check
   ;; 模型列 ↓ 越过前一个 provider 的模型数边界（3 → 4）
-  (let ((r (pi-config-key-handler st (pi-config-cursor (- n 2) 3) 1 'down)))
+  (let ((r (pi-config-key-handler st (pi-config-cursor (- n 3) 3) 1 'down)))
     (check (cdr (assoc 'model (car r))) => 4)
-    (check (cdr (assoc 'provider (car r))) => (- n 2))
+    (check (cdr (assoc 'provider (car r))) => (- n 3))
   ) ;let
   ;; G 直达 target provider 的最后一个模型
-  (let ((r (pi-config-key-handler st (pi-config-cursor (- n 2) 0) 1 "G")))
+  (let ((r (pi-config-key-handler st (pi-config-cursor (- n 3) 0) 1 "G")))
     (check (cdr (assoc 'model (car r)))
       =>
       (- (length (pi-config-provider-models target-p)) 1)

@@ -46,9 +46,7 @@
      ("high" . null)
      ("xhigh" . "xhigh")
      ("max" . null))
-    ("compat"
-     ("thinkingFormat" . "qwen")
-     ("supportsReasoningEffort" . true)))
+    ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . true)))
 ) ;define
 
 (define QWEN-FALLBACK
@@ -61,17 +59,13 @@
      ("high" . "high")
      ("xhigh" . null)
      ("max" . "max"))
-    ("compat"
-     ("thinkingFormat" . "qwen")
-     ("supportsReasoningEffort" . true)))
+    ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . true)))
 ) ;define
 
 (define QWEN-NO-EFFORT
   '(("id" . "m")
     ("reasoning" . true)
-    ("compat"
-     ("thinkingFormat" . "qwen")
-     ("supportsReasoningEffort" . false)))
+    ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . false)))
 ) ;define
 
 (define PLAIN '(("id" . "m") ("reasoning" . false)))

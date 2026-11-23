@@ -39,6 +39,6 @@
   (pi-config-provider st id)
 ) ;define
 
-(check (pi-config-state-provider-count st) => 10)
+(check (pi-config-state-provider-count st) => 11)
 
 (check-report)

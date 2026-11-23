@@ -20,15 +20,14 @@
 
 (define-library (liii pi ai providers qwen-token-plan-cn)
   (import (scheme base) (liii pi ai providers quota))
-  (export PI_QWEN_TOKEN_PLAN_CN_PROVIDER PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS
+  (export PI_QWEN_TOKEN_PLAN_CN_PROVIDER
+    PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS
     PI_QWEN_TOKEN_PLAN_CN_QUOTA_ERROR
   ) ;export
   (begin
 
     ;; 端点（对齐上游 qwenTokenPlanCnProvider 的 baseUrl）
-    (define %base-url
-      "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1"
-    ) ;define
+    (define %base-url "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
 
     ;; qwen 思考格式兼容标记：所有模型统一 thinkingFormat=qwen；
     ;; supportsReasoningEffort 决定是否注入 reasoning_effort。
@@ -65,7 +64,8 @@
     ;; （团队订阅变量优先，回退区域共享变量，对齐上游 env-api-keys.ts 的角色）
     (define PI_QWEN_TOKEN_PLAN_CN_PROVIDER
       '((api . "openai-completions")
-        (baseUrl . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+        (baseUrl
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
         (envKeys "QWEN_TOKEN_PLAN_TEAM_CN_API_KEY" "QWEN_TOKEN_PLAN_CN_API_KEY"))
     ) ;define
 
@@ -75,7 +75,8 @@
     (define PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS
       '((("id" . "MiniMax-M2.5")
          ("name" . "MiniMax-M2.5")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 196608)
          ("maxTokens" . 32768)
          ("reasoning" . #t)
@@ -83,67 +84,72 @@
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #f)))
         (("id" . "deepseek-v4-pro")
          ("name" . "DeepSeek V4 Pro")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 1000000)
          ("maxTokens" . 384000)
          ("reasoning" . #t)
          ("input" "text")
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
          ("thinkingLevelMap"
-           ("minimal" . null)
-           ("low" . null)
-           ("medium" . null)
-           ("high" . "high")
-           ("xhigh" . null)
-           ("max" . "max")))
+          ("minimal" . null)
+          ("low" . null)
+          ("medium" . null)
+          ("high" . "high")
+          ("xhigh" . null)
+          ("max" . "max")))
         (("id" . "glm-5")
          ("name" . "GLM-5")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 202752)
          ("maxTokens" . 16384)
          ("reasoning" . #t)
          ("input" "text")
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
          ("thinkingLevelMap"
-           ("minimal" . null)
-           ("low" . null)
-           ("medium" . null)
-           ("high" . "high")
-           ("xhigh" . null)
-           ("max" . "max")))
+          ("minimal" . null)
+          ("low" . null)
+          ("medium" . null)
+          ("high" . "high")
+          ("xhigh" . null)
+          ("max" . "max")))
         (("id" . "glm-5.1")
          ("name" . "GLM-5.1")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 202752)
          ("maxTokens" . 128000)
          ("reasoning" . #t)
          ("input" "text")
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
          ("thinkingLevelMap"
-           ("minimal" . null)
-           ("low" . null)
-           ("medium" . null)
-           ("high" . "high")
-           ("xhigh" . null)
-           ("max" . "max")))
+          ("minimal" . null)
+          ("low" . null)
+          ("medium" . null)
+          ("high" . "high")
+          ("xhigh" . null)
+          ("max" . "max")))
         (("id" . "glm-5.2")
          ("name" . "GLM-5.2")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 1000000)
          ("maxTokens" . 131072)
          ("reasoning" . #t)
          ("input" "text")
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
          ("thinkingLevelMap"
-           ("minimal" . null)
-           ("low" . null)
-           ("medium" . null)
-           ("high" . "high")
-           ("xhigh" . null)
-           ("max" . "max")))
+          ("minimal" . null)
+          ("low" . null)
+          ("medium" . null)
+          ("high" . "high")
+          ("xhigh" . null)
+          ("max" . "max")))
         (("id" . "kimi-k2.5")
          ("name" . "Kimi K2.5")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 262144)
          ("maxTokens" . 98304)
          ("reasoning" . #t)
@@ -151,7 +157,8 @@
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #f)))
         (("id" . "kimi-k2.6")
          ("name" . "Kimi K2.6")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 262144)
          ("maxTokens" . 262144)
          ("reasoning" . #t)
@@ -159,7 +166,8 @@
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #f)))
         (("id" . "kimi-k2.7-code")
          ("name" . "Kimi K2.7 Code")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 262144)
          ("maxTokens" . 262144)
          ("reasoning" . #t)
@@ -167,34 +175,36 @@
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #f)))
         (("id" . "qwen3.8-flash")
          ("name" . "Qwen3.8 Flash")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 1000000)
          ("maxTokens" . 131072)
          ("reasoning" . #t)
          ("input" "text" "image")
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
          ("thinkingLevelMap"
-           ("minimal" . null)
-           ("low" . "low")
-           ("medium" . "medium")
-           ("high" . null)
-           ("xhigh" . "xhigh")
-           ("max" . null)))
+          ("minimal" . null)
+          ("low" . "low")
+          ("medium" . "medium")
+          ("high" . null)
+          ("xhigh" . "xhigh")
+          ("max" . null)))
         (("id" . "qwen3.8-max")
          ("name" . "Qwen3.8 Max")
-         ("baseUrl" . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 1000000)
          ("maxTokens" . 131072)
          ("reasoning" . #t)
          ("input" "text" "image")
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
          ("thinkingLevelMap"
-           ("minimal" . null)
-           ("low" . "low")
-           ("medium" . "medium")
-           ("high" . null)
-           ("xhigh" . "xhigh")
-           ("max" . null))))
+          ("minimal" . null)
+          ("low" . "low")
+          ("medium" . "medium")
+          ("high" . null)
+          ("xhigh" . "xhigh")
+          ("max" . null))))
     ) ;define
 
     ;; 「额度耗尽」识别：

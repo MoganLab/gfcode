@@ -65,7 +65,9 @@
 (check-true (has-model? (find-provider-models "zai-coding-cn") "glm-5.3"))
 (check-true (has-model? (find-provider-models "opencode") "deepseek-v4.1-flash")
 ) ;check-true
-(check-true (has-model? (find-provider-models "qwen-token-plan-cn") "qwen3.8-max"))
-(check-true (has-model? (find-provider-models "qwen-token-plan-cn") "deepseek-v4-pro"))
+(check-true (has-model? (find-provider-models "qwen-token-plan-cn") "qwen3.8-max")
+) ;check-true
+(check-true (has-model? (find-provider-models "qwen-token-plan-cn") "deepseek-v4-pro")
+) ;check-true
 
 (check-report)
