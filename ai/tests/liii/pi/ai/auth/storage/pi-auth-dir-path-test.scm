@@ -19,11 +19,12 @@
 
 (check-set-mode! 'report-failed)
 
-(define expected-explicit-path
-  (path->string (path "/tmp/gf-cfg"))
-) ;define
+(define expected-explicit-path (path->string (path "/tmp/gf-cfg")))
 
-(check (path->string (pi-auth-dir-path '("/tmp/gf-cfg"))) => expected-explicit-path)
+(check (path->string (pi-auth-dir-path '("/tmp/gf-cfg")))
+  =>
+  expected-explicit-path
+) ;check
 (check
   (path->string (pi-auth-dir-path (list (path "/tmp/gf-cfg"))))
   =>

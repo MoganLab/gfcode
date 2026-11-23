@@ -81,8 +81,9 @@
 
 ;; 3. 会话中途 /login：初始无 kimi 凭据（无钩子），auth.json 落盘 oauth
 ;;    凭据后同 provider 切模必须补注入钩子（不走 augment 的路径）
-(let ((no-kimi-dir (path->string (path-join (path-temp-dir) "pi-worker-merge-model-login-test")))
-      ) ;
+(let ((no-kimi-dir (path->string (path-join (path-temp-dir) "pi-worker-merge-model-login-test"))
+      ) ;no-kimi-dir
+     ) ;
   (when (file-exists? no-kimi-dir)
     (rmtree no-kimi-dir)
   ) ;when

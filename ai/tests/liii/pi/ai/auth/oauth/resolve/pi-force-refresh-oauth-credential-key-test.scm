@@ -151,12 +151,11 @@
              ) ;pi-credential
        ) ;cred
       ) ;
-  (check
-    (pi-force-refresh-oauth-credential-key cred
-      '()
-      (lambda (c) (error 'save-failed "disk full"))
-      (lambda (p) #f)
-    ) ;pi-force-refresh-oauth-credential-key
+  (check (pi-force-refresh-oauth-credential-key cred
+           '()
+           (lambda (c) (error 'save-failed "disk full"))
+           (lambda (p) #f)
+         ) ;pi-force-refresh-oauth-credential-key
     =>
     "stub-access-token-2"
   ) ;check

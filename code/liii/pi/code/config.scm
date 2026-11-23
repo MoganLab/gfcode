@@ -34,16 +34,36 @@
     (liii pi code core extensions event)
     (liii pi code core extensions types)
   ) ;import
-  (export pi-resolve-config-value json-dict-ref pi-get-agent-dir pi-config?
-    make-pi-config pi-cfg-ref pi-cfg-set pi-cfg-merge gf-get-config-dir
-    pi-cfg-config-dir pi-read-json-file pi-load-settings
-    pi-save-default-thinking-level! pi-save-hide-thinking-block!
-    pi-save-default-model! pi-model-supports-thinking? pi-cfg-provider-proxy
-    pi-model-available-thinking-levels pi-cfg-provider-api
-    pi-load-compaction-settings pi-resolve-proxy-url pi-load-auth
-    pi-resolve-provider-key pi-resolve-model-metadata pi-resolve-request-headers
-    resolve-pi-config resolve-goldpi-config resolve-active-tools
-    pi-missing-credential-msg augment-pi-config
+  (export pi-resolve-config-value
+    json-dict-ref
+    pi-get-agent-dir
+    pi-config?
+    make-pi-config
+    pi-cfg-ref
+    pi-cfg-set
+    pi-cfg-merge
+    gf-get-config-dir
+    pi-cfg-config-dir
+    pi-read-json-file
+    pi-load-settings
+    pi-save-default-thinking-level!
+    pi-save-hide-thinking-block!
+    pi-save-default-model!
+    pi-model-supports-thinking?
+    pi-cfg-provider-proxy
+    pi-model-available-thinking-levels
+    pi-cfg-provider-api
+    pi-load-compaction-settings
+    pi-resolve-proxy-url
+    pi-load-auth
+    pi-resolve-provider-key
+    pi-resolve-model-metadata
+    pi-resolve-request-headers
+    resolve-pi-config
+    resolve-goldpi-config
+    resolve-active-tools
+    pi-missing-credential-msg
+    augment-pi-config
     ;; 1404：切模/reload 后按 provider 重同步 oauth 401 刷新钩子
     pi-sync-oauth-refresh-hook
   ) ;export
@@ -371,9 +391,7 @@
               ;; 1404：若 provider 在 auth.json 有 oauth 凭据，注入 refresh-oauth-key
               ;; 钩子，供请求层收到 401 后强制刷新重试一次。无 oauth 凭据不注入
               ;; （非 oauth provider 的 401 按现状失败）。钩子返回新 access / 'unauthorized / #f。
-              (pi-sync-oauth-refresh-hook base-cfg
-                (if (pair? opt-env) (car opt-env) '())
-              ) ;pi-sync-oauth-refresh-hook
+              (pi-sync-oauth-refresh-hook base-cfg (if (pair? opt-env) (car opt-env) '()))
             ) ;let
           ) ;let*
         ) ;let-values

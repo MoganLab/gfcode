@@ -47,7 +47,9 @@
   (cond ((file-exists? "code/tests/stub_kimi_oauth_server.py")
          "code/tests/stub_kimi_oauth_server.py"
         ) ;
-        ((file-exists? "tests/stub_kimi_oauth_server.py") "tests/stub_kimi_oauth_server.py")
+        ((file-exists? "tests/stub_kimi_oauth_server.py")
+         "tests/stub_kimi_oauth_server.py"
+        ) ;
         (else "../code/tests/stub_kimi_oauth_server.py")
   ) ;cond
 ) ;define
@@ -61,6 +63,7 @@
 
 ;; 写 kimi-coding oauth 凭据：region 指向 stub host，expires 仍在未来
 ;; （401 强制刷新不查 expires）
+
 (define (write-auth! host refresh-token)
   (path-write-text (path->string (path-join (path TMP-DIR) (path "auth.json")))
     (string-append "{\"kimi-coding\":{\"type\":\"oauth\",\"access\":\"old-acc\","

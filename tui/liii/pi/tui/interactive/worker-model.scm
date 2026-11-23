@@ -19,8 +19,11 @@
     (liii pi ai models route)
     (liii pi code config)
   ) ;import
-  (export pi-make-effective-cfg-box pi-effective-cfg-ref pi-effective-cfg-set!
-    pi-worker-make-prepare-request pi-worker-apply-selection
+  (export pi-make-effective-cfg-box
+    pi-effective-cfg-ref
+    pi-effective-cfg-set!
+    pi-worker-make-prepare-request
+    pi-worker-apply-selection
     ;; worker 线程重新求值调用链上的助手须导出
     pi-worker-merge-model
   ) ;export

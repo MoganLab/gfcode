@@ -43,7 +43,9 @@
 (path-mkdir TMP-DIR :parents #t :exist-ok #t)
 
 (define (write-auth! text)
-  (path-write-text (path->string (path-join (path TMP-DIR) (path "auth.json"))) text)
+  (path-write-text (path->string (path-join (path TMP-DIR) (path "auth.json")))
+    text
+  ) ;path-write-text
 ) ;define
 
 (define (oauth-json expires)
@@ -65,7 +67,8 @@
 ) ;let
 
 ;; 2. provider 无 oauth 凭据（api_key）：不注入
-(write-auth! "{\"google\":{\"type\":\"api_key\",\"key\":\"fixture-google-key\"}}")
+(write-auth! "{\"google\":{\"type\":\"api_key\",\"key\":\"fixture-google-key\"}}"
+) ;write-auth!
 (let ((cfg (pi-sync-oauth-refresh-hook (make-cfg "google") '())))
   (check-false (pi-oauth-refresh-enabled? cfg))
   (check (pi-cfg-ref cfg 'refresh-oauth-key) => #f)
@@ -77,7 +80,8 @@
        (cfg-switched (pi-cfg-set cfg-oauth 'provider "google"))
       ) ;
   (check-true (pi-oauth-refresh-enabled? cfg-switched))
-  (write-auth! "{\"google\":{\"type\":\"api_key\",\"key\":\"fixture-google-key\"}}")
+  (write-auth! "{\"google\":{\"type\":\"api_key\",\"key\":\"fixture-google-key\"}}"
+  ) ;write-auth!
   (let ((cfg-synced (pi-sync-oauth-refresh-hook cfg-switched '())))
     (check-false (pi-oauth-refresh-enabled? cfg-synced))
   ) ;let
@@ -100,8 +104,7 @@
 
 ;; 6. alist 形式 cfg 同样支持
 (write-auth! (oauth-json (+ (pi-current-time-millis) 3600000)))
-(let ((cfg (pi-sync-oauth-refresh-hook
-             (list (cons 'config-dir TMP-DIR) (cons 'provider "kimi-coding"))
+(let ((cfg (pi-sync-oauth-refresh-hook (list (cons 'config-dir TMP-DIR) (cons 'provider "kimi-coding"))
              '()
            ) ;pi-sync-oauth-refresh-hook
       ) ;cfg
