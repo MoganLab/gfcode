@@ -21,45 +21,12 @@
 ;;   重试处理（待拿到真实 429 业务码后再补码表）
 
 (define-library (liii pi ai providers qwen-token-plan-cn)
-  (import (scheme base) (liii pi ai providers quota))
+  (import (scheme base))
   (export PI_QWEN_TOKEN_PLAN_CN_PROVIDER
     PI_QWEN_TOKEN_PLAN_CN_BUILTIN_MODELS
     PI_QWEN_TOKEN_PLAN_CN_QUOTA_ERROR
   ) ;export
   (begin
-
-    ;; 端点（对齐上游 qwenTokenPlanCnProvider 的 baseUrl）
-    (define %base-url "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
-
-    ;; qwen 思考格式兼容标记：所有模型统一 thinkingFormat=qwen；
-    ;; supportsReasoningEffort 决定是否注入 reasoning_effort。
-    (define (%qwen-compat supports-effort)
-      (list (cons "thinkingFormat" "qwen")
-        (cons "supportsReasoningEffort" supports-effort)
-      ) ;list
-    ) ;define
-
-    ;; deepseek-v4-pro / glm-5 / glm-5.1 / glm-5.2 的 thinkingLevelMap：
-    ;; 仅 high→high、max→max，其余映射为 null（不支持该档）
-    (define %effort-fallback-map
-      '(("minimal" . null)
-        ("low" . null)
-        ("medium" . null)
-        ("high" . "high")
-        ("xhigh" . null)
-        ("max" . "max"))
-    ) ;define
-
-    ;; qwen3.8 系列的 thinkingLevelMap：low→low、medium→medium、xhigh→xhigh，
-    ;; high 与 max 映射为 null（不支持该档）
-    (define %qwen38-map
-      '(("minimal" . null)
-        ("low" . "low")
-        ("medium" . "medium")
-        ("high" . null)
-        ("xhigh" . "xhigh")
-        ("max" . null))
-    ) ;define
 
     ;; Provider 配置：api 为协议实现标识（OpenAI Chat Completions 兼容），
     ;; baseUrl 为中国区端点，envKeys 为依次尝试的 API key 环境变量
