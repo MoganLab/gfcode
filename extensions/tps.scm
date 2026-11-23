@@ -7,7 +7,12 @@
 ;; TPS 扩展：每次 agent 运行结束时输出一行 token 吞吐量统计。
 ;;
 ;; 输出形如：
-;;   TPS 38.5 tok/s. out 414, in 848, cache r/w 15,808/0, total 17,070, 10.8s
+;;   TPS 38.5 tok/s. out 414, in 848, cache r/w 15.8K/0, total 17.1K, 10.8s
+;;
+;; token 计数采用 human readable 紧凑记法（K=10^3, M=10^6）：
+;;   - < 1000          token 计数输出整数（如 414、848）；
+;;   - >= 1000         用 K/M 后缀，保留 1 位小数（如 15808 -> 15.8K，2531749 -> 2.5M）。
+;; TPS 与耗时（秒）始终保留 1 位小数（如 38.5 tok/s、10.8s）。
 ;;
 ;; 移植自 pi 项目的 .pi/extensions/tps.ts（Mario Zechner）：
 ;;   - 记 agent_start 时间戳，agent_end 时计算墙钟耗时；
@@ -16,7 +21,6 @@
 ;;     未 arm notify 时回退 stderr（verbose / 一次性运行场景）。
 
 (import (scheme base)
-  (liii string)
   (liii list)
   (liii pi ai time)
   (liii pi ai message)
@@ -98,81 +102,58 @@
   ) ;let
 ) ;define
 
-;; 千分位格式化：整数部分按三位分组，例如 15808 -> "15,808"。
+;; 把非负实数格式化为指定位数的小数字符串（不分组，不后缀）。
+;; digits=0 时输出整数；digits>0 时按 digits 位小数输出并补零。
 
-(define (%group-digits n-str)
-  (let* ((len (string-length n-str))
-         ;; 自右向左每 3 个字符切一组
-         (groups
-           (let loop
-             ((i len) (acc '()))
-             (if (<= i 0)
-               acc
-               (let ((start (max 0 (- i 3))))
-                 (loop start (cons (substring n-str start i) acc))
-               ) ;let
-             ) ;if
-           ) ;let
-         ) ;groups
-        ) ;
-    (string-join groups ",")
-  ) ;let*
+(define (%fixed-decimals x digits)
+  (let* ((scale (expt 10 digits))
+         (rounded (/ (round (* x scale)) scale))
+         (int-part (inexact->exact (truncate rounded)))
+         (int-str (number->string int-part)))
+    (if (= digits 0)
+      int-str
+      (let* ((frac-part (inexact->exact (round (* (- rounded int-part) scale))))
+             (frac-str (number->string frac-part))
+             (pad (- digits (string-length frac-str))))
+        (string-append int-str "."
+          (if (> pad 0) (string-append (make-string pad #\0) frac-str) frac-str)))))
 ) ;define
 
-;; 把非负实数格式化为带千分位的字符串（小数部分保留指定位，不加分隔）。
+;; human readable 紧凑记法：把非负实数格式化为带 K/M 后缀的字符串。
+;; raw-digits 控制原值档位（<1000）的小数位；km-digits 控制 K/M 档位的小数位。
 
-(define (%format-grouped x digits)
-  (if (not (number? x))
-    "0"
-    (let* ((rounded
-             (let ((scale (expt 10 digits)))
-               (/ (round (* x scale)) scale)
-             ) ;let
-           ) ;rounded
-           (int-part (inexact->exact (truncate rounded)))
-           (frac-part
-             (inexact->exact (round (* (- rounded int-part) (expt 10 digits))))
-           ) ;frac-part
-           (int-str (number->string int-part))
-           (grouped (%group-digits int-str))
-          ) ;
-      (if (= digits 0)
-        grouped
-        (let* ((frac-str (number->string frac-part))
-               (frac-padded
-                 (let ((pad (- digits (string-length frac-str))))
-                   (if (> pad 0) (string-append (make-string pad #\0) frac-str) frac-str)
-                 ) ;let
-               ) ;frac-padded
-              ) ;
-          (string-append grouped "." frac-padded)
-        ) ;let*
-      ) ;if
-    ) ;let*
-  ) ;if
+(define (%human-readable x raw-digits km-digits)
+  (cond
+    ((not (number? x)) "0")
+    ((< x 1000)
+     (%fixed-decimals x raw-digits))
+    ((< x 1000000)
+     (string-append (%fixed-decimals (/ x 1000.0) km-digits) "K"))
+    (else
+     (string-append (%fixed-decimals (/ x 1000000.0) km-digits) "M")))
 ) ;define
 
 ;; 组装最终的 TPS 行。
 
 (define (%tps-line tps out in cr cw total elapsed-s)
   (string-append "TPS "
-    (%format-grouped tps 1)
+    (%human-readable tps 1 1)
     " tok/s. "
     "out "
-    (%format-grouped out 0)
+    (%human-readable out 0 1)
     ", "
     "in "
-    (%format-grouped in 0)
+    (%human-readable in 0 1)
     ", "
     "cache r/w "
-    (%format-grouped cr 0)
+    (%human-readable cr 0 1)
     "/"
-    (%format-grouped cw 0)
+    (%human-readable cw 0 1)
     ", "
     "total "
-    (%format-grouped total 0)
+    (%human-readable total 0 1)
     ", "
-    (%format-grouped elapsed-s 1)
+    (%human-readable elapsed-s 1 1)
     "s"
   ) ;string-append
 ) ;define
