@@ -20,8 +20,8 @@
 (check-set-mode! 'report-failed)
 
 (let* ((empty-store '()) (augmented (pi-builtin-augment-all empty-store)))
-  ;; 应该包含 9 个内置 provider
-  (check (length augmented) => 9)
+  ;; 应该包含 10 个内置 provider
+  (check (length augmented) => 10)
   (check-true (pair? (assoc "anthropic" augmented)))
   (check-true (pair? (assoc "all-in-one" augmented)))
   (check-true (pair? (assoc "deepseek" augmented)))
@@ -31,6 +31,7 @@
   (check-true (pair? (assoc "ollama" augmented)))
   (check-true (pair? (assoc "zai-coding-cn" augmented)))
   (check-true (pair? (assoc "opencode" augmented)))
+  (check-true (pair? (assoc "qwen-token-plan-cn" augmented)))
 ) ;let*
 
 ;; 如果已有部分 provider 模型，不应覆盖已有同 id 模型，但应补齐缺失模型

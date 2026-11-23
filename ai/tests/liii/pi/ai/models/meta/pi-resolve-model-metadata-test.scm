@@ -67,4 +67,45 @@
   (check (pi-model-metadata-matched? m) => #f)
 ) ;let
 
+;; qwen-token-plan-cn：空目录时回退内置模型目录
+;; （回归：all-in-one 链节点不在用户 catalog 时，压缩窗口判定
+;;  不能拿到 Google 端点 + 128K 的错误兜底）
+(let ((m (pi-resolve-model-metadata "qwen-token-plan-cn" "qwen3.8-max" '())))
+  (check (pi-model-metadata-name m) => "Qwen3.8 Max")
+  (check (pi-model-metadata-base-url m)
+    =>
+    "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1"
+  ) ;check
+  (check (pi-model-metadata-context-window m) => 1000000)
+  (check (pi-model-metadata-max-tokens m) => 131072)
+  (check (pi-model-metadata-matched? m) => #t)
+) ;let
+
+;; qwen-token-plan-cn：store 有其他 provider 但无 qwen 条目时同样回退内置目录
+(let ((m
+        (pi-resolve-model-metadata "qwen-token-plan-cn"
+          "qwen3.8-max"
+          '(("google" ("models" (("id" . "gemini-3.8-flash")))))
+        ) ;pi-resolve-model-metadata
+      ) ;m
+     ) ;
+  (check (pi-model-metadata-base-url m)
+    =>
+    "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1"
+  ) ;check
+  (check (pi-model-metadata-context-window m) => 1000000)
+  (check (pi-model-metadata-matched? m) => #t)
+) ;let
+
+;; qwen-token-plan-cn：未知模型用 provider 默认值（非 Google 兜底）
+(let ((m (pi-resolve-model-metadata "qwen-token-plan-cn" "unlisted" '())))
+  (check (pi-model-metadata-base-url m)
+    =>
+    "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1"
+  ) ;check
+  (check (pi-model-metadata-context-window m) => 1000000)
+  (check (pi-model-metadata-max-tokens m) => 131072)
+  (check (pi-model-metadata-matched? m) => #f)
+) ;let
+
 (check-report)

@@ -54,7 +54,10 @@
 (check PI_SUPPORTED_PROVIDERS
   =>
   '("google" "anthropic" "kimi-coding" "deepseek" "minimax-cn" "zai-coding-cn"
-    "ollama" "opencode")
+    "ollama" "opencode" "qwen-token-plan-cn")
 ) ;check
+
+(check-true (has-model? (pi-provider-builtin-models "qwen-token-plan-cn") "qwen3.8-max")
+) ;check-true
 
 (check-report)

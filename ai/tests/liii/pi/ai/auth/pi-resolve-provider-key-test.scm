@@ -58,6 +58,30 @@
 ;; 4. 未找到时返回 #f
 (check (pi-resolve-provider-key "unknown-provider" '() '()) => #f)
 
+;; 4b. qwen-token-plan-cn 环境变量解析：团队订阅变量优先，回退区域共享变量
+(let ((env '(("QWEN_TOKEN_PLAN_TEAM_CN_API_KEY" . "env-team-cn-key"))))
+  (check (pi-resolve-provider-key "qwen-token-plan-cn" '() env)
+    =>
+    "env-team-cn-key"
+  ) ;check
+) ;let
+(let ((env '(("QWEN_TOKEN_PLAN_CN_API_KEY" . "env-cn-shared-key"))))
+  (check (pi-resolve-provider-key "qwen-token-plan-cn" '() env)
+    =>
+    "env-cn-shared-key"
+  ) ;check
+) ;let
+(let ((env '(("QWEN_TOKEN_PLAN_TEAM_CN_API_KEY" . "team")
+             ("QWEN_TOKEN_PLAN_CN_API_KEY" . "shared"))
+      ) ;env
+     ) ;
+  (check (pi-resolve-provider-key "qwen-token-plan-cn" '() env) => "team")
+) ;let
+(let ((auth '(("qwen-token-plan-cn" . "auth-cn-key"))))
+  (check (pi-resolve-provider-key "qwen-token-plan-cn" auth '()) => "auth-cn-key")
+) ;let
+(check (pi-resolve-provider-key "qwen-token-plan-cn" '() '()) => #f)
+
 ;; 5. ollama 免密：当无环境变量且无 auth 配置时，回退到默认虚拟密钥 "ollama"
 (check (pi-resolve-provider-key "ollama" '() '()) => "ollama")
 (let ((env '(("OLLAMA_API_KEY" . "custom-ollama-key"))))

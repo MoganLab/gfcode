@@ -129,6 +129,27 @@
   (path-rmdir tmp)
 ) ;let*
 
+;; 4b. qwen-token-plan-cn 无 key 时提示团队订阅环境变量名
+(let* ((tmp (make-temp-dir "gf-auth-test-qwen-" "")))
+  (let ((status #f) (out "") (err ""))
+    (set! err
+      (with-stderr-to-string
+        (lambda ()
+          (set! out
+            (with-output-to-string (lambda () (set! status (pi-auth-print-api-key "qwen-token-plan-cn" tmp '())))
+            ) ;with-output-to-string
+          ) ;set!
+        ) ;lambda
+      ) ;with-stderr-to-string
+    ) ;set!
+    (check status => 1)
+    (check out => "")
+    (check-true (string-contains? err "qwen-token-plan-cn"))
+    (check-true (string-contains? err "QWEN_TOKEN_PLAN_TEAM_CN_API_KEY"))
+  ) ;let
+  (path-rmdir tmp)
+) ;let*
+
 ;; 5. 不受支持的 provider（如 all-in-one 或未知 id）同样走未找到说明路径
 (let* ((tmp (make-temp-dir "gf-auth-test-unknown-" "")))
   (let ((status #f) (out "") (err ""))

@@ -51,12 +51,13 @@
 (define n (length providers))
 
 ;; 1. 模型列向下导航不会被前一个 provider 的模型数夹断
-(let* ((target-p (list-ref providers (- n 2)))
-       (prev-p (list-ref providers (- n 3)))
-       (r (pi-config-key-handler st (pi-config-cursor (- n 2) 3) 1 'down))
+;;    夹具形状：opencode（n-3）模型数多于 ollama（n-4）
+(let* ((target-p (list-ref providers (- n 3)))
+       (prev-p (list-ref providers (- n 4)))
+       (r (pi-config-key-handler st (pi-config-cursor (- n 3) 3) 1 'down))
       ) ;
   (check (cdr (assoc 'model (car r))) => 4)
-  (check (cdr (assoc 'provider (car r))) => (- n 2))
+  (check (cdr (assoc 'provider (car r))) => (- n 3))
   ;; 夹具形状：目标 provider 的模型数多于前一个 provider
   (check (< (length (pi-config-provider-models prev-p))
            (length (pi-config-provider-models target-p))
@@ -67,8 +68,8 @@
 ) ;let*
 
 ;; 2. G 直达目标 provider 的最后一个模型
-(let* ((target-p (list-ref providers (- n 2)))
-       (r (pi-config-key-handler st (pi-config-cursor (- n 2) 0) 1 "G"))
+(let* ((target-p (list-ref providers (- n 3)))
+       (r (pi-config-key-handler st (pi-config-cursor (- n 3) 0) 1 "G"))
       ) ;
   (check (cdr (assoc 'model (car r)))
     =>

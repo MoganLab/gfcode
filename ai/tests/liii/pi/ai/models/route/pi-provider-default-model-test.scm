@@ -32,6 +32,7 @@
 (check (pi-provider-default-model "zai-coding-cn") => "glm-5.3")
 (check (pi-provider-default-model "opencode") => "deepseek-v4.1-flash")
 (check (pi-provider-default-model "opencode-go") => "deepseek-v4.1-flash")
+(check (pi-provider-default-model "qwen-token-plan-cn") => "qwen3.8-max")
 (check (pi-provider-default-model "other") => "gemini-3.8-flash")
 
 (check-report)

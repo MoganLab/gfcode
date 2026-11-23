@@ -115,7 +115,7 @@
   (check (map car catalog)
     =>
     '("anthropic" "deepseek" "google" "kimi-coding" "minimax-cn" "ollama"
-      "opencode" "zai-coding-cn")
+      "opencode" "qwen-token-plan-cn" "zai-coding-cn")
   ) ;check
 ) ;let
 
@@ -124,7 +124,7 @@
   (check (map car catalog)
     =>
     '("anthropic" "deepseek" "google" "kimi-coding" "minimax-cn" "ollama"
-      "opencode" "zai-coding-cn")
+      "opencode" "qwen-token-plan-cn" "zai-coding-cn")
   ) ;check
 ) ;let
 
@@ -135,7 +135,7 @@
   (check (map car config-catalog)
     =>
     '("anthropic" "deepseek" "google" "kimi-coding" "minimax-cn" "ollama"
-      "opencode" "zai-coding-cn" "all-in-one")
+      "opencode" "qwen-token-plan-cn" "zai-coding-cn" "all-in-one")
   ) ;check
   (check
     (map
@@ -143,7 +143,7 @@
       config-catalog
     ) ;map
     =>
-    '(#t #t #t #t #t #t #t #t #f)
+    '(#t #t #t #t #t #t #t #t #t #f)
   ) ;check
 ) ;let
 (let ((config-catalog (pi-build-config-catalog (string-append FIXTURE "/no-providers"))
@@ -155,7 +155,7 @@
       config-catalog
     ) ;map
     =>
-    '(#t #t #t #t #t #t #t #t #f)
+    '(#t #t #t #t #t #t #t #t #t #f)
   ) ;check
 ) ;let
 

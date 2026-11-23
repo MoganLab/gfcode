@@ -7,7 +7,7 @@
 ;; OpenAI Chat Completions 请求侧思考参数：
 ;; - 从 models-store 取原始模型条目（compat/thinkingLevelMap 不在 model-metadata 中）
 ;; - 按 thinkingFormat 生成 thinking / reasoning_effort 字段
-;; 目前覆盖 openai 与 deepseek 两种格式；其他格式保持不注入，避免猜错字段。
+;; 目前覆盖 openai、deepseek 与 qwen 三种格式；其他格式保持不注入，避免猜错字段。
 (define-library (liii pi ai api openai-completions thinking)
   (import (scheme base) (liii string) (liii list))
   (export openai-resolve-model-entry openai-thinking-request-params)
@@ -113,6 +113,23 @@
       ) ;if
     ) ;define
 
+    ;; qwen 风格：enable_thinking（布尔）+ 可选 reasoning_effort
+    ;; 对齐上游 openai-completions.ts 的 qwen 分支：
+    ;;   enable_thinking = !!reasoningEffort（off 与未开启为 false）
+    ;;   reasoning_effort 仅当 supportsReasoningEffort 为真且 level 非 off 时注入
+    ;;   （thinkingLevelMap 映射缺失/null 时回退原始级别，与上游 ?? 语义一致）
+    (define (%qwen-thinking-params model level)
+      (if (%thinking-off? level)
+        (list (cons "enable_thinking" #f))
+        (if (%json-true? (%compat-ref model "supportsReasoningEffort" #t))
+          (list (cons "enable_thinking" #t)
+            (cons "reasoning_effort" (%mapped-effort model level))
+          ) ;list
+          (list (cons "enable_thinking" #t))
+        ) ;if
+      ) ;if
+    ) ;define
+
     ;; 仅注入已实现且显式声明的格式；未知格式保持原行为（不猜字段）。
     (define (openai-thinking-request-params model level)
       (if (not (%model-supports-reasoning? model))
@@ -120,6 +137,7 @@
         (let ((format (%compat-ref model "thinkingFormat" "openai")))
           (cond ((equal? format "deepseek") (%deepseek-thinking-params model level))
                 ((equal? format "openai") (%openai-thinking-params model level))
+                ((equal? format "qwen") (%qwen-thinking-params model level))
                 (else '())
           ) ;cond
         ) ;let

@@ -179,9 +179,9 @@
          ) ;map
        ) ;disabled
       ) ;
-  ;; 夹具里启用 3 个 provider，未启用 7 个（all-in-one, anthropic, deepseek, minimax-cn, ollama,
-  ;; opencode, zai-coding-cn）
-  (check (length disabled) => 7)
+  ;; 夹具里启用 3 个 provider，未启用 8 个（all-in-one, anthropic, deepseek, minimax-cn, ollama,
+  ;; opencode, qwen-token-plan-cn, zai-coding-cn）
+  (check (length disabled) => 8)
   (let* ((st1 (pi-config-state (path->string dir) :env '()))
          (plan (pi-config-plan-toggle (pi-config-state (path->string dir) :env '())
                  (pi-config-cursor 1 0)
