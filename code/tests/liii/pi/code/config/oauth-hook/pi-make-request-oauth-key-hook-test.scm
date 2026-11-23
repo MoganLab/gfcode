@@ -45,9 +45,7 @@
 ) ;when
 (path-mkdir TMP-DIR :parents #t :exist-ok #t)
 
-(define CFG
-  (make-pi-config :config-dir TMP-DIR :provider "kimi-coding")
-) ;define
+(define CFG (make-pi-config :config-dir TMP-DIR :provider "kimi-coding"))
 
 (define HOOK (pi-make-request-oauth-key-hook '() TMP-DIR))
 
@@ -62,29 +60,27 @@
                (+ (pi-current-time-millis) 3600000)
                #f
              ) ;pi-credential
-        ) ;cred
+       ) ;cred
        (cfg (pi-cfg-set CFG 'oauth-store (pi-make-oauth-store (list cred))))
       ) ;
   (check (HOOK cfg) => "fresh-acc")
-  (check-false (file-exists? (path->string (path-join (path TMP-DIR) (path "auth.json")))))
+  (check-false
+    (file-exists? (path->string (path-join (path TMP-DIR) (path "auth.json"))))
+  ) ;check-false
 ) ;let*
 
 ;; 2. 配置 provider 无 oauth 凭据：返回 #f。
 (check (HOOK (pi-cfg-set CFG 'oauth-store (pi-make-oauth-store))) => #f)
 
 ;; 3. provider 缺失：返回 #f。
-(check (HOOK (pi-cfg-set (pi-cfg-set CFG 'provider #f)
-               'oauth-store
-               (pi-make-oauth-store)
-             ) ;pi-cfg-set
+(check (HOOK (pi-cfg-set (pi-cfg-set CFG 'provider #f) 'oauth-store (pi-make-oauth-store))
        ) ;HOOK
   =>
   #f
 ) ;check
 
 ;; 4. 未绑定 store 时从 auth.json 初始化并返回未过期 access。
-(path-write-text
-  (path->string (path-join (path TMP-DIR) (path "auth.json")))
+(path-write-text (path->string (path-join (path TMP-DIR) (path "auth.json")))
   (string-append "{\"kimi-coding\":{\"type\":\"oauth\",\"access\":\"disk-acc\","
     "\"refresh\":\"ref\",\"expires\":"
     (number->string (+ (pi-current-time-millis) 3600000))

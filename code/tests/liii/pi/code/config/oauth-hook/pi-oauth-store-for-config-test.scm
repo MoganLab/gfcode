@@ -51,14 +51,10 @@
   ) ;path-write-text
 ) ;define
 
-(define CFG
-  (make-pi-config :config-dir TMP-DIR :provider "kimi-coding")
-) ;define
+(define CFG (make-pi-config :config-dir TMP-DIR :provider "kimi-coding"))
 
 ;; 1. 配置已绑定 store：原样返回，保持对象身份。
-(let* ((bound (pi-make-oauth-store))
-       (cfg (pi-cfg-set CFG 'oauth-store bound))
-      ) ;
+(let* ((bound (pi-make-oauth-store)) (cfg (pi-cfg-set CFG 'oauth-store bound)))
   (check (pi-oauth-store-for-config cfg '() TMP-DIR) => bound)
 ) ;let*
 
