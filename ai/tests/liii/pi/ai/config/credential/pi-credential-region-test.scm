@@ -20,7 +20,10 @@
 (check-set-mode! 'report-failed)
 
 (let ((c (pi-credential "kimi-coding" #f "oauth" "acc" "ref" 1893456000000
-           "https://auth.kimi.ai")))
+           "https://auth.kimi.ai"
+         ) ;pi-credential
+      ) ;c
+     ) ;
   (check (pi-credential-region c) => "https://auth.kimi.ai")
 ) ;let
 

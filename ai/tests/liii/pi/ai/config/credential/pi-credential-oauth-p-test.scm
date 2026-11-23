@@ -19,9 +19,9 @@
 
 (check-set-mode! 'report-failed)
 
-(check-true
-  (pi-credential-oauth?
-    (pi-credential "kimi-coding" #f "oauth" "acc" "ref" 1893456000000 #f)))
+(check-true (pi-credential-oauth? (pi-credential "kimi-coding" #f "oauth" "acc" "ref" 1893456000000 #f)
+            ) ;pi-credential-oauth?
+) ;check-true
 (check-false (pi-credential-oauth? (pi-credential "google" "k" "api_key")))
 (check-false (pi-credential-oauth? (pi-credential "google" "k")))
 (check-false (pi-credential-oauth? "oauth"))

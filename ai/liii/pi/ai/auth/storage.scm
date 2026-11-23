@@ -92,12 +92,11 @@
     ) ;define
 
     (define (pi-auth-normalize-provider who provider)
-      (cond
-       ((string? provider) (%normalize-non-empty who "provider" provider))
-       ((symbol? provider)
-        (%normalize-non-empty who "provider" (symbol->string provider))
-       ) ;
-       (else (type-error (string-append who ": provider must be a string or symbol")))
+      (cond ((string? provider) (%normalize-non-empty who "provider" provider))
+            ((symbol? provider)
+             (%normalize-non-empty who "provider" (symbol->string provider))
+            ) ;
+            (else (type-error (string-append who ": provider must be a string or symbol")))
       ) ;cond
     ) ;define
 

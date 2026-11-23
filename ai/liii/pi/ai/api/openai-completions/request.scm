@@ -44,25 +44,31 @@
     (define (%token-tail s)
       (if (and (string? s) (> (string-length s) 0))
         (let ((n (string-length s)))
-          (substring s (max 0 (- n 4)) n))
-        "")
+          (substring s (max 0 (- n 4)) n)
+        ) ;let
+        ""
+      ) ;if
     ) ;define
 
     ;; 1404：oauth 401 强制刷新结果描述（用于日志），不暴露完整 token
     (define (%oauth-refresh-result-desc next)
-      (cond ((string? next)
-             (string-append "ok new-token=..." (%token-tail next)))
+      (cond ((string? next) (string-append "ok new-token=..." (%token-tail next)))
             ((eq? next 'unauthorized) "unauthorized")
-            (else "none"))
+            (else "none")
+      ) ;cond
     ) ;define
 
     ;; 1404：写一行 [oauth-401] 日志到 ~/.gf/agent/logs/pi-YYYY-MM-DD.log
     (define (%log-oauth-401 provider attempt api-key next)
-      (pi-log-error!
-        (string-append "[oauth-401] provider=" (or provider "")
-          " attempt=" (number->string attempt)
-          " old-token=..." (%token-tail api-key)
-          " refresh=" (%oauth-refresh-result-desc next))
+      (pi-log-error! (string-append "[oauth-401] provider="
+                       (or provider "")
+                       " attempt="
+                       (number->string attempt)
+                       " old-token=..."
+                       (%token-tail api-key)
+                       " refresh="
+                       (%oauth-refresh-result-desc next)
+                     ) ;string-append
       ) ;pi-log-error!
     ) ;define
 
@@ -314,8 +320,7 @@
               (session-id (pi-cfg-ref config 'session-id))
              ) ;
           (let loop
-            ((attempt 1) (api-key (pi-request-api-key config))
-             (refreshed-once? #f))
+            ((attempt 1) (api-key (pi-request-api-key config)) (refreshed-once? #f))
             (let* ((extra-hdrs (%openai-extra-headers url provider session-id config settings))
                    (headers (openai-build-headers api-key extra-hdrs))
                    (resp (%post-openai url req-json-str headers proxy-alist timeout))
@@ -376,9 +381,7 @@
                ;; 服务端可能在本地 expires 之前判 access token 失效返回 401，
                ;; 此时请求层回退强制 refresh 换取新 token 重试；refresh 失败
                ;; （401/403/invalid_grant）凭据已清除，走 401 报错提示重 /login。
-               ((and (= status 401)
-                  (pi-oauth-refresh-enabled? config)
-                  (not refreshed-once?))
+               ((and (= status 401) (pi-oauth-refresh-enabled? config) (not refreshed-once?))
                 (let ((next (pi-refresh-oauth-key! config api-key)))
                   (%log-oauth-401 provider attempt api-key next)
                   (if (string? next)

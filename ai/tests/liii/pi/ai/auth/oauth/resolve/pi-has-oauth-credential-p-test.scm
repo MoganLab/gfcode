@@ -35,12 +35,8 @@
 (define *other* (pi-credential "deepseek" "sk-ds" "api_key"))
 
 (check-true (pi-has-oauth-credential? "kimi-coding" (list *other* *oauth*)))
-(check-true
-  (not (pi-has-oauth-credential? "kimi-coding" (list *api-key*)))
-) ;check-true
-(check-true
-  (not (pi-has-oauth-credential? "deepseek" (list *other* *oauth*)))
-) ;check-true
+(check-true (not (pi-has-oauth-credential? "kimi-coding" (list *api-key*))))
+(check-true (not (pi-has-oauth-credential? "deepseek" (list *other* *oauth*))))
 (check-true (not (pi-has-oauth-credential? "kimi-coding" '())))
 (check-true (not (pi-has-oauth-credential? #f (list *oauth*))))
 

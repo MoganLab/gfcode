@@ -14,11 +14,13 @@
     (liii pi ai auth oauth kimi-coding-oauth)
     (liii pi ai time)
   ) ;import
-  (export pi-find-oauth-credential pi-resolve-oauth-credential-key
+  (export pi-find-oauth-credential
+    pi-resolve-oauth-credential-key
     ;; go worker 会话重求值调用链上的助手须导出
     %pi-refresh-oauth-credential!
     ;; 1404：请求层收到 401 后的强制刷新（不查 expires）与凭据探测
-    pi-force-refresh-oauth-credential-key pi-has-oauth-credential?
+    pi-force-refresh-oauth-credential-key
+    pi-has-oauth-credential?
   ) ;export
   (begin
 
@@ -30,9 +32,7 @@
           (if (null? xs)
             #f
             (let ((item (car xs)))
-              (if (and (pi-credential-oauth? item)
-                    (equal? (pi-credential-provider item) target)
-                  ) ;and
+              (if (and (pi-credential-oauth? item) (equal? (pi-credential-provider item) target))
                 item
                 (loop (cdr xs))
               ) ;if
@@ -59,8 +59,10 @@
              (refreshed
                (catch #t
                  (lambda ()
-                   (kimi-refresh-token host (pi-credential-refresh cred)
-                     provider (pi-credential-region cred)
+                   (kimi-refresh-token host
+                     (pi-credential-refresh cred)
+                     provider
+                     (pi-credential-region cred)
                    ) ;kimi-refresh-token
                  ) ;lambda
                  (lambda (tag . info) (cons tag info))

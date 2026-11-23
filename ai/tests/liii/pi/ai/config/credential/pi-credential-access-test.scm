@@ -19,7 +19,11 @@
 
 (check-set-mode! 'report-failed)
 
-(let ((c (pi-credential "kimi-coding" #f "oauth" "acc-token" "ref-token" 1893456000000 #f)))
+(let ((c (pi-credential "kimi-coding" #f "oauth" "acc-token" "ref-token"
+           1893456000000 #f
+         ) ;pi-credential
+      ) ;c
+     ) ;
   (check (pi-credential-access c) => "acc-token")
 ) ;let
 

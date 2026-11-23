@@ -47,7 +47,10 @@
 ) ;let*
 
 ;; oauth + region：region 落盘
-(let* ((c (pi-credential "kimi-coding" #f "oauth" "acc" "ref" 1893456000000 "https://auth.kimi.ai"))
+(let* ((c (pi-credential "kimi-coding" #f "oauth" "acc" "ref" 1893456000000
+            "https://auth.kimi.ai"
+          ) ;pi-credential
+       ) ;c
        (parsed (string->json (json->string (pi-credential->json c))))
       ) ;
   (check (cdr (assoc "region" parsed)) => "https://auth.kimi.ai")

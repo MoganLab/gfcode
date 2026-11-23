@@ -31,10 +31,7 @@
   (let ((cfg
           (list (cons 'api-key "old-acc")
             (cons 'refresh-oauth-key
-              (lambda (config current-key)
-                (set! seen (list current-key))
-                "new-acc"
-              ) ;lambda
+              (lambda (config current-key) (set! seen (list current-key)) "new-acc")
             ) ;cons
           ) ;list
         ) ;cfg

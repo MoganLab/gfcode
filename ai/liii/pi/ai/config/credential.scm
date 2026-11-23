@@ -7,9 +7,9 @@
 (define-library (liii pi ai config credential)
   (import (scheme base) (liii base) (liii error))
   (export pi-credential pi-credential? pi-credential-provider pi-credential-key
-    pi-credential-type pi-credential->json
-    pi-credential-access pi-credential-refresh pi-credential-expires
-    pi-credential-region pi-credential-oauth?
+    pi-credential-type pi-credential->json pi-credential-access
+    pi-credential-refresh pi-credential-expires pi-credential-region
+    pi-credential-oauth?
   ) ;export
   (begin
 
@@ -18,8 +18,14 @@
     ;; region 记录登录时的 OAuth host 覆盖值，默认 host 不写 region，
     ;; 对应上游 pi 的 ApiKeyCredential / OAuthCredential，1402 §5.1）
     (define*-record-type <pi-credential>
-      (pi-credential provider key (type "api_key")
-        (access #f) (refresh #f) (expires #f) (region #f))
+      (pi-credential provider
+        key
+        (type "api_key")
+        (access #f)
+        (refresh #f)
+        (expires #f)
+        (region #f)
+      ) ;pi-credential
       pi-credential?
       (provider pi-credential-provider)
       (key pi-credential-key)
