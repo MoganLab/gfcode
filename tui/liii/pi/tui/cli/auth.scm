@@ -14,22 +14,31 @@
     (liii list)
     (liii error)
     (liii pi ai auth)
+    (liii pi ai config credential)
+    (liii pi ai auth oauth kimi-coding-oauth)
     (liii pi code config)
     (liii pi code modes output)
   ) ;import
   (export parse-pi-auth-args pi-auth-print-api-key pi-auth-login run-pi-auth
     pi-auth-args? make-pi-auth-args pi-auth-args-help? pi-auth-args-subcommand
-    pi-auth-args-provider pi-auth-args-key
+    pi-auth-args-provider pi-auth-args-key pi-auth-args-oauth?
+    pi-auth-login-oauth
   ) ;export
   (begin
 
     (define*-record-type <pi-auth-args>
-      (make-pi-auth-args (help? #f) (subcommand #f) (provider #f) (key #f))
+      (make-pi-auth-args (help? #f)
+        (subcommand #f)
+        (provider #f)
+        (key #f)
+        (oauth? #f)
+      ) ;make-pi-auth-args
       pi-auth-args?
       (help? pi-auth-args-help?)
       (subcommand pi-auth-args-subcommand)
       (provider pi-auth-args-provider)
       (key pi-auth-args-key)
+      (oauth? pi-auth-args-oauth?)
     ) ;define*-record-type
 
     (define (%provider-default-env-var provider)
@@ -85,26 +94,33 @@
        ) ;
        ((string=? (car args) "login")
         (let loop
-          ((rem (cdr args)) (provider #f) (key #f))
+          ((rem (cdr args)) (provider #f) (key #f) (oauth? #f))
           (cond
            ((null? rem)
-            (if (or (not provider) (not key))
-              (error 'pi-arg-error
-                "auth login requires --provider <provider> and --key <key>"
-              ) ;error
-              (make-pi-auth-args :subcommand "login" :provider provider :key key)
-            ) ;if
+            (cond (oauth? (if (not provider)
+                            (error 'pi-arg-error "auth login --oauth requires --provider <provider>")
+                            (make-pi-auth-args :subcommand "login" :provider provider :oauth? #t)
+                          ) ;if
+                  ) ;oauth?
+                  ((or (not provider) (not key))
+                   (error 'pi-arg-error
+                     "auth login requires --provider <provider> and --key <key> (or --oauth)"
+                   ) ;error
+                  ) ;
+                  (else (make-pi-auth-args :subcommand "login" :provider provider :key key))
+            ) ;cond
            ) ;
            ((or (string=? (car rem) "-h") (string=? (car rem) "--help"))
             (make-pi-auth-args :help? #t)
            ) ;
+           ((string=? (car rem) "--oauth") (loop (cdr rem) provider key #t))
            ((string=? (car rem) "--provider")
             (if (null? (cdr rem))
               (error 'pi-arg-error "auth login requires --provider <provider>")
               (let ((val (cadr rem)))
                 (if (or (string-null? (string-trim-both val)) (string-starts? val "-"))
                   (error 'pi-arg-error "auth login requires --provider <provider>")
-                  (loop (cddr rem) val key)
+                  (loop (cddr rem) val key oauth?)
                 ) ;if
               ) ;let
             ) ;if
@@ -113,7 +129,7 @@
             (let ((val (substring (car rem) 11 (string-length (car rem)))))
               (if (string-null? (string-trim-both val))
                 (error 'pi-arg-error "auth login requires --provider <provider>")
-                (loop (cdr rem) val key)
+                (loop (cdr rem) val key oauth?)
               ) ;if
             ) ;let
            ) ;
@@ -123,7 +139,7 @@
               (let ((val (cadr rem)))
                 (if (string-null? (string-trim-both val))
                   (error 'pi-arg-error "auth login requires --key <key>")
-                  (loop (cddr rem) provider val)
+                  (loop (cddr rem) provider val oauth?)
                 ) ;if
               ) ;let
             ) ;if
@@ -132,7 +148,7 @@
             (let ((val (substring (car rem) 6 (string-length (car rem)))))
               (if (string-null? (string-trim-both val))
                 (error 'pi-arg-error "auth login requires --key <key>")
-                (loop (cdr rem) provider val)
+                (loop (cdr rem) provider val oauth?)
               ) ;if
             ) ;let
            ) ;
@@ -140,8 +156,8 @@
             (error 'pi-arg-error (string-append "unknown option: " (car rem)))
            ) ;
            (else
-             (cond ((not provider) (loop (cdr rem) (car rem) key))
-                   ((not key) (loop (cdr rem) provider (car rem)))
+             (cond ((not provider) (loop (cdr rem) (car rem) key oauth?))
+                   ((not key) (loop (cdr rem) provider (car rem) oauth?))
                    (else (error 'pi-arg-error (string-append "unexpected extra argument: " (car rem)))
                    ) ;else
              ) ;cond
@@ -237,6 +253,72 @@
       ) ;let*
     ) ;define
 
+    ;; 非交互 device flow（headless 友好）：打印 verification URL 让用户
+    ;; 手动打开，轮询成功后落盘 oauth 凭据（1402 §5.4 可选子项）
+    (define (pi-auth-login-oauth provider . opt-args)
+      (let* ((config-dir (if (pair? opt-args) (car opt-args) (gf-get-config-dir)))
+             (opt-env
+               (if (and (pair? opt-args) (pair? (cdr opt-args))) (list (cadr opt-args)) '())
+             ) ;opt-env
+             (notify
+               (lambda (ev)
+                 (display (string-append "Open this URL to authorize: " (caddr ev) "\n"))
+                 (display (string-append "User code: " (cadr ev) "\n"))
+                 (display "Waiting for authorization…\n")
+               ) ;lambda
+             ) ;notify
+             (cred
+               (catch #t
+                 (lambda () (apply kimi-oauth-login (append (list notify #f provider) opt-env)))
+                 (lambda (tag . info)
+                   (display-stderr (string-append "Error: Kimi Code OAuth login failed: "
+                                     (catch-error->string tag info)
+                                   ) ;string-append
+                   ) ;display-stderr
+                   #f
+                 ) ;lambda
+               ) ;catch
+             ) ;cred
+            ) ;
+        (if (pi-credential? cred)
+          (let ((saved
+                  (catch #t
+                    (lambda ()
+                      (pi-save-auth-oauth! provider
+                        (pi-credential-access cred)
+                        (pi-credential-refresh cred)
+                        (pi-credential-expires cred)
+                        (pi-credential-region cred)
+                        config-dir
+                      ) ;pi-save-auth-oauth!
+                    ) ;lambda
+                    (lambda (tag . info) #f)
+                  ) ;catch
+                ) ;saved
+               ) ;
+            (if saved
+              (begin
+                (display (string-append "Saved OAuth credential for provider '"
+                           provider "' to " saved "\n"
+                         ) ;string-append
+                ) ;display
+                0
+              ) ;begin
+              (begin
+                (display-stderr (string-append "Error: failed to save OAuth credential for provider '"
+                                  provider
+                                  "'\n"
+                                ) ;string-append
+                ) ;display-stderr
+                1
+              ) ;begin
+            ) ;if
+          ) ;let
+          1
+        ) ;if
+      ) ;let*
+    ) ;define
+
     (define (run-pi-auth args . opt-args)
       (let ((config-dir (if (pair? opt-args) (car opt-args) (gf-get-config-dir)))
             (custom-env
@@ -247,7 +329,7 @@
           (lambda ()
             (let ((parsed (parse-pi-auth-args args)))
               (cond ((pi-auth-args-help? parsed)
-                     (display "Usage: gf pi auth print-api-key --provider <provider>\n       gf pi auth login --provider <provider> --key <key>\n"
+                     (display "Usage: gf pi auth print-api-key --provider <provider>\n       gf pi auth login --provider <provider> --key <key>\n       gf pi auth login --provider <provider> --oauth\n"
                      ) ;display
                      0
                     ) ;
@@ -261,7 +343,13 @@
                     ) ;
                     ((equal? (pi-auth-args-subcommand parsed) "login")
                      (let ((provider (pi-auth-args-provider parsed)) (key (pi-auth-args-key parsed)))
-                       (pi-auth-login provider key config-dir)
+                       (if (pi-auth-args-oauth? parsed)
+                         (if custom-env
+                           (pi-auth-login-oauth provider config-dir custom-env)
+                           (pi-auth-login-oauth provider config-dir)
+                         ) ;if
+                         (pi-auth-login provider key config-dir)
+                       ) ;if
                      ) ;let
                     ) ;
                     (else 1)

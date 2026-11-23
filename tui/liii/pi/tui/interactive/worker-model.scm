@@ -69,7 +69,7 @@
       (let* ((config-dir (pi-cfg-config-dir cfg))
              (models-store (pi-cfg-ref cfg 'models-store '()))
              (auth (pi-load-auth config-dir))
-             (api-key (pi-resolve-provider-key provider auth))
+             (api-key (pi-resolve-provider-key provider auth '() config-dir))
              (raw-meta (pi-resolve-model-metadata provider model-id models-store))
              (meta (pi-ensure-catalog-meta raw-meta provider model-id models-store))
              (supports (pi-model-supports-thinking? models-store provider model-id))

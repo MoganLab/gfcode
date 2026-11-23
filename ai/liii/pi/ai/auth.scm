@@ -16,8 +16,18 @@
     (liii pi ai template)
 
     (liii pi ai config credential)
+    (liii pi ai auth oauth kimi-coding-oauth)
+    (liii pi ai auth oauth resolve)
+    (liii pi ai auth storage)
   ) ;import
-  (export pi-load-auth pi-resolve-provider-key pi-save-auth-key)
+  (export pi-load-auth
+    pi-resolve-provider-key
+    pi-save-auth-key
+    pi-save-auth-oauth!
+    pi-remove-auth-provider!
+    ;; go worker 会话重求值调用链：刷新/落盘路径上的助手须导出
+    %resolve-oauth-credential-key
+  ) ;export
   (begin
 
     (define (%dict-ref obj key default-val)
@@ -43,20 +53,50 @@
 
     (define (%parse-credential-item key val opt-env)
       (and (pair? val)
-        (equal? (%dict-ref val "type" #f) "api_key")
-        (let ((raw-key (%dict-ref val "key" #f)))
-          (and (string? raw-key)
-            (let ((resolved (if (pair? opt-env)
-                              (pi-resolve-config-value raw-key (car opt-env))
-                              (pi-resolve-config-value raw-key)
-                            ) ;if
-                  ) ;resolved
-                 ) ;
-              (and resolved
-                (pi-credential (if (symbol? key) (symbol->string key) key) resolved "api_key")
+        (let ((p-str (if (symbol? key) (symbol->string key) key))
+              (type (%dict-ref val "type" #f))
+             ) ;
+          (cond
+           ((equal? type "api_key")
+            (let ((raw-key (%dict-ref val "key" #f)))
+              (and (string? raw-key)
+                (let ((resolved (if (pair? opt-env)
+                                  (pi-resolve-config-value raw-key (car opt-env))
+                                  (pi-resolve-config-value raw-key)
+                                ) ;if
+                      ) ;resolved
+                     ) ;
+                  (and resolved (pi-credential p-str resolved "api_key"))
+                ) ;let
               ) ;and
             ) ;let
-          ) ;and
+           ) ;
+           ((equal? type "oauth")
+            ;; oauth 条目：access/refresh 为非空字符串，expires 为毫秒 epoch；
+            ;; region 可选（登录时的 OAuth host 覆盖值）
+            (let ((access (%dict-ref val "access" #f))
+                  (refresh (%dict-ref val "refresh" #f))
+                  (expires (%dict-ref val "expires" #f))
+                  (region (%dict-ref val "region" #f))
+                 ) ;
+              (and (string? access)
+                (not (string-null? access))
+                (string? refresh)
+                (not (string-null? refresh))
+                (number? expires)
+                (pi-credential p-str
+                  #f
+                  "oauth"
+                  access
+                  refresh
+                  expires
+                  (and (string? region) (not (string-null? region)) region)
+                ) ;pi-credential
+              ) ;and
+            ) ;let
+           ) ;
+           (else #f)
+          ) ;cond
         ) ;let
       ) ;and
     ) ;define
@@ -68,7 +108,11 @@
         (if (not (pair? data))
           '()
           (filter (lambda (credential) credential)
-            (map (lambda (entry) (%parse-credential-item (car entry) (cdr entry) opt-env))
+            (map
+              (lambda (entry)
+                ;; 防御空对象 {}（string->json 产出 '(()))：无条目可解析
+                (and (pair? entry) (%parse-credential-item (car entry) (cdr entry) opt-env))
+              ) ;lambda
               data
             ) ;map
           ) ;filter
@@ -218,8 +262,46 @@
       ) ;and
     ) ;define
 
-    (define (pi-resolve-provider-key provider auth-alist . opt-env)
+    ;; oauth 凭据 → access token：未过期直接返回，过期透明刷新并落盘；
+    ;; config-dir 缺失时回退默认配置目录（落盘/清除回调注入 resolve 层，
+    ;; 避免循环依赖）
+    (define (%resolve-oauth-credential-key cred opt-env opt-config-dir)
+      (let ((dir
+              (or (and (pair? opt-config-dir) (car opt-config-dir))
+                (path->string (path-join (path-home) ".gf" "agent"))
+              ) ;or
+            ) ;dir
+           ) ;
+        (pi-resolve-oauth-credential-key cred
+          opt-env
+          (lambda (c)
+            (pi-save-auth-oauth! (pi-credential-provider c)
+              (pi-credential-access c)
+              (pi-credential-refresh c)
+              (pi-credential-expires c)
+              (pi-credential-region c)
+              dir
+            ) ;pi-save-auth-oauth!
+          ) ;lambda
+          (lambda (p) (pi-remove-auth-provider! p dir))
+        ) ;pi-resolve-oauth-credential-key
+      ) ;let
+    ) ;define
+
+    ;; 解析服务商生效密钥。opt 尾参兼容两种形态：
+    ;;   (provider auth-alist)                      旧形态
+    ;;   (provider auth-alist env)                  env 为 '((name . val) ...)
+    ;;   (provider auth-alist env config-dir)       新增：oauth 刷新落盘目录
+    ;; oauth 凭据：access 未过期直接返回，过期透明刷新（见
+    ;; %resolve-oauth-credential-key）；env API Key 优先于一切 auth 条目
+    (define (pi-resolve-provider-key provider auth-alist . opt)
       (let* ((p-str (if (symbol? provider) (symbol->string provider) provider))
+             (opt-env
+               (if (and (pair? opt) (pair? (car opt))) opt '())
+             ) ;opt-env
+             (opt-config-dir
+               (if (and (pair? opt) (pair? (cdr opt))) (cdr opt) '())
+             ) ;opt-config-dir
              (env-k (%resolve-provider-env-key p-str opt-env))
             ) ;
         (if env-k
@@ -227,6 +309,15 @@
           (let ((alias (%provider-alias p-str)))
             (or (%find-auth-key p-str auth-alist)
               (%find-auth-key alias auth-alist)
+              (let ((oauth-cred (or (pi-find-oauth-credential p-str auth-alist)
+                                  (pi-find-oauth-credential alias auth-alist)
+                                ) ;or
+                    ) ;oauth-cred
+                   ) ;
+                (and oauth-cred
+                  (%resolve-oauth-credential-key oauth-cred opt-env opt-config-dir)
+                ) ;and
+              ) ;let
               (cond ((string=? p-str "deepseek") (%resolve-deepseek-fallback opt-env))
                     ((string=? p-str "ollama") "ollama")
                     (else #f)
@@ -238,88 +329,93 @@
     ) ;define
 
     (define (%normalize-provider-key provider)
-      (cond
-       ((string? provider)
-        (let ((trimmed (string-trim-both provider)))
-          (if (string-null? trimmed)
-            (value-error "pi-save-auth-key: provider cannot be empty")
-            trimmed
-          ) ;if
-        ) ;let
-       ) ;
-       ((symbol? provider)
-        (let ((trimmed (string-trim-both (symbol->string provider))))
-          (if (string-null? trimmed)
-            (value-error "pi-save-auth-key: provider cannot be empty")
-            trimmed
-          ) ;if
-        ) ;let
-       ) ;
-       (else (type-error "pi-save-auth-key: provider must be a string or symbol"))
-      ) ;cond
+      (pi-auth-normalize-provider "pi-save-auth-key" provider)
     ) ;define
 
     (define (%normalize-auth-key key)
-      (if (not (string? key))
-        (type-error "pi-save-auth-key: key must be a string")
-        (let ((trimmed (string-trim-both key)))
-          (if (string-null? trimmed)
-            (value-error "pi-save-auth-key: key cannot be empty")
-            trimmed
-          ) ;if
-        ) ;let
-      ) ;if
+      (pi-auth-normalize-secret "pi-save-auth-key" "key" key)
     ) ;define
 
     (define (%update-auth-alist alist p-str key)
-      (let* ((filtered
-               (filter
-                 (lambda (entry)
-                   (not
-                     (string=? (if (symbol? (car entry)) (symbol->string (car entry)) (car entry))
-                       p-str
-                     ) ;string=?
-                   ) ;not
-                 ) ;lambda
-                 alist
-               ) ;filter
-             ) ;filtered
-             (new-entry (cons p-str (list (cons "type" "api_key") (cons "key" key))))
-            ) ;
-        (append filtered (list new-entry))
-      ) ;let*
+      (pi-auth-replace-entry alist
+        p-str
+        (list (cons "type" "api_key") (cons "key" key))
+      ) ;pi-auth-replace-entry
     ) ;define
 
     (define (pi-save-auth-key provider key . opt-config-dir)
       (let* ((p-str (%normalize-provider-key provider))
              (k-str (%normalize-auth-key key))
-             (dir-path
-               (path (if (and (pair? opt-config-dir) (car opt-config-dir))
-                       (car opt-config-dir)
-                       (path-join (path-home) ".gf" "agent")
-                     ) ;if
-               ) ;path
-             ) ;dir-path
-             (auth-file (path-join dir-path "auth.json"))
-             (auth-file-str (path->string auth-file))
+             (dir-path (pi-auth-dir-path opt-config-dir))
+             (auth-file-str (path->string (path-join dir-path "auth.json")))
              (existing (or (%read-json-file auth-file-str) '()))
              (existing-alist (if (pair? existing) existing '()))
              (updated (%update-auth-alist existing-alist p-str k-str))
-             (json-str (string-append (json->string updated :indent 2) "\n"))
-             (tmp-file (string-append auth-file-str ".tmp"))
             ) ;
-        (unless (path-exists? dir-path)
-          (path-mkdir dir-path :parents #t :exist-ok #t)
+        (pi-auth-write-json! dir-path updated)
+      ) ;let*
+    ) ;define
+
+    ;; 保存 oauth 凭据：{provider: {type:"oauth", access, refresh, expires
+    ;; [, region]}}，复用 pi-save-auth-key 的原子写策略（tmp + rename +
+    ;; chmod 0600）；region 为 #f 时不写（默认 host 不落 region，1402 §7）
+    (define (pi-save-auth-oauth! provider access refresh expires region . opt-config-dir)
+      (let* ((p-str (pi-auth-normalize-provider "pi-save-auth-oauth!" provider))
+             (a-str (pi-auth-normalize-secret "pi-save-auth-oauth!" "access" access))
+             (r-str (pi-auth-normalize-secret "pi-save-auth-oauth!" "refresh" refresh))
+             (dir-path (pi-auth-dir-path opt-config-dir))
+             (auth-file-str (path->string (path-join dir-path "auth.json")))
+             (existing (or (%read-json-file auth-file-str) '()))
+             (existing-alist (if (pair? existing) existing '()))
+            ) ;
+        (unless (number? expires)
+          (type-error "pi-save-auth-oauth!: expires must be a number")
         ) ;unless
-        (path-write-text (path tmp-file) json-str)
-        (when (path-exists? auth-file)
-          (path-unlink auth-file #t)
-        ) ;when
-        (path-rename (path tmp-file) auth-file)
-        (unless (os-windows?)
-          (catch #t (lambda () (g_chmod auth-file-str 384)) (lambda args #f))
+        (unless (> expires 0)
+          (value-error "pi-save-auth-oauth!: expires must be a positive number")
         ) ;unless
-        auth-file-str
+        (unless
+          (or (not region) (and (string? region) (not (string-null? region))))
+          (type-error "pi-save-auth-oauth!: region must be a non-empty string or #f")
+        ) ;unless
+        (pi-auth-write-json! dir-path
+          (pi-auth-replace-entry existing-alist
+            p-str
+            (append (list (cons "type" "oauth")
+                      (cons "access" a-str)
+                      (cons "refresh" r-str)
+                      (cons "expires" expires)
+                    ) ;list
+              (if region (list (cons "region" region)) '())
+            ) ;append
+          ) ;pi-auth-replace-entry
+        ) ;pi-auth-write-json!
+      ) ;let*
+    ) ;define
+
+    ;; 清除某 provider 的凭据条目（oauth 刷新失败 401/403/invalid_grant 时
+    ;; 调用，对应 pi Models 的凭据清除）；文件不存在时直接返回路径
+    (define (pi-remove-auth-provider! provider . opt-config-dir)
+      (let* ((p-str (pi-auth-normalize-provider "pi-remove-auth-provider!" provider))
+             (dir-path (pi-auth-dir-path opt-config-dir))
+             (auth-file-str (path->string (path-join dir-path "auth.json")))
+             (existing (%read-json-file auth-file-str))
+            ) ;
+        (if (pair? existing)
+          (pi-auth-write-json! dir-path
+            (filter
+              (lambda (entry)
+                (not
+                  (string=? (if (symbol? (car entry)) (symbol->string (car entry)) (car entry))
+                    p-str
+                  ) ;string=?
+                ) ;not
+              ) ;lambda
+              existing
+            ) ;filter
+          ) ;pi-auth-write-json!
+          auth-file-str
+        ) ;if
       ) ;let*
     ) ;define
   ) ;begin

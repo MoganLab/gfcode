@@ -57,7 +57,7 @@
       (let* ((config-dir (pi-cfg-config-dir cfg))
              (models-store (or (pi-cfg-ref cfg 'models-store) '()))
              (auth (pi-load-auth config-dir))
-             (api-key (pi-resolve-provider-key provider auth))
+             (api-key (pi-resolve-provider-key provider auth '() config-dir))
              (intent-provider (and (pair? intent) (%state-ref intent 'provider)))
              (meta (pi-ensure-catalog-meta (pi-resolve-model-metadata provider model-id models-store)
                      provider

@@ -38,6 +38,7 @@
     (liii pi tui interactive session-selector)
     (liii pi tui interactive login-selector)
     (liii pi tui interactive login-dialog)
+    (liii pi tui interactive login-device-code)
   ) ;import
   (begin
 
@@ -245,6 +246,9 @@
                                      (login-selector-cursor-position active-selector)
                                     ) ;
                                     ((login-dialog? active-selector) (login-dialog-cursor-position active-selector))
+                                    ((login-device-code? active-selector)
+                                     (login-device-code-cursor-position active-selector)
+                                    ) ;
                                     (else '(6 2))
                               ) ;cond
                          ) ;pos

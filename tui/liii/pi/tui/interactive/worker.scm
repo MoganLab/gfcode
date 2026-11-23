@@ -92,7 +92,7 @@
       (let* ((config-dir (pi-cfg-config-dir cfg))
              (models-store (pi-cfg-ref cfg 'models-store '()))
              (auth (pi-load-auth config-dir))
-             (api-key (pi-resolve-provider-key provider auth))
+             (api-key (pi-resolve-provider-key provider auth '() config-dir))
              (raw-meta (pi-resolve-model-metadata provider model-id models-store))
              (meta (pi-ensure-catalog-meta raw-meta provider model-id models-store))
              (supports (pi-model-supports-thinking? models-store provider model-id))
@@ -216,7 +216,10 @@
              ) ;dir
              (dir-str (if (string? dir) dir (path->string dir)))
              (cur-p (pi-cfg-ref cfg 'provider))
-             (new-key (and cur-p (pi-resolve-provider-key cur-p (pi-load-auth dir-str))))
+             (new-key (and cur-p
+                        (pi-resolve-provider-key cur-p (pi-load-auth dir-str) '() dir-str)
+                      ) ;and
+             ) ;new-key
             ) ;
         (%cfg-override cfg
           (list (cons 'models-store (pi-build-user-catalog dir-str))

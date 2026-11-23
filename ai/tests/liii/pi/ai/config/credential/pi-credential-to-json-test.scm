@@ -33,4 +33,24 @@
 (check-catch 'type-error (pi-credential->json '(("provider" . "openai"))))
 (check-catch 'type-error (pi-credential->json "invalid"))
 
+;; oauth 分支：输出 type/access/refresh/expires，region 有值才写
+(let* ((c (pi-credential "kimi-coding" #f "oauth" "acc" "ref" 1893456000000 #f))
+       (j (pi-credential->json c))
+       (parsed (string->json (json->string j)))
+      ) ;
+  (check (cdr (assoc "type" parsed)) => "oauth")
+  (check (cdr (assoc "access" parsed)) => "acc")
+  (check (cdr (assoc "refresh" parsed)) => "ref")
+  (check (cdr (assoc "expires" parsed)) => 1893456000000)
+  (check (assoc "region" parsed) => #f)
+  (check (assoc "key" parsed) => #f)
+) ;let*
+
+;; oauth + region：region 落盘
+(let* ((c (pi-credential "kimi-coding" #f "oauth" "acc" "ref" 1893456000000 "https://auth.kimi.ai"))
+       (parsed (string->json (json->string (pi-credential->json c))))
+      ) ;
+  (check (cdr (assoc "region" parsed)) => "https://auth.kimi.ai")
+) ;let*
+
 (check-report)

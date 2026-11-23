@@ -287,9 +287,10 @@
                          (pi-load-auth config-dir)
                        ) ;if
                  ) ;auth
+                 ;; 尾参 config-dir：oauth 凭据过期时透明刷新的落盘目录
                  (api-key-raw (if (pair? opt-env)
-                                (pi-resolve-provider-key provider auth (car opt-env))
-                                (pi-resolve-provider-key provider auth)
+                                (pi-resolve-provider-key provider auth (car opt-env) config-dir-str)
+                                (pi-resolve-provider-key provider auth '() config-dir-str)
                               ) ;if
                  ) ;api-key-raw
                  (api-key api-key-raw)

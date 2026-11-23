@@ -32,6 +32,7 @@
     (liii pi tui interactive common)
     (liii pi tui interactive footer)
     (liii pi tui interactive app-recovery)
+    (liii pi tui interactive app-login)
   ) ;import
   (begin
 
@@ -284,6 +285,9 @@
              (pi-app-add-tool-result! app "session" '() 'error (cadr ev))
             ) ;
             ((branch_changed) (%pi-app-handle-branch-changed! app ev))
+            ;; Kimi Code OAuth 设备码登录：device_code 上屏、done 落盘/报错
+            ((kimi_oauth_device_code) (pi-app-handle-oauth-device-code! app ev))
+            ((kimi_oauth_done) (pi-app-handle-oauth-done! app ev))
             ((tool_execution_start)
              (%pi-app-close-assistant-card! app)
              (%pi-app-handle-tool-start! app ev)
