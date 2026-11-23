@@ -38,6 +38,35 @@
             (else #f)
       ) ;cond
     ) ;define
+
+    (define (%token-tail s)
+      (if (and (string? s) (> (string-length s) 0))
+        (let ((n (string-length s)))
+          (substring s (max 0 (- n 4)) n)
+        ) ;let
+        ""
+      ) ;if
+    ) ;define
+
+    (define (%oauth-refresh-result-desc next)
+      (cond ((string? next) (string-append "ok new-token=..." (%token-tail next)))
+            ((eq? next 'unauthorized) "unauthorized")
+            (else "none")
+      ) ;cond
+    ) ;define
+
+    (define (%log-oauth-401 provider attempt api-key next)
+      (pi-log-error! (string-append "[oauth-401] provider="
+                       (or provider "")
+                       " attempt="
+                       (number->string attempt)
+                       " old-token=..."
+                       (%token-tail api-key)
+                       " refresh="
+                       (%oauth-refresh-result-desc next)
+                     ) ;string-append
+      ) ;pi-log-error!
+    ) ;define
     (define (%build-stream-cb stream-state on-event effective-idle on-idle on-abort err-acc)
       (let* ((last-act (pi-current-monotonic-seconds))
              (decoder (make-openai-stream-decoder stream-state on-event))
@@ -244,7 +273,7 @@
                      ) ;
                     ) ;
           (let loop
-            ((attempt 1) (api-key (pi-request-api-key config)))
+            ((attempt 1) (api-key (pi-request-api-key config)) (refreshed-once? #f))
             (let* ((extra-hdrs (%openai-extra-headers url provider session-id config settings))
                    (headers (openai-build-headers api-key extra-hdrs))
                    (stream-state (%init-openai-stream-state))
@@ -308,7 +337,7 @@
                      (let ((next (pi-rotate-api-key! config api-key status)))
                        (if (eq? next 'exhausted)
                          (%make-stream-error status resp err-acc provider model-id)
-                         (loop 1 next)
+                         (loop 1 next refreshed-once?)
                        ) ;if
                      ) ;let
                     ) ;
@@ -322,10 +351,21 @@
                              ) ;
                          (pi-log-retry retry-status attempt provider-r delay-sec ra-sec)
                          (sleep delay-sec)
-                         (loop (+ attempt 1) api-key)
+                         (loop (+ attempt 1) api-key refreshed-once?)
                        ) ;let*
                        (%make-stream-error status resp err-acc provider model-id)
                      ) ;if
+                    ) ;
+                    ;; 1404：oauth 凭据收到 401 后强制刷新重试一次（仅一次）；
+                    ;; refresh 失败（401/403/invalid_grant）凭据已清除，走 401 报错提示重 /login。
+                    ((and (= status 401) (pi-oauth-refresh-enabled? config) (not refreshed-once?))
+                     (let ((next (pi-refresh-oauth-key! config api-key)))
+                       (%log-oauth-401 provider attempt api-key next)
+                       (if (string? next)
+                         (loop 1 next #t)
+                         (%make-stream-error status resp err-acc provider model-id)
+                       ) ;if
+                     ) ;let
                     ) ;
                     ((or (zero? status) (not (= status 200)))
                      (%make-stream-error status resp err-acc provider model-id)

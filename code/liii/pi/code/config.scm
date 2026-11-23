@@ -19,6 +19,7 @@
     (liii pi code cli args)
     (liii pi code core tools)
     (liii pi ai auth)
+    (liii pi ai auth oauth resolve)
     (liii pi ai models)
     (liii pi ai thinking)
     (liii pi ai providers registry)
@@ -331,39 +332,90 @@
                           ) ;if
                  ) ;headers
                 ) ;
-            (pi-cfg-set (make-pi-config
-                          :agent-dir  agent-dir
-                          :config-dir config-dir
-                          :provider   provider
-                          :provider-api
-                          ;; 模型文件里可声明 api（如 deepseek 走 openai-completions）；
-                          ;; 未声明时回退 provider 级配置。provider 文件的 baseUrl 与
-                          ;; models/<provider>/<model>.json 的 baseUrl 由 user-models.scm 的
-                          ;; %compose-model 按字段合并，模型文件优先。
-                          (%resolve-provider-api models-store provider model-id)
-                          :api-key                  api-key
-                          :model-id                 model-id
-                          :model-meta               meta
-                          :models-store             models-store
-                          :thinking-level           thinking-level
-                          :thinking-level-explicit? cli-thinking-explicit?
-                          :thinking-level-source
-                          (if cli-thinking-explicit? 'cli 'default)
-                          :supports-thinking    supports-thinking
-                          :cli-proxy            cli-proxy
-                          :proxy-url            proxy-url
-                          :tools                tools
-                          :tool-resolver        get-tool-definition
-                          :execute-tool-call    execute-tool-call
-                          :emit-extension-event (%make-extension-emitter)
-                          :settings             settings
-                        ) ;make-pi-config
-              'headers
-              headers
-            ) ;pi-cfg-set
+            (let ((base-cfg (pi-cfg-set (make-pi-config
+                                          :agent-dir  agent-dir
+                                          :config-dir config-dir
+                                          :provider   provider
+                                          :provider-api
+                                          ;; 模型文件里可声明 api（如 deepseek 走 openai-completions）；
+                                          ;; 未声明时回退 provider 级配置。provider 文件的 baseUrl 与
+                                          ;; models/<provider>/<model>.json 的 baseUrl 由 user-models.scm 的
+                                          ;; %compose-model 按字段合并，模型文件优先。
+                                          (%resolve-provider-api models-store provider model-id)
+                                          :api-key        api-key
+                                          :model-id       model-id
+                                          :model-meta     meta
+                                          :models-store   models-store
+                                          :thinking-level thinking-level
+                                          :thinking-level-explicit?
+                                          cli-thinking-explicit?
+                                          :thinking-level-source
+                                          (if cli-thinking-explicit? 'cli 'default)
+                                          :supports-thinking supports-thinking
+                                          :cli-proxy         cli-proxy
+                                          :proxy-url         proxy-url
+                                          :tools             tools
+                                          :tool-resolver     get-tool-definition
+                                          :execute-tool-call execute-tool-call
+                                          :emit-extension-event
+                                          (%make-extension-emitter)
+                                          :settings settings
+                                        ) ;make-pi-config
+                              'headers
+                              headers
+                            ) ;pi-cfg-set
+                  ) ;base-cfg
+                 ) ;
+              ;; 1404：若 provider 在 auth.json 有 oauth 凭据，注入 refresh-oauth-key
+              ;; 钩子，供请求层收到 401 后强制刷新重试一次。无 oauth 凭据不注入
+              ;; （非 oauth provider 的 401 按现状失败）。钩子返回新 access / 'unauthorized / #f。
+              (if (pi-has-oauth-credential? provider auth)
+                (let ((captured-env (if (pair? opt-env) (car opt-env) '()))
+                      (captured-dir config-dir-str)
+                     ) ;
+                  (pi-cfg-set base-cfg
+                    'refresh-oauth-key
+                    (%make-refresh-oauth-hook captured-env captured-dir)
+                  ) ;pi-cfg-set
+                ) ;let
+                base-cfg
+              ) ;if
+            ) ;let
           ) ;let*
         ) ;let-values
       ) ;let*
+    ) ;define
+
+    ;; 1404：构造 401 后强制刷新 oauth 凭据的闭包钩子。落盘/清除回调
+    ;; 注入 auth.json 目录（captured-dir），env 表 captured-env 透传。
+    (define (%make-refresh-oauth-hook captured-env captured-dir)
+      (lambda (cfg current-key)
+        (let* ((p (pi-cfg-ref cfg 'provider #f))
+               (creds (if (pair? captured-env)
+                        (pi-load-auth captured-dir captured-env)
+                        (pi-load-auth captured-dir)
+                      ) ;if
+               ) ;creds
+               (cred (pi-find-oauth-credential p creds))
+              ) ;
+          (if cred
+            (pi-force-refresh-oauth-credential-key cred
+              (if (pair? captured-env) captured-env '())
+              (lambda (c)
+                (pi-save-auth-oauth! (pi-credential-provider c)
+                  (pi-credential-access c)
+                  (pi-credential-refresh c)
+                  (pi-credential-expires c)
+                  (pi-credential-region c)
+                  captured-dir
+                ) ;pi-save-auth-oauth!
+              ) ;lambda
+              (lambda (pp) (pi-remove-auth-provider! pp captured-dir))
+            ) ;pi-force-refresh-oauth-credential-key
+            #f
+          ) ;if
+        ) ;let*
+      ) ;lambda
     ) ;define
     (define resolve-goldpi-config resolve-pi-config)
 

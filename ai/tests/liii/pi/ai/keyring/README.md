@@ -22,3 +22,7 @@ gf doc pi-request-api-key
 - `pi-request-api-key` - 获取本次请求使用的 API 密钥
 - `pi-key-rotation?` - 检查配置是否支持自动换 key
 - `pi-rotate-api-key!` - 触发密钥轮换钩子获取新密钥
+
+### OAuth 401 强制刷新回退
+- `pi-oauth-refresh-enabled?` - 检查配置是否启用 401 后 OAuth 强制刷新
+- `pi-refresh-oauth-key!` - 触发 OAuth 强制刷新钩子获取新 access token

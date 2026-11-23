@@ -17,6 +17,8 @@
   (export pi-find-oauth-credential pi-resolve-oauth-credential-key
     ;; go worker 会话重求值调用链上的助手须导出
     %pi-refresh-oauth-credential!
+    ;; 1404：请求层收到 401 后的强制刷新（不查 expires）与凭据探测
+    pi-force-refresh-oauth-credential-key pi-has-oauth-credential?
   ) ;export
   (begin
 
@@ -88,6 +90,20 @@
           (%pi-refresh-oauth-credential! cred opt-env save! remove!)
         ) ;if
       ) ;let
+    ) ;define
+
+    ;; 1404：强制刷新（不查 expires），供请求层收到 401 后回退使用。
+    ;; 语义与 pi-resolve-oauth-credential-key 的过期分支一致，仅省略 expires
+    ;; 判断：直接走 %pi-refresh-oauth-credential!，成功落盘返回新 access，
+    ;; 401/403/invalid_grant 经 remove! 清除并返回 #f，其余失败保留凭据返回 #f。
+    (define (pi-force-refresh-oauth-credential-key cred opt-env save! remove!)
+      (%pi-refresh-oauth-credential! cred opt-env save! remove!)
+    ) ;define
+
+    ;; 1404：在凭据列表中探测 provider 是否有 oauth 凭据，供 config 注入
+    ;; refresh-oauth-key 钩子时判定（无 oauth 凭据则不注入，401 按现状失败）
+    (define (pi-has-oauth-credential? target auth-list)
+      (and (pi-find-oauth-credential target auth-list) #t)
     ) ;define
 
   ) ;begin
