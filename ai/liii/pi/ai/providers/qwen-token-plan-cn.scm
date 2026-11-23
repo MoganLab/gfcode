@@ -13,8 +13,10 @@
 ;;     团队订阅变量 QWEN_TOKEN_PLAN_TEAM_CN_API_KEY 优先，回退区域共享变量
 ;;     QWEN_TOKEN_PLAN_CN_API_KEY
 ;; - 思考格式为 qwen：注入 enable_thinking（布尔）+ 可选 reasoning_effort
-;; - 内置模型清单为上游 qwen-token-plan-models.test.ts 固定的团队版 TEXT_MODELS
-;;   快照（仅保留 qwen3.8 系列，不含已退役模型）
+;; - 内置模型清单以上游 qwen-token-plan-models.test.ts 固定的团队版 TEXT_MODELS
+;;   快照为基础（仅保留 qwen3.8 系列，不含已退役模型），并补充阿里云百炼新上线
+;;   的 qwen4-max / deepseek-v4.1-flash / glm-5.3-prime / kimi-k3.1-pro-prime
+;;   （models.dev 尚未收录前三者，其 reasoning effort 与上下文规格对齐同族基线）
 ;; - 额度耗尽识别：上游未注册专门 quota handler，初版同样不识别，429 仍按可
 ;;   重试处理（待拿到真实 429 业务码后再补码表）
 
@@ -98,6 +100,24 @@
           ("high" . "high")
           ("xhigh" . null)
           ("max" . "max")))
+        ;; 阿里云百炼新上线：DeepSeek V4.1 Flash（对齐 models.dev
+        ;; alibaba-token-plan-cn 的 reasoning effort ['low','high','max'] 与上下文规格）
+        (("id" . "deepseek-v4.1-flash")
+         ("name" . "DeepSeek V4.1 Flash")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("contextWindow" . 1000000)
+         ("maxTokens" . 384000)
+         ("reasoning" . #t)
+         ("input" "text" "image")
+         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
+         ("thinkingLevelMap"
+          ("minimal" . null)
+          ("low" . "low")
+          ("medium" . null)
+          ("high" . "high")
+          ("xhigh" . null)
+          ("max" . "max")))
         (("id" . "glm-5")
          ("name" . "GLM-5")
          ("baseUrl"
@@ -146,6 +166,24 @@
           ("high" . "high")
           ("xhigh" . null)
           ("max" . "max")))
+        ;; 阿里云百炼新上线：GLM-5.3 Prime（Prime 通道，reasoning effort 对齐
+        ;; 同族 glm-5.3 的 ['low','high','max']，上下文规格沿用 glm-5.3）
+        (("id" . "glm-5.3-prime")
+         ("name" . "GLM-5.3 Prime")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("contextWindow" . 1000000)
+         ("maxTokens" . 131072)
+         ("reasoning" . #t)
+         ("input" "text")
+         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
+         ("thinkingLevelMap"
+          ("minimal" . null)
+          ("low" . "low")
+          ("medium" . null)
+          ("high" . "high")
+          ("xhigh" . null)
+          ("max" . "max")))
         (("id" . "kimi-k2.5")
          ("name" . "Kimi K2.5")
          ("baseUrl"
@@ -173,6 +211,24 @@
          ("reasoning" . #t)
          ("input" "text" "image")
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #f)))
+        ;; 阿里云百炼新上线：Kimi K3.1 Pro Prime（Prime 通道，always-on 思考；
+        ;; reasoning effort ['low','high','max']，1M 上下文 + 多模态输入）
+        (("id" . "kimi-k3.1-pro-prime")
+         ("name" . "Kimi K3.1 Pro Prime")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("contextWindow" . 1048576)
+         ("maxTokens" . 32768)
+         ("reasoning" . #t)
+         ("input" "text" "image")
+         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
+         ("thinkingLevelMap"
+          ("minimal" . null)
+          ("low" . "low")
+          ("medium" . null)
+          ("high" . "high")
+          ("xhigh" . null)
+          ("max" . "max")))
         (("id" . "qwen3.8-flash")
          ("name" . "Qwen3.8 Flash")
          ("baseUrl"
@@ -195,6 +251,24 @@
           . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
          ("contextWindow" . 1000000)
          ("maxTokens" . 131072)
+         ("reasoning" . #t)
+         ("input" "text" "image")
+         ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
+         ("thinkingLevelMap"
+          ("minimal" . null)
+          ("low" . "low")
+          ("medium" . "medium")
+          ("high" . null)
+          ("xhigh" . "xhigh")
+          ("max" . null)))
+        ;; 阿里云百炼新上线：Qwen4 Max 旗舰（qwen4-max-preview 的正式版，
+        ;; reasoning effort ['low','medium','xhigh']，对齐 qwen3.8 系列映射）
+        (("id" . "qwen4-max")
+         ("name" . "Qwen4 Max")
+         ("baseUrl"
+          . "https://token-plan.maas.qianwenaiapi.com/compatible-mode/v1")
+         ("contextWindow" . 1000000)
+         ("maxTokens" . 262144)
          ("reasoning" . #t)
          ("input" "text" "image")
          ("compat" ("thinkingFormat" . "qwen") ("supportsReasoningEffort" . #t))
