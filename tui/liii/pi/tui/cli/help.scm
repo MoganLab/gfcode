@@ -58,8 +58,7 @@
           Retry:
             Retriable provider errors (429/5xx/408/409/network) use the budget from
             retry.provider.maxRetries in the agent config directory
-            (~/.gf/agent/settings.json when that directory exists,
-            otherwise ~/.pi/agent/settings.json),
+            (~/.gf/agent/settings.json),
             falling back to retry.maxRetries when the nested section is absent.
           ""
                      ) ;&-

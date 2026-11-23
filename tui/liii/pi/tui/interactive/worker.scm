@@ -32,6 +32,7 @@
     (liii pi code session-state)
     (liii pi ai retry)
     (liii pi code core extension-notify)
+    (liii pi code core extensions)
     (liii pi tui interactive worker-emit)
     (liii pi tui interactive worker-model)
     (liii pi code modes flow)
@@ -412,14 +413,16 @@
                (follow-up-chan #f)
                (request-selection-chan #f)
              ) ;pi-tui-agent-worker
+      (pi-load-extensions (pi-discover-extensions :include-builtin? #f)
+        (default-extension-registry)
+      ) ;pi-load-extensions
       (let* ((parsed (parse-pi-args (cdr (command-line))))
              (cfg (augment-pi-config (resolve-pi-config parsed (get-environment-variables))
                     parsed
                   ) ;augment-pi-config
              ) ;cfg
              (sfile-box (vector initial-session-file))
-             ;; 贯穿本 Worker 生命周期的 effective-cfg 状态：
-             ;; 不随每个 job 回退到初始 cfg，运行中切模后保留最新选择
+             ;; 贯穿本 worker 生命周期的 effective-cfg：切模后保留最新选择
              (eff-box (pi-make-effective-cfg-box cfg))
             ) ;
         (set-pi-retry-logger! (lambda (msg) (pi-tui-send-event! event-chan (list 'retry msg)))

@@ -124,7 +124,7 @@
     ) ;define
 
     ;; 默认技能目录：gf 配置目录（GF_CONFIG_DIR → ~/.gf/agent）优先，
-    ;; pi agent 目录（PI_CODING_AGENT_DIR → ~/.pi/agent）兼容，
+    ;; pi agent 目录（PI_CODING_AGENT_DIR → ~/.gf/agent）作为可覆盖层，
     ;; 项目级仅查当前目录 .pi/skills（对齐上游）
     (define (%collect-default-dirs cwd)
       (filter string?

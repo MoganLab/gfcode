@@ -122,7 +122,7 @@
       ) ;let
     ) ;define
 
-    ;; JSON 配置文件目录：~/.gf/agent 存在时优先，否则 ~/.pi/agent
+    ;; JSON 配置文件目录：固定 ~/.gf/agent（不再回退 ~/.pi/agent）
     (define (%config-dir-from env)
       (catch #t
         (lambda ()

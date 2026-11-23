@@ -23,7 +23,7 @@
     (liii pi code core tools truncate)
   ) ;import
   (export pi-read-schema pi-execute-read pi-arg-ref pi-resolve-path pi-abs-path
-    pi-keyword-value pi-get-agent-dir pi-int-arg
+    pi-keyword-value pi-get-agent-dir gf-get-config-dir pi-int-arg
   ) ;export
   (begin
 
@@ -77,8 +77,8 @@
     ) ;define
 
     ;; agent 目录：会话（sessions/）、扩展（extensions/）等非 JSON 配置的默认位置
-    ;; 默认为 ~/.pi/agent：gf pi 与 node 版 pi 共享会话历史与扩展，
-    ;; 不随 JSON 配置目录（~/.gf/agent）迁移
+    ;; 默认为 ~/.gf/agent：会话历史（sessions/）与扩展（extensions/）统一归属
+    ;; JSON 配置目录（~/.gf/agent），不再兼容 node 版 pi 的 ~/.pi/agent。
     ;; 返回 path 对象
     (define (pi-get-agent-dir . opt-dir)
       (let ((custom (and (pair? opt-dir) (car opt-dir)))
@@ -91,7 +91,35 @@
          ((and (string? env-dir) (not (string-null? (string-trim-both env-dir))))
           (pi-abs-path env-dir)
          ) ;
-         (else (pi-abs-path "~/.pi/agent"))
+         (else (pi-abs-path "~/.gf/agent"))
+        ) ;cond
+      ) ;let
+    ) ;define
+
+    ;; JSON 配置文件目录：settings.json / auth.json / models/providers.json /
+    ;; models/（provider 与模型配置）/ models-store.json / web-search.json 等所在目录。
+    ;; 优先级：显式目录参数 > GF_CONFIG_DIR > PI_CODING_AGENT_DIR
+    ;;         > ~/.gf/agent
+    ;; 返回绝对路径（path 对象）；会话目录（sessions/）与扩展目录（extensions/）
+    ;; 仍归属 agent 目录（pi-get-agent-dir），后者默认亦为 ~/.gf/agent。
+    ;; 下沉至此模块以避免 (liii pi code config) 与 (liii pi code cli args) 之间的
+    ;; 循环导入（discovery 经由 config 间接依赖 args，args 又依赖 discovery）。
+    (define (gf-get-config-dir . opt-dir)
+      (let ((custom (and (pair? opt-dir) (car opt-dir)))
+            (env-gf (get-environment-variable "GF_CONFIG_DIR"))
+            (env-pi (get-environment-variable "PI_CODING_AGENT_DIR"))
+           ) ;
+        (cond
+         ((and (string? custom) (not (string-null? (string-trim-both custom))))
+          (pi-abs-path custom)
+         ) ;
+         ((and (string? env-gf) (not (string-null? (string-trim-both env-gf))))
+          (pi-abs-path env-gf)
+         ) ;
+         ((and (string? env-pi) (not (string-null? (string-trim-both env-pi))))
+          (pi-abs-path env-pi)
+         ) ;
+         (else (pi-abs-path "~/.gf/agent"))
         ) ;cond
       ) ;let
     ) ;define
