@@ -262,38 +262,18 @@
       ) ;and
     ) ;define
 
-    ;; oauth 凭据 → access token：未过期直接返回，过期透明刷新并落盘；
-    ;; config-dir 缺失时回退默认配置目录（落盘/清除回调注入 resolve 层，
-    ;; 避免循环依赖）
+    ;; 配置解析只返回凭据快照中的 access，不在启动/切模时联网刷新。
+    ;; 请求前的 request-oauth-key 钩子统一检查 expires 并更新内存 store。
     (define (%resolve-oauth-credential-key cred opt-env opt-config-dir)
-      (let ((dir
-              (or (and (pair? opt-config-dir) (car opt-config-dir))
-                (path->string (path-join (path-home) ".gf" "agent"))
-              ) ;or
-            ) ;dir
-           ) ;
-        (pi-resolve-oauth-credential-key cred
-          opt-env
-          (lambda (c)
-            (pi-save-auth-oauth! (pi-credential-provider c)
-              (pi-credential-access c)
-              (pi-credential-refresh c)
-              (pi-credential-expires c)
-              (pi-credential-region c)
-              dir
-            ) ;pi-save-auth-oauth!
-          ) ;lambda
-          (lambda (p) (pi-remove-auth-provider! p dir))
-        ) ;pi-resolve-oauth-credential-key
-      ) ;let
+      (pi-credential-access cred)
     ) ;define
 
-    ;; 解析服务商生效密钥。opt 尾参兼容两种形态：
-    ;;   (provider auth-alist)                      旧形态
-    ;;   (provider auth-alist env)                  env 为 '((name . val) ...)
-    ;;   (provider auth-alist env config-dir)       新增：oauth 刷新落盘目录
-    ;; oauth 凭据：access 未过期直接返回，过期透明刷新（见
-    ;; %resolve-oauth-credential-key）；env API Key 优先于一切 auth 条目
+    ;; 解析服务商生效密钥。opt 尾参兼容旧调用形态：
+    ;;   (provider auth-alist)
+    ;;   (provider auth-alist env)
+    ;;   (provider auth-alist env config-dir)
+    ;; oauth 仅返回内存快照中的 access；请求前由动态钩子按需刷新。
+    ;; env API Key 优先于一切 auth 条目。
     (define (pi-resolve-provider-key provider auth-alist . opt)
       (let* ((p-str (if (symbol? provider) (symbol->string provider) provider))
              (opt-env

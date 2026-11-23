@@ -6,9 +6,7 @@
 
 (define-library (liii pi ai config runtime)
   (import (scheme base) (liii base) (liii list))
-  (export pi-config? make-pi-config pi-cfg-ref pi-cfg-set pi-cfg-api-key-set!
-    pi-cfg-merge
-  ) ;export
+  (export pi-config? make-pi-config pi-cfg-ref pi-cfg-set pi-cfg-merge)
   (begin
 
     (define*-record-type <pi-config>
@@ -172,25 +170,6 @@
           (cons (cons key val) (filter (lambda (p) (not (eq? (car p) key))) base))
         ) ;let
       ) ;if
-    ) ;define
-
-    ;; OAuth 刷新后须更新本次请求及其后续请求共享的配置对象。
-    ;; 与 pi-cfg-set 的持久化副本语义不同，此过程专门用于短期存活的
-    ;; access token，原地更新 record 或 alist 中的 api-key。
-    (define (pi-cfg-api-key-set! cfg api-key)
-      (cond ((pi-config? cfg) (%set-pi-config-api-key! cfg api-key))
-            ((pair? cfg)
-             (let ((pair (assoc 'api-key cfg)))
-               (if pair
-                 (set-cdr! pair api-key)
-                 (error 'pi-config-error "pi-cfg-api-key-set!: api-key entry is missing")
-               ) ;if
-             ) ;let
-            ) ;
-            (else (error 'pi-config-error "pi-cfg-api-key-set!: expected pi-config or alist")
-            ) ;else
-      ) ;cond
-      api-key
     ) ;define
 
     (define (pi-cfg-merge cfg overrides)

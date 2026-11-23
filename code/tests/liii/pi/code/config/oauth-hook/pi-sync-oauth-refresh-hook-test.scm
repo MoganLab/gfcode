@@ -92,7 +92,11 @@
 (let ((cfg (pi-sync-oauth-refresh-hook (make-cfg "kimi-coding") '())))
   (check-false (pi-oauth-refresh-enabled? cfg))
   (write-auth! (oauth-json (+ (pi-current-time-millis) 3600000)))
-  (check-true (pi-oauth-refresh-enabled? (pi-sync-oauth-refresh-hook cfg '())))
+  (check-true
+    (pi-oauth-refresh-enabled?
+      (pi-sync-oauth-refresh-hook (pi-cfg-set cfg 'oauth-store #f) '())
+    ) ;pi-oauth-refresh-enabled?
+  ) ;check-true
 ) ;let
 
 ;; 5. 无 auth.json：不注入且不抛异常

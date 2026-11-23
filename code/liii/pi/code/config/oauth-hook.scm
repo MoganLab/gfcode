@@ -4,89 +4,103 @@
 ;; Licensed under the MIT License
 ;;
 
-;; 1404：oauth 401 强制刷新钩子的构造与按 provider 重同步。
-;; resolve-pi-config 初始注入，以及会话内切模（含同 provider）/
-;; /login 后 reload 时都须调用 pi-sync-oauth-refresh-hook：
-;; 钩子闭包捕获 provider 无关的 env/dir，按 cfg 当前 provider 现查
-;; auth.json，有 oauth 凭据则注入，无则移除旧钩子（避免切到非
-;; oauth provider 后残留钩子误刷新）。
+;; OAuth 凭据在独立的内存 store 中维护，请求配置保持副本语义。
+;; 初始 sync 从 auth.json 载入 store；每次请求动态读取 access token，
+;; 过期或收到 401 时刷新并仅更新内存，不写 auth.json。
 (define-library (liii pi code config oauth-hook)
   (import (scheme base)
     (scheme process-context)
     (liii path)
     (liii pi ai auth)
-    ;; save!/remove! 闭包经 procedure-source 在 go worker 会话重建求值，
-    ;; pi-credential-* 访问器须随本库进入会话活动库列表，否则 save! 抛
-    ;; unbound 被吞、新 token 不落盘（下次启动仍用旧 token 反复 401）
     (liii pi ai config credential)
     (liii pi ai auth oauth resolve)
+    (liii pi ai auth oauth store)
     (liii pi ai config runtime)
+    (liii pi ai time)
   ) ;import
-  (export pi-make-refresh-oauth-hook pi-sync-oauth-refresh-hook)
+  (export pi-make-refresh-oauth-hook pi-sync-oauth-refresh-hook
+    pi-make-request-oauth-key-hook pi-oauth-store-for-config
+  ) ;export
   (begin
 
-    ;; 构造 401 后强制刷新 oauth 凭据的闭包钩子。落盘/清除回调
-    ;; 注入 auth.json 目录（captured-dir），env 表 captured-env 透传。
-    (define (pi-make-refresh-oauth-hook captured-env captured-dir)
-      (lambda (cfg current-key)
-        (let* ((p (pi-cfg-ref cfg 'provider #f))
-               (creds (if (pair? captured-env)
-                        (pi-load-auth captured-dir captured-env)
-                        (pi-load-auth captured-dir)
-                      ) ;if
-               ) ;creds
-               (cred (pi-find-oauth-credential p creds))
-              ) ;
-          (if cred
-            (let ((next
-                    (pi-force-refresh-oauth-credential-key cred
-                      (if (pair? captured-env) captured-env '())
-                      (lambda (c)
-                        (pi-save-auth-oauth! (pi-credential-provider c)
-                          (pi-credential-access c)
-                          (pi-credential-refresh c)
-                          (pi-credential-expires c)
-                          (pi-credential-region c)
-                          captured-dir
-                        ) ;pi-save-auth-oauth!
-                      ) ;lambda
-                      (lambda (pp) (pi-remove-auth-provider! pp captured-dir))
-                    ) ;pi-force-refresh-oauth-credential-key
-                  ) ;next
-                 ) ;
-              ;; 当前 401 重试和后续请求都必须使用刷新后的 access token；
-              ;; 否则每次请求都会带着旧 token 再触发一次 401/refresh。
-              (when (string? next)
-                (pi-cfg-api-key-set! cfg next)
-              ) ;when
-              next
-            ) ;let
-            #f
+    (define (pi-oauth-store-for-config cfg captured-env captured-dir)
+      (or (pi-cfg-ref cfg 'oauth-store #f)
+        (pi-make-oauth-store
+          (if (pair? captured-env)
+            (pi-load-auth captured-dir captured-env)
+            (pi-load-auth captured-dir)
           ) ;if
+        ) ;or
+      ) ;let
+    ) ;define
+
+    (define (%refresh! store cred captured-env)
+      (let ((next (pi-force-refresh-oauth-credential-key cred
+                    captured-env
+                    (lambda (c) (pi-oauth-store-set! store c))
+                    (lambda (p) (pi-oauth-store-remove! store p))
+                  ) ;pi-force-refresh-oauth-credential-key
+            ) ;next
+           ) ;
+        next
+      ) ;let
+    ) ;define
+
+    ;; 每次新请求解析 key。配置副本可共享 store，但 store 不依赖配置身份；
+    ;; 未过期直接返回 access，过期时透明刷新并替换内存中的完整凭据。
+    (define (pi-make-request-oauth-key-hook captured-env captured-dir)
+      (lambda (cfg)
+        (let* ((p (pi-cfg-ref cfg 'provider #f))
+               (store (pi-oauth-store-for-config cfg captured-env captured-dir))
+               (cred (and p (pi-oauth-store-ref store p)))
+              ) ;
+          (and cred
+            (let ((access (pi-credential-access cred))
+                  (expires (pi-credential-expires cred))
+                 ) ;
+              (if (and access expires (> expires (+ (pi-current-time-millis) 60000)))
+                access
+                (%refresh! store cred captured-env)
+              ) ;if
+            ) ;let
+          ) ;and
         ) ;let*
       ) ;lambda
     ) ;define
 
-    ;; 按 cfg 当前 provider 同步 refresh-oauth-key 钩子：
-    ;; 有 oauth 凭据 → 注入（覆盖旧钩子，目录取 cfg 现值）；
-    ;; 无 → 置 #f 移除残留钩子（非 oauth provider 的 401 按现状失败）。
-    ;; opt-env 为 (env-alist) 形式，缺省取当前进程环境变量。
+    ;; 401 后强制刷新：只更新内存 store，不修改请求配置，也不落盘。
+    (define (pi-make-refresh-oauth-hook captured-env captured-dir)
+      (lambda (cfg current-key)
+        (let* ((p (pi-cfg-ref cfg 'provider #f))
+               (store (pi-oauth-store-for-config cfg captured-env captured-dir))
+               (cred (and p (pi-oauth-store-ref store p)))
+              ) ;
+          (and cred (%refresh! store cred captured-env))
+        ) ;let*
+      ) ;lambda
+    ) ;define
+
+    ;; 按 cfg 当前 provider 同步 request-oauth-key / refresh-oauth-key。
+    ;; 初始无 store 时从 auth.json 初始化；切模复制配置会保留同一 store，
+    ;; /login 后 reload 移除旧 store 并重新载入登录后的 auth.json。
     (define (pi-sync-oauth-refresh-hook cfg . opt-env)
       (let* ((env (if (pair? opt-env) (car opt-env) (get-environment-variables)))
-             ;; 与 pi-cfg-config-dir 同义：优先 config-dir，缺失回退 agent-dir
-             ;; （就地取避免引入 (liii pi code config) 循环依赖）
              (dir (or (pi-cfg-ref cfg 'config-dir) (pi-cfg-ref cfg 'agent-dir)))
              (dir-str (if (path? dir) (path->string dir) dir))
              (provider (pi-cfg-ref cfg 'provider #f))
-             (creds (pi-load-auth dir-str env))
+             (store (pi-oauth-store-for-config cfg env dir-str))
+             (cred (and provider (pi-oauth-store-ref store provider)))
             ) ;
-        (pi-cfg-set cfg
-          'refresh-oauth-key
-          (if (pi-has-oauth-credential? provider creds)
-            (pi-make-refresh-oauth-hook env dir-str)
-            #f
-          ) ;if
-        ) ;pi-cfg-set
+        (pi-cfg-merge cfg
+          (list (cons 'oauth-store store)
+            (cons 'request-oauth-key
+              (if cred (pi-make-request-oauth-key-hook env dir-str) #f)
+            ) ;cons
+            (cons 'refresh-oauth-key
+              (if cred (pi-make-refresh-oauth-hook env dir-str) #f)
+            ) ;cons
+          ) ;list
+        ) ;pi-cfg-merge
       ) ;let*
     ) ;define
 

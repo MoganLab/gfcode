@@ -86,7 +86,8 @@
         ;; 401 无法强制刷新重试。
         (pi-sync-oauth-refresh-hook
           (pi-cfg-merge cfg
-            (list (cons 'provider provider)
+            (list (cons 'oauth-store #f)
+              (cons 'provider provider)
               (cons 'provider-api (pi-cfg-provider-api cfg provider model-id))
               (cons 'headers
                 (pi-resolve-request-headers models-store provider model-id api-key)

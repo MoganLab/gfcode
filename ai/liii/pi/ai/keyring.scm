@@ -28,8 +28,13 @@
     ;; 每次请求开始时取本次使用的 key：
     ;; 无钩子时回退 config 的 api-key（auth.json 单 key 路径）。
     (define (pi-request-api-key config)
-      (let ((hook (%config-ref config 'request-key)))
-        (if (procedure? hook) (hook config) (%config-ref config 'api-key))
+      (let ((hook (%config-ref config 'request-key))
+            (oauth-hook (%config-ref config 'request-oauth-key))
+           ) ;
+        (if (procedure? hook)
+          (hook config)
+          (if (procedure? oauth-hook) (oauth-hook config) (%config-ref config 'api-key))
+        ) ;if
       ) ;let
     ) ;define
 

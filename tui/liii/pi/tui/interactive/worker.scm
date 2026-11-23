@@ -19,9 +19,6 @@
     (liii path)
     (liii pi ai abort)
     (liii pi ai auth)
-    ;; 1404：oauth 401 刷新钩子的 save!/remove! 闭包经 procedure-source 在
-    ;; worker 会话重建，pi-credential-* 访问器须在本会话可见，否则 save!
-    ;; 抛 unbound 被吞、新 token 不落盘（下次启动仍用旧 token 反复 401）
     (liii pi ai config credential)
     (liii pi ai config model-metadata)
     (liii pi ai models meta)
@@ -205,7 +202,9 @@
         ;; 1404：/login 或刷新凭据后 reload 须重同步 oauth 401 刷新钩子，
         ;; 否则启动时无 oauth 凭据的会话登录后仍按现状 401 失败
         (pi-sync-oauth-refresh-hook
-          (%cfg-override cfg
+          (%cfg-override
+            ;; /login 已更新 auth.json；丢弃旧内存快照后重新初始化。
+            (pi-cfg-set cfg 'oauth-store #f)
             (list (cons 'models-store (pi-build-user-catalog dir-str))
               (cons 'settings (pi-load-settings dir))
               (cons 'api-key new-key)
@@ -377,11 +376,6 @@
                       ) ;lambda
                     ) ;window-getter
                    ) ;
-               ;; OAuth 401 刷新会原地更新 job-cfg；同步有效配置容器，
-               ;; 避免下一条消息继续携带刷新前的 access token。
-               (when eff-box
-                 (pi-effective-cfg-set! eff-box job-cfg)
-               ) ;when
                (set! effective-cfg job-cfg)
                (pi-tui-run-worker parsed
                  cfg-with-prepare
