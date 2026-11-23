@@ -12,7 +12,7 @@
 ;; token 计数采用 human readable 紧凑记法（K=10^3, M=10^6）：
 ;;   - < 1000          token 计数输出整数（如 414、848）；
 ;;   - >= 1000         用 K/M 后缀，保留 1 位小数（如 15808 -> 15.8K，2531749 -> 2.5M）。
-;; TPS 与耗时（秒）始终保留 1 位小数（如 38.5 tok/s、10.8s）。
+;; TPS 保留 1 位小数；耗时（秒）采用时长记法：29.4s / 1m30s / 1h5m。
 ;;
 ;; 移植自 pi 项目的 .pi/extensions/tps.ts（Mario Zechner）：
 ;;   - 记 agent_start 时间戳，agent_end 时计算墙钟耗时；
@@ -139,6 +139,34 @@
   ) ;cond
 ) ;define
 
+;; 把耗时（秒）格式化为 human readable 时长：
+;;   < 60s       "29.4s"（秒保留 1 位小数）
+;;   < 3600s     "1m30s"（余秒非零）或 "12m"（整分）
+;;   >= 3600s    "1h5m"（分取整数）。
+
+(define (%format-duration s)
+  (cond ((not (number? s)) "0s")
+        ((< s 60) (string-append (%fixed-decimals s 1) "s"))
+        ((< s 3600)
+         (let* ((m (inexact->exact (truncate (/ s 60.0)))) (rest (- s (* m 60.0))))
+           (if (> rest 0)
+             (string-append (number->string m) "m" (%fixed-decimals rest 0) "s")
+             (string-append (number->string m) "m")
+           ) ;if
+         ) ;let*
+        ) ;
+        (else
+          (let* ((h (inexact->exact (truncate (/ s 3600.0)))) (rest (- s (* h 3600.0))))
+            (string-append (number->string h)
+              "h"
+              (number->string (inexact->exact (truncate (/ rest 60.0))))
+              "m"
+            ) ;string-append
+          ) ;let*
+        ) ;else
+  ) ;cond
+) ;define
+
 ;; 组装最终的 TPS 行。
 
 (define (%tps-line tps out in cr cw total elapsed-s)
@@ -159,8 +187,7 @@
     "total "
     (%human-readable total 0 1)
     ", "
-    (%human-readable elapsed-s 1 1)
-    "s"
+    (%format-duration elapsed-s)
   ) ;string-append
 ) ;define
 
