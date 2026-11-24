@@ -147,21 +147,23 @@
 
 (define (%format-duration dt)
   (let ((minutes (time-delta-minutes dt)) (hours (time-delta-hours dt)))
-    (cond ((and (zero? minutes) (zero? hours))
-           (string-append (%fixed-decimals (exact->inexact (time-delta-seconds dt)) 1) "s"))
-          ((zero? hours)
-           (let ((rest (time-delta-seconds dt)))
-             (if (zero? rest)
-               (string-append (number->string minutes) "m")
-               (string-append (number->string minutes)
-                 "m"
-                 (%fixed-decimals (exact->inexact rest) 0)
-                 "s"
-               ) ;string-append
-             ) ;if
-           ) ;let
-          ) ;
-          (else (string-append (number->string hours) "h" (number->string minutes) "m"))
+    (cond
+     ((and (zero? minutes) (zero? hours))
+      (string-append (%fixed-decimals (exact->inexact (time-delta-seconds dt)) 1) "s")
+     ) ;
+     ((zero? hours)
+      (let ((rest (time-delta-seconds dt)))
+        (if (zero? rest)
+          (string-append (number->string minutes) "m")
+          (string-append (number->string minutes)
+            "m"
+            (%fixed-decimals (exact->inexact rest) 0)
+            "s"
+          ) ;string-append
+        ) ;if
+      ) ;let
+     ) ;
+     (else (string-append (number->string hours) "h" (number->string minutes) "m"))
     ) ;cond
   ) ;let
 ) ;define
