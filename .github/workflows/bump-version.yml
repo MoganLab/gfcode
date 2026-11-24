@@ -89,3 +89,17 @@ jobs:
             exit 0
           fi
           git push
+
+      - name: Tag and push tag
+        if: steps.check.outputs.update_needed == 'true'
+        run: |
+          VERSION="${{ steps.check.outputs.new_version }}"
+          TAG="v${VERSION}"
+          # fetch-depth: 0 已拉全量历史；fetch tags 确保远端已有同名 tag 时不重复推送
+          git fetch origin --tags
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "tag ${TAG} 已存在，跳过"
+            exit 0
+          fi
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin "${TAG}"
