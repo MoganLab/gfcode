@@ -14,11 +14,8 @@ on:
       - 'agent/**'
       - 'code/**'
       - 'extensions/**'
-      - 'review/**'
-      - 'simplify/**'
       - 'tests/**'
       - 'tui/**'
-      - 'web-search/**'
       - 'gfproject.json'
       - '.github/workflows/test-debian.yml'
   pull_request:
@@ -27,11 +24,8 @@ on:
       - 'agent/**'
       - 'code/**'
       - 'extensions/**'
-      - 'review/**'
-      - 'simplify/**'
       - 'tests/**'
       - 'tui/**'
-      - 'web-search/**'
       - 'gfproject.json'
       - '.github/workflows/test-debian.yml'
 
@@ -39,22 +33,54 @@ env:
   DEBIAN_FRONTEND: noninteractive
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      domains: ${{ steps.domains.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select test domains
+        id: domains
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          domains='["agent","code","tui","tests"]'
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            domains='["ai","agent","code","tui","tests"]'
+          else
+            if [ "$EVENT_NAME" = "pull_request" ]; then
+              base_sha="$BASE_SHA"
+            elif [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+              base_sha="$BEFORE_SHA"
+            else
+              base_sha="$HEAD_SHA^"
+            fi
+
+            if git diff --name-only "$base_sha" "$HEAD_SHA" -- ai/ | grep -q .; then
+              domains='["ai","agent","code","tui","tests"]'
+            fi
+          fi
+
+          echo "Test domains: $domains"
+          echo "value=$domains" >> "$GITHUB_OUTPUT"
+
   test:
+    needs: changes
     container: debian:trixie
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        domain:
-          - ai
-          - agent
-          - code
-          - review
-          - simplify
-          - tui
-          - web-search
-          - tests
+        domain: ${{ fromJSON(needs.changes.outputs.domains) }}
     name: test (${{ matrix.domain }})
     steps:
       - name: Install dependencies

@@ -1,0 +1,74 @@
+name: Test built-in plugins on Debian trixie
+
+# 内置插件共用一个 CI job，依次运行各自测试。
+# 安装最新的 Goldfish，与主测试 workflow 保持一致。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ai/**'
+      - 'agent/**'
+      - 'code/**'
+      - 'extensions/**'
+      - 'review/**'
+      - 'simplify/**'
+      - 'tests/**'
+      - 'web-search/**'
+      - 'gfproject.json'
+      - '.github/workflows/test-plugins-debian.yml'
+  pull_request:
+    paths:
+      - 'ai/**'
+      - 'agent/**'
+      - 'code/**'
+      - 'extensions/**'
+      - 'review/**'
+      - 'simplify/**'
+      - 'tests/**'
+      - 'web-search/**'
+      - 'gfproject.json'
+      - '.github/workflows/test-plugins-debian.yml'
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  plugins:
+    container: debian:trixie
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y git curl ca-certificates python3
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: git add safe directory
+        run: git config --global --add safe.directory '*'
+
+      - name: Install Goldfish (latest)
+        run: |
+          TAG=$(curl -fsSL -H "User-Agent: gfcode-ci" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            https://api.github.com/repos/MoganLab/goldfish/releases/latest \
+            | python3 -c "import sys, json; print(json.load(sys.stdin)['tag_name'])")
+          echo "Latest goldfish release: $TAG"
+          curl -fsSL -o /tmp/goldfish.deb \
+            "https://github.com/MoganLab/goldfish/releases/download/$TAG/goldfish-scheme-x86_64-$TAG.deb"
+          apt-get install -y /tmp/goldfish.deb
+          gf version
+
+      - name: Test review plugin
+        run: gf test review/tests/liii
+
+      - name: Test simplify plugin
+        run: gf test simplify/tests/liii
+
+      - name: Test web-search plugin
+        run: gf test web-search/tests/liii
