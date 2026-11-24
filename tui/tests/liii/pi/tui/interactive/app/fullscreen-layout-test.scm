@@ -41,7 +41,7 @@
     ;; 24 行终端：对话记录视口 19 行 + 输入区 3 行 + 页脚 2 行
     (check (length plain) => 24)
     ;; 页眉位于对话记录视口顶部
-    (check-true (string-contains? (list-ref plain 1) " gf v"))
+    (check-true (string-contains? (list-ref plain 1) " gfcode v"))
     ;; 输入区上边框贴在底部（视口 19 + 上边框）
     (check-true (string-contains? (list-ref plain 19) "─"))
     ;; 页脚最后两行（页脚含路径/分支与用量/模型，内容随环境变化，只断言非空）

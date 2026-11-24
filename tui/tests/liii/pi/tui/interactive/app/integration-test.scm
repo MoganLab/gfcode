@@ -50,7 +50,7 @@
     (check (length lines) => 40)
     ;; Header
     (check (list-ref plain-lines 0) => "")
-    (check-true (string-contains? (list-ref plain-lines 1) " gf v"))
+    (check-true (string-contains? (list-ref plain-lines 1) " gfcode v"))
     ;; Editor 分隔线（输入区固定贴在屏幕底部）
     (check (list-ref plain-lines 35) => (utf8-make-string 100 #\─))
     (check (string-trim (list-ref plain-lines 36)) => "")

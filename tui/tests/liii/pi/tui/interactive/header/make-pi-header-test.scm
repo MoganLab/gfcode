@@ -31,8 +31,8 @@
   (check (component? hdr) => #t)
   (check (length lines) => 6)
   (check (list-ref plain-lines 0) => "")
-  (check-true (string-contains? (list-ref plain-lines 1) (string-append " gf v" (version)))
-  ) ;check-true
+  (check-true (string-contains? (list-ref plain-lines 1) " gfcode v"))
+  (check-true (string-contains? (list-ref plain-lines 1) (version)))
   (check-true (string-contains? (list-ref plain-lines 2) "escape interrupt"))
   (check-true (string-contains? (list-ref plain-lines 2) "ctrl+c/ctrl+d clear/exit")
   ) ;check-true
@@ -52,7 +52,7 @@
        (lines (component-render hdr 80))
        (plain-lines (map strip-ansi lines))
       ) ;
-  (check-true (string-contains? (list-ref plain-lines 1) " gf v1.2.3"))
+  (check-true (string-contains? (list-ref plain-lines 1) " gfcode v1.2.3"))
 ) ;let*
 
 (check-report)
