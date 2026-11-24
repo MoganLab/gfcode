@@ -38,3 +38,6 @@ gf doc kimi-oauth-login
 - `kimi-oauth-host` - 解析 OAuth host（env 覆盖 > 默认国内 host）
 - `KIMI_OAUTH_CLIENT_ID` - Kimi Code OAuth client id
 - `KIMI_OAUTH_DEFAULT_HOST` - 默认国内 OAuth host
+
+### 设备信息头
+- `%kimi-post-form` - 表单 POST；自动附加 `(liii pi ai auth device-info)` 生成的 X-Msh-* 设备信息头（device_authorization/token/refresh 三端点均携带），账号中心"登录设备"据此显示 `<hostname> (gfcode/<os-type>)` 而非"未知设备"
