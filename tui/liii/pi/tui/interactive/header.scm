@@ -12,11 +12,65 @@
     (liii json)
     (liii path)
     (liii string)
+    (liii sys)
+    (srfi srfi-13)
     (liii tui component)
     (liii gfproject tools)
     (liii pi tui interactive common)
   ) ;import
   (begin
+
+    ;; 库体顶层缓存本源码文件的绝对路径（运行期调用 library-file 会返回
+    ;; 调用方文件，必须在此捕获）。用于判定正式安装 / 开发者模式。
+    (define %self-source-file (library-file))
+
+    ;; 正式安装布局：库位于 ~/.gf/site-lisp 之下；其余（如直接在本仓库
+    ;; ~/git/gfcode2 运行）视为开发者模式。
+    (define (%dev-mode?)
+      (and %self-source-file
+        (catch #t
+          (lambda ()
+            (not (path-starts-with? (path %self-source-file)
+                   (path-join (path-home) ".gf" "site-lisp")))
+          ) ;lambda
+          (lambda args #f)
+        ) ;catch
+      ) ;and
+    ) ;define
+
+    ;; 把绝对路径中的 home 前缀缩写成 ~，分隔符统一为 /。
+    (define (%abbreviate-home dir)
+      (let* ((posix (path-as-posix (path dir)))
+             (home (catch #t
+                     (lambda () (path-as-posix (path-home)))
+                     (lambda args #f)))
+            ) ;let*
+        (if (and home (string-prefix? home posix))
+          (let ((rest (substring posix (string-length home))))
+            (if (or (string-null? rest)
+                  (and (> (string-length rest) 0) (char=? (string-ref rest 0) #\/)))
+              (string-append "~" rest)
+              posix
+            ) ;if
+          ) ;let
+          posix
+        ) ;if
+      ) ;let*
+    ) ;define
+
+    ;; 源码仓库根：.../<repo>/tui/liii/pi/tui/interactive/header.scm 上溯 5 级。
+    (define (%source-repo-root)
+      (and %self-source-file
+        (catch #t
+          (lambda ()
+            (let loop ((p (path-parent (path %self-source-file))) (n 0))
+              (if (= n 5) (path->string p) (loop (path-parent p) (+ n 1)))
+            ) ;let
+          ) ;lambda
+          (lambda args #f)
+        ) ;catch
+      ) ;and
+    ) ;define
 
     (define (pi-header? obj)
       (and (component? obj)
@@ -41,10 +95,13 @@
       (show #f (as-bold (apply as-true-color (cons c parts))))
     ) ;define
 
-    ;; 页眉内容只随 version 变化，与宽度无关，故一次构造后复用
-    (define (%header-lines version)
+    ;; 页眉内容只随 version 与开发者标记变化，与宽度无关，故一次构造后复用。
+    ;; dev-suffix 为 #f（正式安装）或形如 " (~/git/gfcode2)" 的标记。
+    (define (%header-lines version dev-suffix)
       (let* ((dot (%fg %c-mid " · "))
-             (line1 (string-append " " (%fg-bold %c-brand "gfcode") (%fg %c-dim " v" version))
+             (line1 (string-append " " (%fg-bold %c-brand "gfcode") (%fg %c-dim " v" version)
+                      (or dev-suffix "")
+                    ) ;string-append
              ) ;line1
              (line2 (string-append " "
                       (%fg %c-dim "escape")
@@ -94,9 +151,19 @@
       ) ;catch
     ) ;define
 
+    ;; 开发者模式标记：显示源码仓库根（home 前缀缩写成 ~）；正式安装不显示。
+    (define (%dev-suffix)
+      (if (%dev-mode?)
+        (let ((root (%source-repo-root)))
+          (and root (%fg %c-dim " (" (%abbreviate-home root) ")"))
+        ) ;let
+        #f
+      ) ;if
+    ) ;define
+
     (define (make-pi-header . args)
       (let* ((version (%keyword-value :version args (%pi-tool-version)))
-             (lines (%header-lines version))
+             (lines (%header-lines version (%dev-suffix)))
              (comp (make-component :render (lambda (self width) lines)))
             ) ;
         (component-data-set! comp (list 'pi-header version))
