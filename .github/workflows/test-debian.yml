@@ -108,4 +108,9 @@ jobs:
           gf version
 
       - name: Run tests
-        run: gf test ${{ matrix.domain }}/tests/liii
+        run: |
+          if [ "${{ matrix.domain }}" = "tests" ]; then
+            gf test tests/liii
+          else
+            gf test ${{ matrix.domain }}/tests/liii
+          fi
