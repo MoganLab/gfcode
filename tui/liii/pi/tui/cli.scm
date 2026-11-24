@@ -7,7 +7,6 @@
 (define-library (liii pi tui cli)
   (import (scheme base)
     (scheme process-context)
-    (liii raw-string)
     (liii string)
     (liii list)
     (liii error)
