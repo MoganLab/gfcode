@@ -211,9 +211,7 @@
 
     (define (%build-activation-writes config-dir p-id m-id)
       (let* ((wl-p (pi-load-providers-whitelist config-dir))
-             (need-p?
-               (and wl-p (not (equal? p-id "all-in-one")) (not (member p-id wl-p)))
-             ) ;need-p?
+             (need-p? (and wl-p (not (equal? p-id "all-in-one")) (not (member p-id wl-p))))
              (wl-m (if (equal? p-id "all-in-one") #f (%provider-models-whitelist config-dir p-id))
              ) ;wl-m
              (need-m? (and wl-m (not (member m-id wl-m))))

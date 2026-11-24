@@ -227,9 +227,11 @@
     ) ;let
   ) ;let*
   ;; 登录会创建普通 provider 白名单；all-in-one 不在其中也仍须默认可用
-  (path-mkdir (path->string (path-join (path tmp-dir) "models")) :parents #t :exist-ok #t)
-  (path-write-text
-    (path->string (path-join (path tmp-dir) "models" "providers.json"))
+  (path-mkdir (path->string (path-join (path tmp-dir) "models"))
+    :parents  #t
+    :exist-ok #t
+  ) ;path-mkdir
+  (path-write-text (path->string (path-join (path tmp-dir) "models" "providers.json"))
     "[\"google\",\"deepseek\"]\n"
   ) ;path-write-text
   (let ((cat (pi-build-user-catalog tmp-dir)))
