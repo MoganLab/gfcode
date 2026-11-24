@@ -71,4 +71,24 @@
   ) ;check-true
 ) ;let*
 
+;; 4. message_usage 事件未携带窗口（window=#f）：回退到页脚已知窗口计算占比，
+;;    不应退化为 "0.0%"
+(let* ((app (make-pi-app :terminal (make-virtual-terminal :width 80 :height 24)))
+       (ch (pi-app-event-chan app))
+       (usage '((input . 250000) (output . 0) (cacheRead . 0) (cacheWrite . 0)))
+      ) ;
+  ;; 先以携带窗口的事件建立已知上下文窗口（默认 1.0M）
+  (chan-send! ch (list 'message_usage usage 1000000))
+  (pi-app-poll-events! app)
+  (check-true (string-contains (pi-footer-stats (%pi-app-footer app)) "25.0%/1.0M (auto)")
+  ) ;check-true
+  ;; 后续事件未携带窗口：占比应沿用 1.0M 窗口继续递增，而非回退为 "0.0%"
+  (chan-send! ch (list 'message_usage usage #f))
+  (pi-app-poll-events! app)
+  (check-true (string-contains (pi-footer-stats (%pi-app-footer app)) "25.0%/1.0M (auto)")
+  ) ;check-true
+  (check-false (string-contains (pi-footer-stats (%pi-app-footer app)) "0.0%/1.0M (auto)")
+  ) ;check-false
+) ;let*
+
 (check-report)
