@@ -44,7 +44,8 @@
     ;; 页眉内容只随 version 变化，与宽度无关，故一次构造后复用
     (define (%header-lines version)
       (let* ((dot (%fg %c-mid " · "))
-             (line1 (string-append " " (%fg-bold %c-brand "gfcode") (%fg %c-dim " v" version)))
+             (line1 (string-append " " (%fg-bold %c-brand "gfcode") (%fg %c-dim " v" version))
+             ) ;line1
              (line2 (string-append " "
                       (%fg %c-dim "escape")
                       (%fg %c-mid " interrupt")
