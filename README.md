@@ -2,7 +2,9 @@
 
 [中文](README_ZH.md)
 
-The implementation of the `gf pi` command.
+gfcode is a zero-dependency Agent Harness compatible with Pi.
+
+It requires only Goldfish Scheme, with a combined installation size of less than 10 MB. Compatible with Pi's TUI conventions and JSONL session serialization, gfcode runs lightweight installations on any device and can be embedded in C/C++ applications.
 
 ## Installation
 
@@ -38,7 +40,7 @@ gf help | grep pi
 
 ## Configuration
 
-### One-command OAuth Login
+### One-command Login
 
 Currently, only **Kimi Coding** supports OAuth login:
 
@@ -46,9 +48,40 @@ Currently, only **Kimi Coding** supports OAuth login:
 gf pi auth login --provider kimi-coding --oauth
 ```
 
-### API Key Login
+For other providers, use an API key:
 
-The built-in providers that support API keys are:
+```bash
+gf pi auth login --provider <provider> --key <key>
+```
+
+You can also run `gf pi` and use the interactive `/login` command to choose OAuth or API key login.
+
+### Interactive Configuration
+
+Use the configuration UI to enable providers and models, or to set up the special `all-in-one` provider, which combines models into failover chains:
+
+```bash
+gf pi config
+```
+
+For example, when your current Coding Plan reaches its usage limit, `all-in-one` can automatically switch to the next available model in the chain without interrupting the session.
+
+---
+
+## Model Configuration for Agents
+
+gfcode provides built-in models from Google Gemini, Anthropic Claude, Kimi Coding, DeepSeek, MiniMax, Z.AI GLM, OpenCode, and Qwen Token Plan. Local Ollama models are also supported.
+
+List all built-in and custom models with their activation status:
+
+```bash
+gf pi --list-models
+gf pi --list-models gemini  # Optional search term
+```
+
+### API Key Environment Variables
+
+For non-interactive setup, configure an API key using the corresponding environment variable:
 
 | Provider | Environment variable |
 |---|---|
@@ -61,20 +94,7 @@ The built-in providers that support API keys are:
 | `opencode` | `OPENCODE_API_KEY` or `OPENCODE_GO_API_KEY` |
 | `qwen-token-plan-cn` | `QWEN_TOKEN_PLAN_TEAM_CN_API_KEY` or `QWEN_TOKEN_PLAN_CN_API_KEY` |
 
-Set the environment variable, or save the key with:
-
-```bash
-gf pi auth login --provider <provider> --key <key>
-```
-
-You can also run `gf pi` and use the interactive `/login` command to select a provider and enter its API key.
-
-List built-in and custom models with their activation status. An optional search term filters the results:
-
-```bash
-gf pi --list-models
-gf pi --list-models gemini
-```
+Set the environment variable before running `gf pi`.
 
 ### Custom Providers and Models
 
@@ -135,3 +155,9 @@ gf pi --provider google --model deepseek-ai/deepseek-v4.1-flash-1017-maas
 ```
 
 For a completely new provider, create `models/<provider>.json` with `baseUrl` and `api`, then add its ID to `models/providers.json`. Supported protocols are `openai` (OpenAI-compatible), `anthropic`, and `google`. Each model is defined in its own JSON file under `models/<provider>/`; use subdirectories when the model ID contains `/`.
+
+### Model Whitelist
+
+`~/.gf/agent/models/providers.json` is the provider whitelist. If it exists and is non-empty, only listed providers are enabled. The `models` array in `models/<provider>.json` is the model whitelist for that provider; only listed models are enabled and shown in that order.
+
+Use `gf pi config` to enable or disable providers and models interactively, or edit these JSON files directly.

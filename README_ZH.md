@@ -2,7 +2,9 @@
 
 [English](README.md)
 
-`gf pi` 命令的实现项目。
+[gfcode 是一款零依赖、兼容 Pi 的 Agent Harness。](README.md#gfcode-a-pi-compatible-coding-agent)
+
+gfcode 仅依赖 Goldfish Scheme，连同 Goldfish Scheme 的安装体积也不到 10 MB。它兼容 Pi 的 TUI 使用习惯与 JSONL 会话序列化，可在各种设备上轻量安装运行，也可嵌入 C/C++ 生态的应用中（[English](README.md)）。
 
 ## 安装
 
@@ -38,7 +40,7 @@ gf help | grep pi
 
 ## 配置
 
-### 一键 OAuth 登录
+### 一键登录
 
 目前仅 **Kimi Coding** 支持 OAuth 登录：
 
@@ -46,9 +48,40 @@ gf help | grep pi
 gf pi auth login --provider kimi-coding --oauth
 ```
 
-### API Key 填入
+其他供应商可以使用 API Key 登录：
 
-支持 API Key 的内置供应商：
+```bash
+gf pi auth login --provider <provider> --key <key>
+```
+
+也可以运行 `gf pi`，通过交互式 `/login` 命令选择 OAuth 或 API Key 登录。
+
+### 交互式配置
+
+使用配置界面启停供应商和模型，或设置特殊的 `all-in-one` 供应商。`all-in-one` 可以将多个模型组成故障切换链：
+
+```bash
+gf pi config
+```
+
+例如，当前 Coding Plan 额度用完后，`all-in-one` 可以自动切换到链中的下一个可用模型，无需中断当前会话。
+
+---
+
+## 面向 Agent 的模型配置
+
+gfcode 内置 Google Gemini、Anthropic Claude、Kimi Coding、DeepSeek、MiniMax、Z.AI GLM、OpenCode 和 Qwen Token Plan 的模型，也支持本地 Ollama 模型。
+
+列出全部内置及自定义模型和启用状态：
+
+```bash
+gf pi --list-models
+gf pi --list-models gemini  # 可选的搜索关键词
+```
+
+### API Key 环境变量
+
+非交互式配置可设置供应商对应的环境变量：
 
 | 供应商 | 环境变量 |
 |---|---|
@@ -61,20 +94,7 @@ gf pi auth login --provider kimi-coding --oauth
 | `opencode` | `OPENCODE_API_KEY` 或 `OPENCODE_GO_API_KEY` |
 | `qwen-token-plan-cn` | `QWEN_TOKEN_PLAN_TEAM_CN_API_KEY` 或 `QWEN_TOKEN_PLAN_CN_API_KEY` |
 
-设置对应的环境变量，或使用以下命令保存 API Key：
-
-```bash
-gf pi auth login --provider <provider> --key <key>
-```
-
-也可以运行 `gf pi`，通过交互式 `/login` 命令选择供应商并填入 API Key。
-
-列出内置及自定义模型和启用状态，也可附加关键词筛选：
-
-```bash
-gf pi --list-models
-gf pi --list-models gemini
-```
+设置环境变量后再运行 `gf pi`。
 
 ### 自定义供应商和模型
 
@@ -135,3 +155,9 @@ gf pi --provider google --model deepseek-ai/deepseek-v4.1-flash-1017-maas
 ```
 
 如需新增供应商，创建包含 `baseUrl` 和 `api` 的 `models/<provider>.json`，再将其 ID 添加到 `models/providers.json`。支持 `openai`（OpenAI 兼容）、`anthropic` 和 `google` 协议。每个模型在 `models/<provider>/` 下使用独立的 JSON 文件配置；模型 ID 含 `/` 时使用对应的子目录。
+
+### 模型白名单
+
+`~/.gf/agent/models/providers.json` 是供应商白名单：文件存在且非空时，只启用列出的供应商。`models/<provider>.json` 中的 `models` 数组是该供应商的模型白名单，仅启用列出的模型，并按数组顺序展示。
+
+可以通过 `gf pi config` 交互式启停供应商和模型，也可以直接编辑这些 JSON 文件。
