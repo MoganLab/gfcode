@@ -2,6 +2,7 @@
   "package": {
     "name": "pi",
     "organization": "liii",
+    "version": "2026.11.24",
     "description": "Pi coding agent for Goldfish Scheme"
   },
   "domains": {

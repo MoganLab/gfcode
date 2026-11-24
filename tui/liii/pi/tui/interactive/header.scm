@@ -9,7 +9,11 @@
   (import (scheme base)
     (liii format base)
     (liii format color)
+    (liii json)
+    (liii path)
+    (liii string)
     (liii tui component)
+    (liii gfproject tools)
     (liii pi tui interactive common)
   ) ;import
   (begin
@@ -40,7 +44,8 @@
     ;; 页眉内容只随 version 变化，与宽度无关，故一次构造后复用
     (define (%header-lines version)
       (let* ((dot (%fg %c-mid " · "))
-             (line1 (string-append " " (%fg-bold %c-brand "gf") (%fg %c-dim " v" version)))
+             (line1 (string-append " " (%fg-bold %c-brand "gfcode") (%fg %c-dim " v" version))
+             ) ;line1
              (line2 (string-append " "
                       (%fg %c-dim "escape")
                       (%fg %c-mid " interrupt")
@@ -67,8 +72,30 @@
       ) ;let*
     ) ;define
 
+    ;; 读取 gfcode 自身 gfproject.json 的 package.version 作为首屏版本号；
+    ;; 解析失败或缺字段时回退到 Goldfish 的 (version)，保证总有展示值。
+    (define (%pi-tool-version)
+      (catch #t
+        (lambda ()
+          (let* ((bundle (gfproject-resolve-tool-bundle "pi"))
+                 (base (bundle-ref bundle "tool_base_dir"))
+                ) ;
+            (if (not (string? base))
+              (version)
+              (let* ((file (path->string (path-join (path base) "gfproject.json")))
+                     (pkg (json-ref (string->json (path-read-text file)) "package"))
+                    ) ;
+                (or (json-ref-string pkg "version" #f) (version))
+              ) ;let*
+            ) ;if
+          ) ;let*
+        ) ;lambda
+        (lambda args (version))
+      ) ;catch
+    ) ;define
+
     (define (make-pi-header . args)
-      (let* ((version (%keyword-value :version args (version)))
+      (let* ((version (%keyword-value :version args (%pi-tool-version)))
              (lines (%header-lines version))
              (comp (make-component :render (lambda (self width) lines)))
             ) ;
