@@ -31,7 +31,9 @@
         (catch #t
           (lambda ()
             (not (path-starts-with? (path %self-source-file)
-                   (path-join (path-home) ".gf" "site-lisp")))
+                   (path-join (path-home) ".gf" "site-lisp")
+                 ) ;path-starts-with?
+            ) ;not
           ) ;lambda
           (lambda args #f)
         ) ;catch
@@ -41,14 +43,16 @@
     ;; 把绝对路径中的 home 前缀缩写成 ~，分隔符统一为 /。
     (define (%abbreviate-home dir)
       (let* ((posix (path-as-posix (path dir)))
-             (home (catch #t
-                     (lambda () (path-as-posix (path-home)))
-                     (lambda args #f)))
-            ) ;let*
+             (home
+               (catch #t (lambda () (path-as-posix (path-home))) (lambda args #f))
+             ) ;home
+            ) ;
         (if (and home (string-prefix? home posix))
           (let ((rest (substring posix (string-length home))))
-            (if (or (string-null? rest)
-                  (and (> (string-length rest) 0) (char=? (string-ref rest 0) #\/)))
+            (if
+              (or (string-null? rest)
+                (and (> (string-length rest) 0) (char=? (string-ref rest 0) #\/))
+              ) ;or
               (string-append "~" rest)
               posix
             ) ;if
@@ -63,7 +67,8 @@
       (and %self-source-file
         (catch #t
           (lambda ()
-            (let loop ((p (path-parent (path %self-source-file))) (n 0))
+            (let loop
+              ((p (path-parent (path %self-source-file))) (n 0))
               (if (= n 5) (path->string p) (loop (path-parent p) (+ n 1)))
             ) ;let
           ) ;lambda
@@ -99,7 +104,9 @@
     ;; dev-suffix 为 #f（正式安装）或形如 " (~/git/gfcode2)" 的标记。
     (define (%header-lines version dev-suffix)
       (let* ((dot (%fg %c-mid " · "))
-             (line1 (string-append " " (%fg-bold %c-brand "gfcode") (%fg %c-dim " v" version)
+             (line1 (string-append " "
+                      (%fg-bold %c-brand "gfcode")
+                      (%fg %c-dim " v" version)
                       (or dev-suffix "")
                     ) ;string-append
              ) ;line1

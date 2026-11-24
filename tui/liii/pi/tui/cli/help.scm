@@ -5,9 +5,16 @@
 ;;
 
 (define-library (liii pi tui cli help)
-  (import (scheme base) (scheme write) (liii raw-string)
-    (liii json) (liii path) (liii string) (liii sys) (srfi srfi-13)
-    (liii gfproject tools))
+  (import (scheme base)
+    (scheme write)
+    (liii raw-string)
+    (liii json)
+    (liii path)
+    (liii string)
+    (liii sys)
+    (srfi srfi-13)
+    (liii gfproject tools)
+  ) ;import
   (export PI_HELP_TEXT display-pi-help)
   (begin
     ;; 库体顶层缓存本源码文件的绝对路径，用于判定正式安装 / 开发者模式。
@@ -19,7 +26,9 @@
         (catch #t
           (lambda ()
             (not (path-starts-with? (path %self-source-file)
-                   (path-join (path-home) ".gf" "site-lisp")))
+                   (path-join (path-home) ".gf" "site-lisp")
+                 ) ;path-starts-with?
+            ) ;not
           ) ;lambda
           (lambda args #f)
         ) ;catch
@@ -29,14 +38,16 @@
     ;; 把绝对路径中的 home 前缀缩写成 ~，分隔符统一为 /。
     (define (%abbreviate-home dir)
       (let* ((posix (path-as-posix (path dir)))
-             (home (catch #t
-                     (lambda () (path-as-posix (path-home)))
-                     (lambda args #f)))
-            ) ;let*
+             (home
+               (catch #t (lambda () (path-as-posix (path-home))) (lambda args #f))
+             ) ;home
+            ) ;
         (if (and home (string-prefix? home posix))
           (let ((rest (substring posix (string-length home))))
-            (if (or (string-null? rest)
-                  (and (> (string-length rest) 0) (char=? (string-ref rest 0) #\/)))
+            (if
+              (or (string-null? rest)
+                (and (> (string-length rest) 0) (char=? (string-ref rest 0) #\/))
+              ) ;or
               (string-append "~" rest)
               posix
             ) ;if
@@ -51,7 +62,8 @@
       (and %self-source-file
         (catch #t
           (lambda ()
-            (let loop ((p (path-parent (path %self-source-file))) (n 0))
+            (let loop
+              ((p (path-parent (path %self-source-file))) (n 0))
               (if (= n 5) (path->string p) (loop (path-parent p) (+ n 1)))
             ) ;let
           ) ;lambda
@@ -92,7 +104,10 @@
     ) ;define
 
     (define (%pi-help-text)
-      (string-append "gf pi v" (%pi-version) (%dev-suffix) "\n"
+      (string-append "gf pi v"
+        (%pi-version)
+        (%dev-suffix)
+        "\n"
         (&- #""
           gf pi - AI coding assistant script mode
 
@@ -145,7 +160,7 @@
             (~/.gf/agent/settings.json),
             falling back to retry.maxRetries when the nested section is absent.
           ""
-                     ) ;&-
+        ) ;&-
         "\n"
       ) ;string-append
     ) ;define
