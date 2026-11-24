@@ -5,11 +5,110 @@
 ;;
 
 (define-library (liii pi tui cli help)
-  (import (scheme base) (scheme write) (liii raw-string))
+  (import (scheme base)
+    (scheme write)
+    (liii raw-string)
+    (liii json)
+    (liii path)
+    (liii string)
+    (liii sys)
+    (srfi srfi-13)
+    (liii gfproject tools)
+  ) ;import
   (export PI_HELP_TEXT display-pi-help)
   (begin
-    (define PI_HELP_TEXT
-      (string-append (&- #""
+    ;; 库体顶层缓存本源码文件的绝对路径，用于判定正式安装 / 开发者模式。
+    (define %self-source-file (library-file))
+
+    ;; 正式安装布局：库位于 ~/.gf/site-lisp 之下；否则为开发者模式。
+    (define (%dev-mode?)
+      (and %self-source-file
+        (catch #t
+          (lambda ()
+            (not (path-starts-with? (path %self-source-file)
+                   (path-join (path-home) ".gf" "site-lisp")
+                 ) ;path-starts-with?
+            ) ;not
+          ) ;lambda
+          (lambda args #f)
+        ) ;catch
+      ) ;and
+    ) ;define
+
+    ;; 把绝对路径中的 home 前缀缩写成 ~，分隔符统一为 /。
+    (define (%abbreviate-home dir)
+      (let* ((posix (path-as-posix (path dir)))
+             (home
+               (catch #t (lambda () (path-as-posix (path-home))) (lambda args #f))
+             ) ;home
+            ) ;
+        (if (and home (string-prefix? home posix))
+          (let ((rest (substring posix (string-length home))))
+            (if
+              (or (string-null? rest)
+                (and (> (string-length rest) 0) (char=? (string-ref rest 0) #\/))
+              ) ;or
+              (string-append "~" rest)
+              posix
+            ) ;if
+          ) ;let
+          posix
+        ) ;if
+      ) ;let*
+    ) ;define
+
+    ;; 源码仓库根：.../<repo>/tui/liii/pi/tui/cli/help.scm 上溯 5 级。
+    (define (%source-repo-root)
+      (and %self-source-file
+        (catch #t
+          (lambda ()
+            (let loop
+              ((p (path-parent (path %self-source-file))) (n 0))
+              (if (= n 5) (path->string p) (loop (path-parent p) (+ n 1)))
+            ) ;let
+          ) ;lambda
+          (lambda args #f)
+        ) ;catch
+      ) ;and
+    ) ;define
+
+    ;; 开发者模式标记：" (~/git/gfcode2)"；正式安装为空串。
+    (define (%dev-suffix)
+      (if (%dev-mode?)
+        (let ((root (%source-repo-root)))
+          (if root (string-append " (" (%abbreviate-home root) ")") "")
+        ) ;let
+        ""
+      ) ;if
+    ) ;define
+
+    ;; 读取 gfcode 自身 gfproject.json 的 package.version；失败回退 Goldfish 的 (version)。
+    (define (%pi-version)
+      (catch #t
+        (lambda ()
+          (let* ((bundle (gfproject-resolve-tool-bundle "pi"))
+                 (base (bundle-ref bundle "tool_base_dir"))
+                ) ;
+            (if (not (string? base))
+              (version)
+              (let* ((file (path->string (path-join (path base) "gfproject.json")))
+                     (pkg (json-ref (string->json (path-read-text file)) "package"))
+                    ) ;
+                (or (json-ref-string pkg "version" #f) (version))
+              ) ;let*
+            ) ;if
+          ) ;let*
+        ) ;lambda
+        (lambda args (version))
+      ) ;catch
+    ) ;define
+
+    (define (%pi-help-text)
+      (string-append "gf pi v"
+        (%pi-version)
+        (%dev-suffix)
+        "\n"
+        (&- #""
           gf pi - AI coding assistant script mode
 
           Usage:
@@ -61,10 +160,13 @@
             (~/.gf/agent/settings.json),
             falling back to retry.maxRetries when the nested section is absent.
           ""
-                     ) ;&-
+        ) ;&-
         "\n"
       ) ;string-append
     ) ;define
+
+    ;; 完整帮助文本：首行含版本号与开发者模式标记。
+    (define PI_HELP_TEXT (%pi-help-text))
 
     (define (display-pi-help)
       (display PI_HELP_TEXT)

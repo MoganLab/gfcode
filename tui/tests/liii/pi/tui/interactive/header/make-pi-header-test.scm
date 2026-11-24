@@ -33,6 +33,10 @@
   (check (list-ref plain-lines 0) => "")
   (check-true (string-contains? (list-ref plain-lines 1) " gfcode v"))
   (check-true (string-contains? (list-ref plain-lines 1) (version)))
+  ;; 本测试从源码仓库加载 header.scm，属开发者模式，版本号后应有仓库根标记 ( ... )。
+  ;; 不断言具体仓库名（CI 上 checkout 目录名与本地可能不同）。
+  (check-true (string-contains? (list-ref plain-lines 1) " ("))
+  (check-true (string-contains? (list-ref plain-lines 1) ")"))
   (check-true (string-contains? (list-ref plain-lines 2) "escape interrupt"))
   (check-true (string-contains? (list-ref plain-lines 2) "ctrl+c/ctrl+d clear/exit")
   ) ;check-true
