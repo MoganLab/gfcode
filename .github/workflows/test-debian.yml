@@ -15,7 +15,7 @@ on:
       - 'code/**'
       - 'extensions/**'
       - 'tests/**'
-      - 'tui/**'
+      - 'app/**'
       - 'gfproject.json'
       - '.github/workflows/test-debian.yml'
   pull_request:
@@ -25,7 +25,7 @@ on:
       - 'code/**'
       - 'extensions/**'
       - 'tests/**'
-      - 'tui/**'
+      - 'app/**'
       - 'gfproject.json'
       - '.github/workflows/test-debian.yml'
 
@@ -51,10 +51,10 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.sha }}
         run: |
-          domains='["agent","code","tui","tests"]'
+          domains='["agent","code","app","tests"]'
 
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            domains='["ai","agent","code","tui","tests"]'
+            domains='["ai","agent","code","app","tests"]'
           else
             if [ "$EVENT_NAME" = "pull_request" ]; then
               base_sha="$BASE_SHA"
@@ -65,7 +65,7 @@ jobs:
             fi
 
             if git diff --name-only "$base_sha" "$HEAD_SHA" -- ai/ | grep -q .; then
-              domains='["ai","agent","code","tui","tests"]'
+              domains='["ai","agent","code","app","tests"]'
             fi
           fi
 

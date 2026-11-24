@@ -20,9 +20,9 @@
   (liii string)
   (liii pi ai message)
   (liii pi agent loop)
-  (liii pi tui interactive)
-  (liii pi tui interactive worker)
-  (liii pi tui interactive handler)
+  (liii pi app interactive)
+  (liii pi app interactive worker)
+  (liii pi app interactive handler)
   (liii pi agent queue)
 ) ;import
 
