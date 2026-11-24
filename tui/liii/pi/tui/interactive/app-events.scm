@@ -329,8 +329,16 @@
             ) ;
             ((message_usage)
              (let* ((usage (cadr ev))
+                    (footer (%pi-app-footer app))
                     ;; 事件负载第三项为当前模型的上下文窗口（缺省 #f）
-                    (window (if (> (length ev) 2) (caddr ev) #f))
+                    (ev-window (if (> (length ev) 2) (caddr ev) #f))
+                    ;; 事件未携带窗口时回退到页脚已知的上下文窗口，
+                    ;; 避免 percent 退化为 #f 而显示成 "0.0%"
+                    (window (if (and (number? ev-window) (> ev-window 0))
+                              ev-window
+                              (pi-footer-context-window footer)
+                            ) ;if
+                    ) ;window
                     (tokens (pi-app-tokens app))
                     (latest-rate (pi-calculate-cache-hit-rate usage))
                     (context-tokens (pi-calculate-context-tokens usage))
@@ -338,7 +346,7 @@
                     ) ;context
                    ) ;
                (pi-session-token-stats-add-usage! tokens usage)
-               (pi-footer-set-token-stats! (%pi-app-footer app) tokens latest-rate context)
+               (pi-footer-set-token-stats! footer tokens latest-rate context)
              ) ;let*
             ) ;
             ;; 自动压缩后上下文已重建，占比未知（显示 "?"，对齐上游）
