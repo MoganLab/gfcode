@@ -95,23 +95,26 @@
       ) ;let*
     ) ;define
 
-    ;; provider id 列表：白名单优先；缺失时内置已激活 provider（字典序）+ 有配置的 all-in-one
+    ;; provider id 列表：普通 provider 由白名单控制；all-in-one 不依赖白名单，
+    ;; 配置有效时默认追加（兼容旧白名单中已显式包含 all-in-one 的配置）。
     (define (%provider-ids config-dir)
-      (or (pi-load-providers-whitelist config-dir)
-        (let ((builtins
+      (let ((ids
+              (or (pi-load-providers-whitelist config-dir)
                 (list-sort string<?
                   (filter (lambda (p) (not (equal? p "all-in-one")))
                     (map car PI_PROVIDER_BUILTIN_MODELS)
                   ) ;filter
                 ) ;list-sort
-              ) ;builtins
-             ) ;
-          (if (all-in-one-provider-available? config-dir)
-            (append builtins (list "all-in-one"))
-            builtins
-          ) ;if
-        ) ;let
-      ) ;or
+              ) ;or
+            ) ;ids
+           ) ;
+        (if (and (all-in-one-provider-available? config-dir)
+              (not (member "all-in-one" ids))
+            ) ;and
+          (append ids (list "all-in-one"))
+          ids
+        ) ;if
+      ) ;let
     ) ;define
 
     ;; 配置浏览视图：全部内置 provider（白名单顺序在前）+ 每个 provider 的全部模型，
@@ -208,7 +211,7 @@
 
     (define (%build-activation-writes config-dir p-id m-id)
       (let* ((wl-p (pi-load-providers-whitelist config-dir))
-             (need-p? (and wl-p (not (member p-id wl-p))))
+             (need-p? (and wl-p (not (equal? p-id "all-in-one")) (not (member p-id wl-p))))
              (wl-m (if (equal? p-id "all-in-one") #f (%provider-models-whitelist config-dir p-id))
              ) ;wl-m
              (need-m? (and wl-m (not (member m-id wl-m))))

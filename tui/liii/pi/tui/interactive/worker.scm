@@ -190,7 +190,7 @@
       (vector-ref sfile-box 0)
     ) ;define
 
-    (define (%worker-reload-cfg cfg job)
+    (define (%worker-reload-cfg cfg job event-chan)
       (let* ((dir
                (if (and (> (length job) 1) (cadr job)) (cadr job) (pi-cfg-config-dir cfg))
              ) ;dir
@@ -198,14 +198,19 @@
              (cur-p (pi-cfg-ref cfg 'provider))
              (new-key (and cur-p (pi-resolve-provider-key cur-p (pi-load-auth dir-str) '() dir-str))
              ) ;new-key
+             ;; 重建成功后投递 models_updated，触发 app-events 重建 models/default-model
+             (models-store (pi-build-user-catalog dir-str))
             ) ;
+        ;; worker reload_models 成功后回灌主 app：按新白名单重建
+        ;; pi-app-models/default-model 并重渲，使 /model 即时可见新登录 provider
+        (pi-tui-send-event! event-chan (list 'models_updated dir-str))
         ;; 1404：/login 或刷新凭据后 reload 须重同步 oauth 401 刷新钩子，
         ;; 否则启动时无 oauth 凭据的会话登录后仍按现状 401 失败
         (pi-sync-oauth-refresh-hook
           (%cfg-override
             ;; /login 已更新 auth.json；丢弃旧内存快照后重新初始化。
             (pi-cfg-set cfg 'oauth-store #f)
-            (list (cons 'models-store (pi-build-user-catalog dir-str))
+            (list (cons 'models-store models-store)
               (cons 'settings (pi-load-settings dir))
               (cons 'api-key new-key)
             ) ;list
@@ -346,11 +351,9 @@
          ) ;
          ((and (pair? job) (eq? (car job) 'reload_models))
           (catch #t
-            (lambda () (set! effective-cfg (%worker-reload-cfg cfg job)))
+            (lambda () (set! effective-cfg (%worker-reload-cfg cfg job event-chan)))
             (lambda args #f)
           ) ;catch
-          ;; 同步 effective-cfg box：reload_models 不应清除运行中切模的选择。
-          ;; 保留当前 provider/model，仅刷新 models-store/settings/api-key
           (when eff-box
             (pi-effective-cfg-set! eff-box effective-cfg)
           ) ;when
@@ -414,9 +417,8 @@
             ) ;
         (set-pi-retry-logger! (lambda (msg) (pi-tui-send-event! event-chan (list 'retry msg)))
         ) ;set-pi-retry-logger!
-        ;; arm 扩展通知：worker 会话内生效（go 起的独立 s7 会话，全局状态独立），
-        ;; 扩展经 ctx.ui.notify 输出的提示行由此投递回主线程渲染为聊天区状态行。
-        ;; 与 set-pi-retry-logger! 同属会话级注入模式。
+        ;; arm 扩展通知：worker 会话内生效（go 起独立 s7 会话），扩展经 ctx.ui.notify
+        ;; 输出提示行由此投递回主线程渲染为聊天区状态行（同属会话级注入模式）
         (pi-extension-notify-set! (lambda (msg) (pi-tui-send-event! event-chan (list 'tps_report msg)) #t)
         ) ;pi-extension-notify-set!
         (let loop

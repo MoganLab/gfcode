@@ -67,7 +67,7 @@
   #f
 ) ;check
 
-;; all-in-one 链式伪模型激活：仅将 all-in-one 追加进 providers 白名单，不得创建 models/all-in-one.json
+;; all-in-one 链式伪模型默认可用：不修改 providers 白名单，也不创建 models/all-in-one.json
 (let ((aio-json (path-join DIR "all-in-one.json"))
       (aio-model-file (path-join MODELS "all-in-one.json"))
      ) ;
@@ -76,9 +76,9 @@
   ) ;path-write-text
   (check (pi-auto-activate-default-model! DIR (pi-settings "all-in-one" "coding-deep"))
     =>
-    #t
+    #f
   ) ;check
-  (check (string-contains (path-read-text PROVIDERS) "\"all-in-one\"") => #t)
+  (check (string-contains (path-read-text PROVIDERS) "\"all-in-one\"") => #f)
   (check (file-exists? (path->string aio-model-file)) => #f)
 ) ;let
 
