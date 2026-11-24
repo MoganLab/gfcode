@@ -1,39 +1,37 @@
-# gfcode
+# gfcode: A Pi-compatible Coding Agent
 
-`gf pi` 命令的实现项目。
+[中文](README_ZH.md)
 
-## 安装
+The implementation of the `gf pi` command.
 
-> **版本分界**：`gf pi` 在 **Goldfish v18.11.62** 及更早版本中是内置子命令，开箱即用；
-> 从 **v18.11.63** 开始，`gf pi` 被拆分为独立项目（即本项目 gfcode），不再随 Goldfish
-> 内置，需要用 `gf get` 安装后才能使用 `gf pi`。
-> 这是一个过渡期方案：后续 gfcode 会单独发布一个二进制，届时安装说明会进一步简化。
+## Installation
 
-本项目依赖 **Goldfish v18.11.66**，请先升级到该版本或更高版本。
+First install [Goldfish Scheme](https://github.com/MoganLab/goldfish):
 
 ```bash
-gf get -g https://github.com/MoganLab/gfcode
+# macOS
+brew tap MoganLab/goldfish
+brew install goldfish
+
+# Windows (Scoop)
+scoop bucket add goldfish https://github.com/MoganLab/scoop-goldfish
+scoop install goldfish
 ```
 
-验证：
+Then install the latest gfcode version. The command requires `curl` and `jq`:
 
 ```bash
-gf help | grep pi          # 应能看到 pi 命令行
-gf pi -p "say hello"      # 实际运行（需要已配置 provider 与 API key）
+gf get -g https://github.com/MoganLab/gfcode.git --ref "$(curl -fsSL https://api.github.com/repos/MoganLab/gfcode/tags | jq -r '.[0].name')" --force
 ```
 
-## 从源码开发
-
-若需在仓库内直接开发调试，克隆本项目后进入目录即可使用 `gf pi`（项目自带 `gfproject.json` 已注册 `pi`，项目层配置覆盖用户层）：
+Using an HTTP proxy (port `7890` in this example):
 
 ```bash
-git clone https://github.com/MoganLab/gfcode ~/git/gfcode
-cd ~/git/gfcode
-gf pi -p "say hello"
+HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 gf get -g https://github.com/MoganLab/gfcode.git --ref "$(HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 curl -fsSL https://api.github.com/repos/MoganLab/gfcode/tags | jq -r '.[0].name')" --force
 ```
 
-说明：
+Verify:
 
-- 项目自身的 `gfproject.json` 的 `domains` 由 `gf pi` 在运行时自动注入加载路径。
-- 项目层（当前工作目录的 `gfproject.json`）若注册了同名 `pi`，**项目层覆盖用户层**，便于在 gfcode 仓库内直接开发调试。
-- 只影响 `gf pi` 命令解析；`gf test` / `gf fmt` / `gf check` 等项目语义不变。
+```bash
+gf help | grep pi
+```
