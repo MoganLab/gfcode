@@ -2,9 +2,9 @@
 
 [English](README.md)
 
-[gfcode 是一款零依赖、兼容 Pi 的 Agent Harness。](README.md#gfcode-a-pi-compatible-coding-agent)
+gfcode 是一款零依赖、兼容 Pi 的 Agent Harness。
 
-gfcode 仅依赖 Goldfish Scheme，连同 Goldfish Scheme 的安装体积也不到 10 MB。它兼容 Pi 的 TUI 使用习惯与 JSONL 会话序列化，可在各种设备上轻量安装运行，也可嵌入 C/C++ 生态的应用中（[English](README.md)）。
+gfcode 仅依赖 Goldfish Scheme，连同 Goldfish Scheme 的安装体积也不到 10 MB。它兼容 Pi 的 TUI 使用习惯与 JSONL 会话序列化，可在各种设备上轻量安装运行，也可嵌入 C/C++ 生态的应用中。
 
 ## 安装
 
