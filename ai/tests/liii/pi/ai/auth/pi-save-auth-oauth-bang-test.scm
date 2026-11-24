@@ -54,7 +54,7 @@
 (check-catch 'type-error (pi-save-auth-oauth! "kimi-coding" "a" "r" "x" #f))
 (check-catch 'type-error (pi-save-auth-oauth! "kimi-coding" "a" "r" 1 5))
 
-;; 2. 新建 auth.json 写入 oauth 条目，可被 pi-load-auth 解析
+;; 2. 新建 auth.json 写入 oauth 条目，可被 pi-load-auth 解析，并自动激活 provider
 (let* ((tmp (make-temp-dir "gf-auth-oauth-" ""))
        (target (pi-save-auth-oauth! "kimi-coding" "acc-1" "ref-1" 1893456000000 #f tmp)
        ) ;target
@@ -68,6 +68,10 @@
   (check (pi-credential-refresh (car creds)) => "ref-1")
   (check (pi-credential-expires (car creds)) => 1893456000000)
   (check (pi-credential-region (car creds)) => #f)
+  ;; OAuth 登录与 API Key 登录一致，把 provider 合并进白名单供 /model 使用
+  (let ((wl (string->json (path-read-text (path-join tmp "models" "providers.json")))))
+    (check-true (and (member "kimi-coding" (vector->list wl)) #t))
+  ) ;let
   ;; 文件内容：无 region 字段
   (let ((raw (string->json (path-read-text (path target)))))
     (check (assoc "region" (cdr (assoc "kimi-coding" raw))) => #f)
@@ -77,10 +81,12 @@
     (check (logand (path-stat-mode (path-stat target)) 511) => 384)
   ) ;unless
   (path-unlink (path target))
+  (path-unlink (path-join tmp "models" "providers.json"))
+  (path-rmdir (path-join tmp "models"))
   (path-rmdir tmp)
 ) ;let*
 
-;; 3. region 落盘 + 覆盖更新 + 不破坏其它服务商条目
+;; 3. region 落盘 + 覆盖更新 + 不破坏其它服务商条目和白名单
 (let* ((tmp (make-temp-dir "gf-auth-oauth-" ""))
        (_ (pi-save-auth-key "deepseek" "sk-ds" tmp))
        (target (pi-save-auth-oauth! 'kimi-coding
@@ -93,6 +99,9 @@
        ) ;target
       ) ;
   (check (length (pi-load-auth tmp)) => 2)
+  (let ((wl (string->json (path-read-text (path-join tmp "models" "providers.json")))))
+    (check-true (and (member "deepseek" (vector->list wl)) (member "kimi-coding" (vector->list wl)) #t))
+  ) ;let
   (pi-save-auth-oauth! "kimi-coding" "acc-2" "ref-2" 1893456000001 #f tmp)
   (let* ((creds (pi-load-auth tmp))
          (kimi
@@ -104,7 +113,12 @@
     (check (pi-credential-region kimi) => #f)
     (check (pi-resolve-provider-key "deepseek" creds '()) => "sk-ds")
   ) ;let*
+  (let ((wl (string->json (path-read-text (path-join tmp "models" "providers.json")))))
+    (check (length (filter (lambda (p) (equal? p "kimi-coding")) (vector->list wl))) => 1)
+  ) ;let
   (path-unlink (path target))
+  (path-unlink (path-join tmp "models" "providers.json"))
+  (path-rmdir (path-join tmp "models"))
   (path-rmdir tmp)
 ) ;let*
 
