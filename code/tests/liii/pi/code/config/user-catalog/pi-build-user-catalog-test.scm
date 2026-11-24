@@ -206,7 +206,7 @@
   (check (assoc "api" custom-fields) => #f)
 ) ;let*
 
-;; 12. all-in-one 元供应商：无白名单时动态挂入 catalog，包含有效伪模型
+;; 12. all-in-one 元供应商：不依赖白名单，配置有效时动态挂入 catalog
 (let ((tmp-dir (path->string (path-join (path-temp-dir) "pi-aio-catalog-test"))))
   (when (file-exists? tmp-dir)
     (rmtree tmp-dir #t)
@@ -226,6 +226,15 @@
       (check (cdr (assoc "id" (car models))) => "coding-deep")
     ) ;let
   ) ;let*
+  ;; 登录会创建普通 provider 白名单；all-in-one 不在其中也仍须默认可用
+  (path-mkdir (path->string (path-join (path tmp-dir) "models")) :parents #t :exist-ok #t)
+  (path-write-text
+    (path->string (path-join (path tmp-dir) "models" "providers.json"))
+    "[\"google\",\"deepseek\"]\n"
+  ) ;path-write-text
+  (let ((cat (pi-build-user-catalog tmp-dir)))
+    (check (map car cat) => '("google" "deepseek" "all-in-one"))
+  ) ;let
   (rmtree tmp-dir #t)
 ) ;let
 
