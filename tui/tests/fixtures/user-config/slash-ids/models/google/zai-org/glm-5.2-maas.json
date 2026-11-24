@@ -1,0 +1,7 @@
+{
+  "id": "zai-org/glm-5.2-maas",
+  "name": "GLM 5.2",
+  "reasoning": true,
+  "contextWindow": 1000000,
+  "maxTokens": 384000
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Google",
+  "baseUrl": "http://34.102.64.42",
+  "api": "openai",
+  "models": [
+    "gemini-3.8-flash",
+    "deepseek-ai/deepseek-v4.1-flash-1017-maas"
+  ]
+}

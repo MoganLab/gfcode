@@ -12,6 +12,8 @@
     (liii list)
     (liii string)
     (liii os)
+    (liii path)
+    (liii path stat)
     (liii pi code config user-fs)
   ) ;import
   (export %model-json-name? %find-model-file-by-id %model-file
@@ -24,32 +26,56 @@
       (and (string-ends? entry ".json") (not (string=? entry ".json")))
     ) ;define
 
-    ;; models/<p>/ 目录项列表；目录不存在或不可读时返回 '()
-    (define (%model-dir-entries config-dir p-id)
-      (let ((dir-str (pi-user-config-path config-dir "models" p-id)))
-        (if (file-exists? dir-str)
-          (catch #t (lambda () (vector->list (listdir dir-str))) (lambda args '()))
-          '()
-        ) ;if
+    ;; path 是否为目录（先要求存在，避免对缺失路径取 stat）
+    (define (%dir? p)
+      (and (file-exists? p) (path-stat-dir? (path-stat p)))
+    ) ;define
+
+    ;; 递归收集 models/<p>/ 下所有 .json 文件的相对路径（相对 models/<p>/，
+    ;; 保留 .json 后缀与中间子目录斜杠），跳过 . 与 ..
+    (define (%collect-model-files dir prefix)
+      (let ((entries
+              (catch #t (lambda () (vector->list (listdir dir))) (lambda args '()))
+            ) ;entries
+           ) ;
+        (apply append
+          (map
+            (lambda (e)
+              (cond ((or (string=? e ".") (string=? e "..")) '())
+                    (else
+                      (let ((full (string-append dir "/" e)))
+                        (cond ((%dir? full) (%collect-model-files full (string-append prefix e "/")))
+                              ((%model-json-name? e) (list (string-append prefix e)))
+                              (else '())
+                        ) ;cond
+                      ) ;let
+                    ) ;else
+              ) ;cond
+            ) ;lambda
+            entries
+          ) ;map
+        ) ;apply
       ) ;let
     ) ;define
 
-    ;; 按 id 在 models/<p>/*.json 中查找模型条目；缺失返回 #f
+    ;; 按 id 在 models/<p>/ 下（含子目录）查找模型条目；缺失返回 #f
     (define (%find-model-file-by-id config-dir p-id m-id)
-      (let loop
-        ((files (filter %model-json-name? (%model-dir-entries config-dir p-id))))
-        (if (null? files)
-          #f
-          (let* ((f (car files))
-                 (p (pi-user-config-path config-dir "models" p-id f))
-                 (data (pi-user-read-json p))
-                ) ;
-            (if (and (pair? data) (equal? (pi-user-dict-ref data "id" #f) m-id))
-              data
-              (loop (cdr files))
-            ) ;if
-          ) ;let*
-        ) ;if
+      (let ((dir-str (pi-user-config-path config-dir "models" p-id)))
+        (let loop
+          ((files (if (file-exists? dir-str) (%collect-model-files dir-str "") '())))
+          (if (null? files)
+            #f
+            (let* ((rel (car files))
+                   (p (pi-user-config-path config-dir "models" p-id rel))
+                   (data (pi-user-read-json p))
+                  ) ;
+              (if (and (pair? data) (equal? (pi-user-dict-ref data "id" #f) m-id))
+                data
+                (loop (cdr files))
+              ) ;if
+            ) ;let*
+          ) ;if
+        ) ;let
       ) ;let
     ) ;define
 
@@ -70,11 +96,17 @@
       ) ;let*
     ) ;define
 
-    ;; 列出 models/<p>/ 下的模型 id（去 .json 后缀，保持目录顺序）
+    ;; 列出 models/<p>/ 下的模型 id（递归子目录，去 .json 后缀，
+    ;; 保留子目录斜杠，使含斜杠 id 的模型文件也能被目录枚举发现）
     (define (%directory-model-ids config-dir p-id)
-      (map (lambda (e) (string-remove-suffix e ".json"))
-        (filter %model-json-name? (%model-dir-entries config-dir p-id))
-      ) ;map
+      (let ((dir-str (pi-user-config-path config-dir "models" p-id)))
+        (if (file-exists? dir-str)
+          (map (lambda (rel) (string-remove-suffix rel ".json"))
+            (%collect-model-files dir-str "")
+          ) ;map
+          '()
+        ) ;if
+      ) ;let
     ) ;define
 
   ) ;begin
