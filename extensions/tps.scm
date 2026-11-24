@@ -22,6 +22,7 @@
 
 (import (scheme base)
   (liii list)
+  (liii date-time)
   (liii pi ai time)
   (liii pi ai message)
   (liii pi code core extensions)
@@ -139,37 +140,37 @@
   ) ;cond
 ) ;define
 
-;; 把耗时（秒）格式化为 human readable 时长：
-;;   < 60s       "29.4s"（秒保留 1 位小数）
-;;   < 3600s     "1m30s"（余秒非零）或 "12m"（整分）
-;;   >= 3600s    "1h5m"（分取整数）。
+;; 把 time-delta 格式化为 human readable 时长（从分量读回）：
+;;   无 h 无 m      "29.4s"（秒保留 1 位小数）
+;;   有 m 无 h      "1m30s"（余秒非零）或 "12m"（整分）
+;;   有 h           "1h5m"（分取整数）。
 
-(define (%format-duration s)
-  (cond ((not (number? s)) "0s")
-        ((< s 60) (string-append (%fixed-decimals s 1) "s"))
-        ((< s 3600)
-         (let* ((m (inexact->exact (truncate (/ s 60.0)))) (rest (- s (* m 60.0))))
-           (if (> rest 0)
-             (string-append (number->string m) "m" (%fixed-decimals rest 0) "s")
-             (string-append (number->string m) "m")
-           ) ;if
-         ) ;let*
-        ) ;
-        (else
-          (let* ((h (inexact->exact (truncate (/ s 3600.0)))) (rest (- s (* h 3600.0))))
-            (string-append (number->string h)
-              "h"
-              (number->string (inexact->exact (truncate (/ rest 60.0))))
-              "m"
-            ) ;string-append
-          ) ;let*
-        ) ;else
-  ) ;cond
+(define (%format-duration dt)
+  (let ((minutes (time-delta-minutes dt)) (hours (time-delta-hours dt)))
+    (cond
+     ((and (zero? minutes) (zero? hours))
+      (string-append (%fixed-decimals (exact->inexact (time-delta-seconds dt)) 1) "s")
+     ) ;
+     ((zero? hours)
+      (let ((rest (time-delta-seconds dt)))
+        (if (zero? rest)
+          (string-append (number->string minutes) "m")
+          (string-append (number->string minutes)
+            "m"
+            (%fixed-decimals (exact->inexact rest) 0)
+            "s"
+          ) ;string-append
+        ) ;if
+      ) ;let
+     ) ;
+     (else (string-append (number->string hours) "h" (number->string minutes) "m"))
+    ) ;cond
+  ) ;let
 ) ;define
 
 ;; 组装最终的 TPS 行。
 
-(define (%tps-line tps out in cr cw total elapsed-s)
+(define (%tps-line tps out in cr cw total elapsed-dt)
   (string-append "TPS "
     (%human-readable tps 1 1)
     " tok/s. "
@@ -187,7 +188,7 @@
     "total "
     (%human-readable total 0 1)
     ", "
-    (%format-duration elapsed-s)
+    (%format-duration elapsed-dt)
   ) ;string-append
 ) ;define
 
@@ -222,13 +223,14 @@
                  (cw (%sum-usage-key assistant-usages 'cacheWrite))
                  (total (%sum-usage-key assistant-usages 'totalTokens))
                  (elapsed-ms (- (pi-current-monotonic-millis) start-ms))
+                 (elapsed-dt (milliseconds-delta elapsed-ms))
                  (elapsed-s (if (number? elapsed-ms) (/ elapsed-ms 1000.0) 0.0))
                  (tps (if (> elapsed-s 0) (/ out elapsed-s) 0.0))
                 ) ;
             ;; 仅在确实有输出 token 时输出。对齐上游 ctx.ui.notify / ctx.hasUI：
             ;; 优先用 ctx 携带的 notify（TUI 已 arm），其次全局注入点，最后回退 stderr。
             (when (> out 0)
-              (let ((line (%tps-line tps out in cr cw total elapsed-s))
+              (let ((line (%tps-line tps out in cr cw total elapsed-dt))
                     (ctx-notify (and ctx (extension-context-notify ctx)))
                    ) ;
                 (unless (and (procedure? ctx-notify) (ctx-notify line))
