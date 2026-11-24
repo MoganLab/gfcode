@@ -17,7 +17,7 @@ on:
       - 'review/**'
       - 'simplify/**'
       - 'tests/**'
-      - 'tui/**'
+      - 'app/**'
       - 'web-search/**'
       - 'gfproject.json'
       - 'gf_check.json'
@@ -32,7 +32,7 @@ on:
       - 'review/**'
       - 'simplify/**'
       - 'tests/**'
-      - 'tui/**'
+      - 'app/**'
       - 'web-search/**'
       - 'gfproject.json'
       - 'gf_check.json'
@@ -80,7 +80,7 @@ jobs:
           gf fmt --check extensions
           gf fmt --check review
           gf fmt --check simplify
-          gf fmt --check tui
+          gf fmt --check app
           gf fmt --check web-search
           gf fmt --check tests
 
