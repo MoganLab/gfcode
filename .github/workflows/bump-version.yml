@@ -1,0 +1,91 @@
+name: Bump Version
+
+# 版本号 CI：把 gfproject.json 的 package.version 更新为当天日期（Asia/Shanghai 时区）。
+# 如果文件里的版本号已经是今天，则不修改文件、不产生提交。
+# 版本格式沿用现有约定：YYYY.M.D（月、日不补零），例如 2026.11.24。
+# 定时设置参考 scoop-goldfish/.github/workflows/auto-update.yml：
+# GitHub 定时任务实测延迟 2~4 小时，避开整点高峰。
+
+on:
+  schedule:
+    # 每天 10:00 UTC（北京时间 18:00）运行一次。
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+# 同一天多次触发（定时 + 手动）只允许一个 run 实际执行，避免并发提交。
+concurrency:
+  group: bump-version
+  cancel-in-progress: false
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    # 只允许在 main 分支触发（定时任务默认跑在默认分支，手动触发可选分支，需显式限制）
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine today's version
+        id: check
+        run: |
+          TODAY=$(TZ=Asia/Shanghai date +%Y.%-m.%-d)
+          CURRENT_VERSION=$(jq -r '.package.version // ""' gfproject.json)
+
+          echo "today=$TODAY current=$CURRENT_VERSION"
+          echo "new_version=$TODAY" >> "$GITHUB_OUTPUT"
+
+          if [ "$TODAY" != "$CURRENT_VERSION" ]; then
+            echo "update_needed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "update_needed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update gfproject.json
+        if: steps.check.outputs.update_needed == 'true'
+        run: |
+          VERSION="${{ steps.check.outputs.new_version }}"
+
+          # 用 python3 而非 jq 改写：jq 会把行内数组展开，破坏原有格式。
+          # 只替换 version 字段的值，其余内容与缩进原样保留。
+          python3 - "$VERSION" <<'EOF'
+          import re
+          import sys
+
+          version = sys.argv[1]
+          path = "gfproject.json"
+          with open(path, encoding="utf-8") as f:
+              content = f.read()
+
+          pattern = r'("version":\s*")[^"]*(")'
+          updated, count = re.subn(pattern, r'\g<1>' + version + r'\g<2>', content, count=1)
+          if count != 1:
+              sys.exit("gfproject.json 中未找到 version 字段")
+
+          with open(path, "w", encoding="utf-8") as f:
+              f.write(updated)
+          EOF
+
+          echo "=== 更新后的 gfproject.json ==="
+          cat gfproject.json
+          git diff --stat
+
+      - name: Commit and push
+        if: steps.check.outputs.update_needed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git add gfproject.json
+          # 若 rebase 后版本号已等于今日（例如另一个 run 先提交），则跳过，保证一天最多一个版本。
+          git commit -m "chore: bump version to ${{ steps.check.outputs.new_version }}"
+          git pull --rebase origin "${{ github.ref_name }}"
+          if [ "$(jq -r '.package.version' gfproject.json)" = "${{ steps.check.outputs.new_version }}" ] && [ -z "$(git diff origin/"${{ github.ref_name }}" -- gfproject.json)" ]; then
+            echo "远端版本号已是最新，跳过推送"
+            exit 0
+          fi
+          git push
