@@ -105,59 +105,42 @@
       (list code message)
     ) ;define
 
+    ;; 节点配置解析：与真实请求路径一致走 resolve-pi-config，不再用全类型 catch
+    ;; 构造空 baseUrl 的兜底配置。模型未启用等 pi-config-error 会冒泡到 pi-probe-node
+    ;; 的外层 catch，由 %request-exception-failure 以 config-error 分类记 [FAIL]
+    ;; 并保留原始 "Model ... is not available for provider ..." 原因后返回 #f，
+    ;; 避免把配置错误伪装成网络失败或空地址请求。
     (define (%probe-node-config node dir-str)
-      (catch #t
-        (lambda ()
-          (let* ((parsed (make-pi-cli-args
-                           :provider       (chain-node-provider node)
-                           :model          (chain-node-model node)
-                           :thinking-level (chain-node-thinking-level node)
-                           :no-tools       #t
-                         ) ;make-pi-cli-args
-                 ) ;parsed
-                 (cfg (resolve-pi-config parsed (list (cons "PI_CODING_AGENT_DIR" dir-str))))
-                 (meta (pi-cfg-ref cfg 'model-meta))
-                 (base-url
-                   (cond ((pi-model-metadata? meta) (pi-model-metadata-base-url meta))
-                         ((pair? meta) (cdr (or (assoc 'base-url meta) '(#f
-                                                                         . #f))))
-                         (else #f)
-                   ) ;cond
-                 ) ;base-url
-                 (probe-meta (if (pi-model-metadata? meta)
-                               (pi-model-metadata (pi-model-metadata-id meta)
-                                 (pi-model-metadata-name meta)
-                                 (pi-model-metadata-provider meta)
-                                 (or base-url "")
-                                 (pi-model-metadata-context-window meta)
-                                 %probe-max-tokens
-                                 (pi-model-metadata-matched? meta)
-                               ) ;pi-model-metadata
-                               (pi-model-metadata "" "" "" (or base-url "") #f %probe-max-tokens #t)
-                             ) ;if
-                 ) ;probe-meta
-                ) ;
-            (pi-cfg-set cfg 'model-meta probe-meta)
-          ) ;let*
-        ) ;lambda
-        (lambda _
-          (make-pi-config
-            :provider       (chain-node-provider node)
-            :model-id       (chain-node-model node)
-            :thinking-level (chain-node-thinking-level node)
-            :model-meta
-            (pi-model-metadata (chain-node-model node)
-              (chain-node-model node)
-              (chain-node-provider node)
-              ""
-              #f
-              %probe-max-tokens
-              #t
-            ) ;pi-model-metadata
-            :config-dir (path dir-str)
-          ) ;make-pi-config
-        ) ;lambda
-      ) ;catch
+      (let* ((parsed (make-pi-cli-args
+                       :provider       (chain-node-provider node)
+                       :model          (chain-node-model node)
+                       :thinking-level (chain-node-thinking-level node)
+                       :no-tools       #t
+                     ) ;make-pi-cli-args
+             ) ;parsed
+             (cfg (resolve-pi-config parsed (list (cons "PI_CODING_AGENT_DIR" dir-str))))
+             (meta (pi-cfg-ref cfg 'model-meta))
+             (base-url
+               (cond ((pi-model-metadata? meta) (pi-model-metadata-base-url meta))
+                     ((pair? meta) (cdr (or (assoc 'base-url meta) '(#f . #f))))
+                     (else #f)
+               ) ;cond
+             ) ;base-url
+             (probe-meta (if (pi-model-metadata? meta)
+                           (pi-model-metadata (pi-model-metadata-id meta)
+                             (pi-model-metadata-name meta)
+                             (pi-model-metadata-provider meta)
+                             (or base-url "")
+                             (pi-model-metadata-context-window meta)
+                             %probe-max-tokens
+                             (pi-model-metadata-matched? meta)
+                           ) ;pi-model-metadata
+                           (pi-model-metadata "" "" "" (or base-url "") #f %probe-max-tokens #t)
+                         ) ;if
+             ) ;probe-meta
+            ) ;
+        (pi-cfg-set cfg 'model-meta probe-meta)
+      ) ;let*
     ) ;define
 
     (define (%nonempty-response-text resp)
@@ -234,9 +217,16 @@
                  (object->string tag)
                ) ;if
              ) ;detail
-             (code (pi-probe-error-code detail))
+             (parsed (pi-probe-error-code detail))
+             ;; 配置解析失败（如未启用模型）单独归类为 config-error，保留原始文本；
+             ;; 其余异常沿用既有 error=>exception 收敛，使现有探活日志格式不变。
+             (code (cond ((eq? tag 'pi-config-error) 'config-error)
+                         ((eq? parsed 'error) 'exception)
+                         (else parsed)
+                   ) ;cond
+             ) ;code
             ) ;
-        (%failure (if (eq? code 'error) 'exception code) detail)
+        (%failure code detail)
       ) ;let*
     ) ;define
 
