@@ -46,6 +46,12 @@
   (check (cdr (assoc "stream" body)) => #t)
   (check (cdr (assoc "max_tokens" body)) => 4096)
   (check (cdr (assoc "tools" body)) => (list->vector tools))
+  ;; 流式请求必须声明 stream_options.include_usage，否则兼容端点不回传 usage
+  (check
+    (cdr (assoc "include_usage" (cdr (assoc "stream_options" body))))
+    =>
+    #t
+  ) ;check
 ) ;let*
 
 ;; 无 tools 和非流式
@@ -54,6 +60,7 @@
       ) ;
   (check (cdr (assoc "model" body)) => "kimi-for-coding")
   (check (assoc "stream" body) => #f)
+  (check (assoc "stream_options" body) => #f)
   (check (assoc "tools" body) => #f)
 ) ;let*
 

@@ -38,6 +38,84 @@
       ) ;let
     ) ;define
 
+    ;; usage 是否携带有效 token 计数：错误占位消息（max-turns / 会话超时 / 请求异常）
+    ;; usage 全零或仅含 cost 等非计数字段，不能用于上下文占比换算
+    (define (%usage-has-tokens? usage)
+      (and (pair? usage)
+        (let loop
+          ((rest usage))
+          (and (pair? rest)
+            (or (and (pair? (car rest))
+                  (memq (caar rest) '(input output totalTokens total cacheRead
+                                       cacheWrite))
+                  (number? (cdar rest))
+                  (> (cdar rest) 0)
+                ) ;and
+              (loop (cdr rest))
+            ) ;or
+          ) ;and
+        ) ;let
+      ) ;and
+    ) ;define
+
+    ;; 最近一条携带有效 usage 的 assistant 消息的 usage（无则 #f）：
+    ;; 全零占位消息结算时回退沿用，避免页脚上下文占比闪回 0.0%
+    (define (%last-known-usage msgs)
+      (let loop
+        ((rest (reverse msgs)))
+        (cond ((null? rest) #f)
+              ((and (pi-assistant-message? (car rest))
+                 (%usage-has-tokens? (pi-assistant-message-usage (car rest)))
+               ) ;and
+               (pi-assistant-message-usage (car rest))
+              ) ;
+              ((and (pair? (car rest))
+                 (%usage-has-tokens? (pi-agent-assoc-val 'usage "usage" (car rest) '()))
+               ) ;and
+               (pi-agent-assoc-val 'usage "usage" (car rest) '())
+              ) ;
+              (else (loop (cdr rest)))
+        ) ;cond
+      ) ;let
+    ) ;define
+
+    ;; 结算响应 usage 全零/缺失时回填最近已知 usage：
+    ;; 请求并未消耗上下文，沿用已知值可避免 message_usage 把占比打回 0.0%。
+    ;; 仅作用于内存结算与事件上报，不改动落盘消息（会话恢复会跳过全零 usage）
+    (define (%carry-last-usage resp msgs)
+      (let* ((u (if (pi-assistant-message? resp)
+                  (pi-assistant-message-usage resp)
+                  (and (pair? resp) (pi-agent-assoc-val 'usage "usage" resp #f))
+                ) ;if
+             ) ;u
+             (last (and (not (%usage-has-tokens? u)) (%last-known-usage msgs)))
+            ) ;
+        (cond ((not last) resp)
+              ((pi-assistant-message? resp)
+               (pi-assistant-message (pi-assistant-message-content resp)
+                 :stop-reason   (pi-assistant-message-stop-reason resp)
+                 :error-message (pi-assistant-message-error-message resp)
+                 :usage         last
+                 :timestamp     (pi-assistant-message-timestamp resp)
+                 :provider      (pi-assistant-message-provider resp)
+                 :model         (pi-assistant-message-model resp)
+                 :api           (pi-assistant-message-api resp)
+               ) ;pi-assistant-message
+              ) ;
+              ((pair? resp)
+               (append
+                 (remove
+                   (lambda (x) (and (pair? x) (or (eq? (car x) 'usage) (equal? (car x) "usage"))))
+                   resp
+                 ) ;remove
+                 (list (cons 'usage last))
+               ) ;append
+              ) ;
+              (else resp)
+        ) ;cond
+      ) ;let*
+    ) ;define
+
     (define* (pi-step-agent-turn config msgs system-prompt emit timeout request-fn)
       (let* ((eff-cfg (%resolve-effective-cfg config))
              (active-tools (pi-cfg-ref eff-cfg 'tools '()))
@@ -60,7 +138,8 @@
             ) ;
         (when (procedure? emit)
           (emit 'message_start resp)
-          (emit 'message_end resp)
+          ;; 结算事件用回填后的副本；落盘历史（new-msgs）保留原始 usage
+          (emit 'message_end (%carry-last-usage resp msgs))
         ) ;when
         (let* ((new-msgs (append msgs (list resp)))
                (stop-reason (if (pi-assistant-message? resp)
@@ -129,7 +208,9 @@
         (when (procedure? emit)
           (emit 'turn_start)
           (emit 'message_start resp)
-          (emit 'message_end resp)
+          ;; 事件上报使用回填后的 resp；返回/落盘保留原始占位 usage，
+          ;; 会话恢复按“跳过全零 usage”逻辑自行回退
+          (emit 'message_end (%carry-last-usage resp msgs))
           (emit 'turn_end resp #())
           (pi-emit-agent-end emit final-msgs "error" config)
         ) ;when

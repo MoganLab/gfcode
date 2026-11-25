@@ -344,7 +344,12 @@
                     (tokens (pi-app-tokens app))
                     (latest-rate (pi-calculate-cache-hit-rate usage))
                     (context-tokens (pi-calculate-context-tokens usage))
-                    (context (make-pi-context-usage (pi-context-percent context-tokens window) window #t)
+                    ;; 全零 usage（错误占位/异常结算）：不消耗上下文，
+                    ;; 沿用页脚当前占比描述，避免闪回 "0.0%"
+                    (context (if (> context-tokens 0)
+                               (make-pi-context-usage (pi-context-percent context-tokens window) window #t)
+                               #f
+                             ) ;if
                     ) ;context
                    ) ;
                (pi-session-token-stats-add-usage! tokens usage)

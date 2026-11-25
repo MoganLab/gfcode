@@ -304,6 +304,31 @@
       ) ;let
     ) ;define
 
+    ;; 映射后的 usage 是否携带有效 token 计数（四项之和 > 0）
+    (define (%usage-has-tokens? usage)
+      (and (pair? usage)
+        (>
+          (let loop
+            ((rest usage) (sum 0))
+            (if (null? rest)
+              sum
+              (loop (cdr rest)
+                (+ sum
+                  (if (and (memq (caar rest) '(input output cacheRead cacheWrite))
+                        (number? (cdar rest))
+                      ) ;and
+                    (cdar rest)
+                    0
+                  ) ;if
+                ) ;+
+              ) ;loop
+            ) ;if
+          ) ;let
+          0
+        ) ;>
+      ) ;and
+    ) ;define
+
     (define (process-openai-chunk json-obj stream-state on-event)
       (let* ((top-usage (if (json-object? json-obj) (json-ref json-obj "usage") #f))
              (choices (if (json-object? json-obj) (json-ref json-obj "choices") #()))
@@ -319,8 +344,14 @@
              ) ;raw-stop
              (delta (if (json-object? choice) (json-ref choice "delta") '()))
             ) ;
+        ;; 仅非零 usage 才覆盖：部分网关逐 chunk 下发全零 usage 占位，
+        ;; 若末 chunk 缺失 usage 会把已累积的真实用量清零（页脚闪回 0.0%）
         (when (json-object? eff-usage)
-          (openai-stream-state-usage-set! stream-state (openai-map-usage eff-usage))
+          (let ((mapped (openai-map-usage eff-usage)))
+            (when (%usage-has-tokens? mapped)
+              (openai-stream-state-usage-set! stream-state mapped)
+            ) ;when
+          ) ;let
         ) ;when
         (when (and (string? raw-stop) (not (string-null? raw-stop)))
           (openai-stream-state-stop-reason-set! stream-state

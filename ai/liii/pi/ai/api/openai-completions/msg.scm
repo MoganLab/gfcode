@@ -373,6 +373,9 @@
              (pairs
                (append thinking-pairs
                  (list (and stream? (cons "stream" #t))
+                   ;; 流式请求声明返回 usage：OpenAI/DashScope 兼容端点缺省
+                   ;; 不在流末 chunk 携带 usage，导致上下文占比/费用统计全零
+                   (and stream? (cons "stream_options" '(("include_usage" . #t))))
                    (and (integer? max-tokens) (> max-tokens 0) (cons "max_tokens" max-tokens))
                    (and (pair? tool-decls)
                      (> (length tool-decls) 0)
