@@ -38,7 +38,8 @@
 
 ;; 1. 不存在的目录和普通文件安全返回空列表。
 (check (pi-scan-extension-dir "/non/existent/path/for/sure/12345") => '())
-(check (pi-scan-extension-dir (string-append (get-fixtures-dir) "/extensions/ignore.txt"))
+(check (pi-scan-extension-dir (string-append (get-fixtures-dir) "/extensions/ignore.txt")
+       ) ;pi-scan-extension-dir
   =>
   '()
 ) ;check
@@ -46,20 +47,17 @@
 ;; 2. 扫描 gfcode 目录，返回库名、搜索根和绝对路径。
 (let* ((fixture-dir (string-append (get-fixtures-dir) "/gfcode"))
        (found (pi-scan-extension-dir fixture-dir))
-       (valid (find (lambda (entry)
-                      (equal? (cdr (assq 'name entry)) '(gfcode valid-ext1))
-                    ) ;lambda
-                found
-              ) ;find
+       (valid
+         (find
+           (lambda (entry) (equal? (cdr (assq 'name entry)) '(gfcode valid-ext1)))
+           found
+         ) ;find
        ) ;valid
       ) ;
   (check-true (pair? found))
   (check-true (and valid #t))
   (check (cdr (assq 'type valid)) => 'library)
-  (check (cdr (assq 'root valid))
-    =>
-    (%normalized (get-fixtures-dir))
-  ) ;check
+  (check (cdr (assq 'root valid)) => (%normalized (get-fixtures-dir)))
   (check (cdr (assq 'path valid))
     =>
     (%normalized (string-append fixture-dir "/valid-ext1.scm"))
@@ -67,7 +65,14 @@
   (for-each
     (lambda (entry)
       (check (eq? (cdr (assq 'type entry)) 'library) => #t)
-      (check (string=? (path-suffix (path (cdr (assq 'path entry)))) ".scm") => #t)
+      (check
+        (string=?
+          (path-suffix (path (cdr (assq 'path entry))))
+          ".scm"
+        ) ;string=?
+        =>
+        #t
+      ) ;check
     ) ;lambda
     found
   ) ;for-each

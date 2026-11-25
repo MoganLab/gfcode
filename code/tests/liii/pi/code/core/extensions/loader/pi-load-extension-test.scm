@@ -27,9 +27,7 @@
 
 (define (get-fixtures-dir)
   (cond ((file-exists? "tests/fixtures/gfcode") "tests/fixtures/gfcode")
-        ((file-exists? "tools/pi/tests/fixtures/gfcode")
-         "tools/pi/tests/fixtures"
-        ) ;
+        ((file-exists? "tools/pi/tests/fixtures/gfcode") "tools/pi/tests/fixtures")
         (else "../../tools/pi/tests/fixtures/gfcode")
   ) ;cond
 ) ;define

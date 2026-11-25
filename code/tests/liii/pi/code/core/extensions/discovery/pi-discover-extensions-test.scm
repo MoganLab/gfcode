@@ -49,7 +49,10 @@
   (path-write-text file (%probe-source "proj-ext"))
   (let ((result (pi-discover-extensions :cwd (path->string root) :builtin-dir %FIX)))
     (check-true
-      (and (find (lambda (entry) (equal? (%entry-name entry) '(gfcode proj-ext))) result) #t)
+      (and
+        (find (lambda (entry) (equal? (%entry-name entry) '(gfcode proj-ext))) result)
+        #t
+      ) ;and
     ) ;check-true
   ) ;let
   (rmtree (path->string root) #t)
@@ -71,17 +74,20 @@
   (path-write-text (path-join user-dir "shared.scm") (%probe-source "shared"))
   (path-write-text (path-join project-dir "shared.scm") (%probe-source "shared"))
   (putenv "HOME" (path->string home))
-  (when (os-windows?) (putenv "USERPROFILE" (path->string home)))
+  (when (os-windows?)
+    (putenv "USERPROFILE" (path->string home))
+  ) ;when
   (unsetenv "GF_CONFIG_DIR")
   (unsetenv "PI_CODING_AGENT_DIR")
   (let* ((entries (pi-discover-extensions :cwd (path->string project) :builtin-dir %FIX))
-         (matches (filter (lambda (entry) (equal? (%entry-name entry) '(gfcode shared))) entries))
+         (matches
+           (filter (lambda (entry) (equal? (%entry-name entry) '(gfcode shared))) entries)
+         ) ;matches
         ) ;
     (check (length matches) => 1)
     (check (cdr (assq 'path (car matches)))
       =>
-      (string-replace
-        (path->string (path-resolve (path-join project-dir "shared.scm")))
+      (string-replace (path->string (path-resolve (path-join project-dir "shared.scm")))
         "\\"
         "/"
       ) ;string-replace
@@ -92,18 +98,27 @@
     (if saved-profile (putenv "USERPROFILE" saved-profile) (unsetenv "USERPROFILE"))
   ) ;when
   (if saved-gf (putenv "GF_CONFIG_DIR" saved-gf) (unsetenv "GF_CONFIG_DIR"))
-  (if saved-pi (putenv "PI_CODING_AGENT_DIR" saved-pi) (unsetenv "PI_CODING_AGENT_DIR"))
+  (if saved-pi
+    (putenv "PI_CODING_AGENT_DIR" saved-pi)
+    (unsetenv "PI_CODING_AGENT_DIR")
+  ) ;if
   (rmtree (path->string root) #t)
 ) ;let*
 
 ;; 3. include-builtin? #f 时不返回内置 fixture。
-(let ((result (pi-discover-extensions :builtin-dir (path-join (path %FIX) "gfcode")
+(let ((result (pi-discover-extensions
+                :builtin-dir      (path-join (path %FIX) "gfcode")
                 :include-builtin? #f
-                :cwd               (path->string (path-temp-dir))
+                :cwd              (path->string (path-temp-dir))
               ) ;pi-discover-extensions
-     ) ;result
-    ) ;
-  (check-false (and (find (lambda (entry) (equal? (%entry-name entry) '(gfcode valid-ext1))) result) #t))
+      ) ;result
+     ) ;
+  (check-false
+    (and
+      (find (lambda (entry) (equal? (%entry-name entry) '(gfcode valid-ext1))) result)
+      #t
+    ) ;and
+  ) ;check-false
 ) ;let
 
 (check-report)

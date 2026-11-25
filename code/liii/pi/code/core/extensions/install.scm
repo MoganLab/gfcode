@@ -85,10 +85,7 @@
       (let* ((local? (pi-keyword-value :local? opts #f))
              (agent-dir (path (pi-keyword-value :agent-dir opts (pi-get-agent-dir))))
              (cwd-dir (pi-keyword-value :cwd opts (getcwd)))
-             (user-root (if (string=? (path-name agent-dir) "agent")
-                          (path-parent agent-dir)
-                          agent-dir
-                        ) ;if
+             (user-root (if (string=? (path-name agent-dir) "agent") (path-parent agent-dir) agent-dir)
              ) ;user-root
              (base-dir (if local?
                          (path-join (path cwd-dir) ".gf" "gfcode")
@@ -191,7 +188,9 @@
                 target-dir
               ) ;lambda
               (lambda args
-                (when (path-exists? (path clone-dir)) (%rmdir-rec clone-dir))
+                (when (path-exists? (path clone-dir))
+                  (%rmdir-rec clone-dir)
+                ) ;when
                 (apply error args)
               ) ;lambda
             ) ;catch

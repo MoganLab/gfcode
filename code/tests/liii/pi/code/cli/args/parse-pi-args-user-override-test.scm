@@ -40,9 +40,10 @@
     "  (import (scheme base) (liii pi code core extensions)) (export extension)\n"
     "  (begin (define (extension api . ctx)\n" "    (register-flag! api\n"
     "      (make-extension-flag-def \"--probe-mark\" \"probe\" :key 'probe-mark\n"
-    "        :takes-arg? #t))\n" "    (pi-on! api 'agent_end (lambda (payload c) '"
-    mark "))\n" "    (register-prompt-injector! api (lambda (tool-calls) #f))\n"
-    "    '" mark ")))\n"
+    "        :takes-arg? #t))\n"
+    "    (pi-on! api 'agent_end (lambda (payload c) '" mark "))\n"
+    "    (register-prompt-injector! api (lambda (tool-calls) #f))\n" "    '"
+    mark ")))\n"
   ) ;string-append
 ) ;define
 

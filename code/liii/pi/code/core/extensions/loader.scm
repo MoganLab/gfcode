@@ -19,7 +19,9 @@
   (begin
 
     (define (%entry-field entry key)
-      (cond ((assq key entry) => cdr) (else #f))
+      (cond ((assq key entry) => cdr)
+            (else #f)
+      ) ;cond
     ) ;define
 
     (define (%extension-entry entry)
@@ -28,10 +30,11 @@
         (let* ((path-str (if (path? entry) (path->string entry) entry))
                (p (path path-str))
                (filename (path-name p))
-               (name (if (string-ends? filename ".scm")
-                       (substring filename 0 (- (string-length filename) 4))
-                       filename
-                     ) ;if
+               (name
+                 (if (string-ends? filename ".scm")
+                   (substring filename 0 (- (string-length filename) 4))
+                   filename
+                 ) ;if
                ) ;name
                (root (path-parent (path-parent p)))
               ) ;
@@ -47,7 +50,11 @@
     (define (%call-with-library-root root thunk)
       (let ((saved-load-path *load-path*))
         (dynamic-wind
-          (lambda () (set! *load-path* (cons root (remove (lambda (p) (string=? p root)) *load-path*))))
+          (lambda ()
+            (set! *load-path*
+              (cons root (remove (lambda (p) (string=? p root)) *load-path*))
+            ) ;set!
+          ) ;lambda
           thunk
           (lambda () (set! *load-path* saved-load-path))
         ) ;dynamic-wind
@@ -59,7 +66,8 @@
     ) ;define
 
     (define (%call-factory factory api ctx)
-      (if (and ctx (> (car (arity factory)) 1))
+      (if
+        (and ctx (> (car (arity factory)) 1))
         (factory api ctx)
         (factory api)
       ) ;if
@@ -115,17 +123,17 @@
       (let* ((ctx (if (pair? opt-context) (car opt-context) #f))
              (results
                (map (lambda (entry)
-                      (if ctx
-                        (pi-load-extension entry api ctx)
-                        (pi-load-extension entry api)
-                      ) ;if
+                      (if ctx (pi-load-extension entry api ctx) (pi-load-extension entry api))
                     ) ;lambda
                  (if (list? entries) entries '())
                ) ;map
              ) ;results
              (total (length results))
              (success
-               (count (lambda (r) (eq? (cdr (assq 'status r)) 'ok)) results)
+               (count
+                 (lambda (r) (eq? (cdr (assq 'status r)) 'ok))
+                 results
+               ) ;count
              ) ;success
              (failed (- total success))
             ) ;

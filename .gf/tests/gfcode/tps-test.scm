@@ -1,4 +1,4 @@
-;; tps-extension
+;; extension（gfcode tps）
 ;; 验证项目级 tps 扩展脚本的加载，以及 agent_start / agent_end 事件钩子对 usage 的统计与
 ;; TPS 行的格式化输出（捕获 stderr 后断言内容）。
 ;;
@@ -34,10 +34,13 @@
 (check-set-mode! 'report-failed)
 
 (define (get-tps-path)
-  (let ((test-path (path-resolve "tests/tps-test.scm")))
+  (let ((test-path (path-resolve "tests/gfcode/tps-test.scm")))
     (path->string
       (path-resolve
-        (path-join (path-parent (path-parent (path-parent test-path))) "gfcode" "tps.scm")
+        (path-join (path-parent (path-parent (path-parent test-path)))
+          "gfcode"
+          "tps.scm"
+        ) ;path-join
       ) ;path-resolve
     ) ;path->string
   ) ;let
