@@ -20,16 +20,16 @@ scoop bucket add goldfish https://github.com/MoganLab/scoop-goldfish
 scoop install goldfish
 ```
 
-Then install the latest gfcode version. The command requires `curl` and `jq`:
+Then install the latest gfcode version:
 
 ```bash
-gf get -g https://github.com/MoganLab/gfcode.git --ref "$(curl -fsSL https://api.github.com/repos/MoganLab/gfcode/tags | jq -r '.[0].name')" --force
+gf get -g https://github.com/MoganLab/gfcode.git --ref @latest --force
 ```
 
 Using an HTTP proxy (port `7890` in this example):
 
 ```bash
-HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 gf get -g https://github.com/MoganLab/gfcode.git --ref "$(HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 curl -fsSL https://api.github.com/repos/MoganLab/gfcode/tags | jq -r '.[0].name')" --force
+HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 gf get -g https://github.com/MoganLab/gfcode.git --ref @latest --force
 ```
 
 Verify:
