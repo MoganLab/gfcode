@@ -14,7 +14,7 @@
 ;; string? | #f
 ;; 标准输入去除首尾空白后的字符串；若输入为空或仅空白则返回 #f。
 
-(import (liii check) (liii string) (liii pi app cli))
+(import (liii check) (liii string) (liii pi app cli main))
 
 (check-set-mode! 'report-failed)
 

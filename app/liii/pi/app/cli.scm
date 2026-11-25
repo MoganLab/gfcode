@@ -10,7 +10,7 @@
     (scheme eval)
     (liii pi app cli help)
   ) ;import
-  (export display-pi-help read-all-stdin run-goldpi run-pi)
+  (export display-pi-help)
   (begin
 
     (define (strip-command-prefix args)

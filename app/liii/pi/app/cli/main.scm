@@ -36,7 +36,7 @@
     (liii pi code core skills)
     (liii pi code config settings)
   ) ;import
-  (export main display-pi-help read-all-stdin run-goldpi run-pi)
+  (export main read-all-stdin run-goldpi run-pi)
   (begin
 
     (define (read-all-stdin)
