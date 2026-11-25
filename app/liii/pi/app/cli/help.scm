@@ -7,7 +7,6 @@
 (define-library (liii pi app cli help)
   (import (scheme base)
     (scheme write)
-    (liii raw-string)
     (liii json)
     (liii path)
     (liii string)
@@ -108,59 +107,56 @@
         (%pi-version)
         (%dev-suffix)
         "\n"
-        (&- #""
-          gf pi - AI coding assistant script mode
-
-          Usage:
-            gf pi [options] [--] [@files...] [messages...]
-            gf pi auth print-api-key --provider <provider>
-
-          Options:
-            -p, --print                    Print response to stdout and exit
-                --mode <mode>              Output mode: text, json, verbose (default: verbose)
-                --model <id>               Model ID to use
-                --provider <name>          Provider to search for --model (requires --model)
-                --thinking <level>         Thinking level: off, minimal, low, medium, high, xhigh, max
-                --list-models [search]     List all models with activation status (with optional search)
-                --proxy <url>              Proxy URL (e.g. socks5h://127.0.0.1:1080)
-                --tools <list>             Comma-separated list of tools
-                --exclude-tools <list>     Comma-separated list of tools to exclude
-                --no-tools                 Disable all tools
-                --no-builtin-tools         Alias for --no-tools
-                --max-turns <n>            Maximum turns limit (0 or unset for unlimited)
-                --timeout <seconds>        Timeout in seconds for bash and HTTP (default: 600)
-                --session-timeout <seconds>
-                                           Total session timeout in seconds (default: 0, unlimited)
-            -c, --continue                 Continue previous session
-            -r, --resume                   Select a session to resume
-            -n, --name <name>              Set session display name
-                --compact                  Compact latest session, then run the prompt (if any)
-                --no-auto-compact          Disable automatic context compaction
-                --no-session               Do not persist session
-                --session-dir <dir>        Directory for session storage and lookup
-                                           (overrides PI_CODING_AGENT_SESSION_DIR
-                                           and sessionDir in settings.json)
-                --code-review              Review uncommitted changes and print a report
-                --simplify                 Review uncommitted changes for simplification (read-only)
-                --apply                    With --simplify, apply within-range changes
-                --staged                   With --code-review/--simplify, review only staged changes
-                --ref <ref>                With --code-review/--simplify, diff against the given ref
-                --auto-review              Inject a per-language review checklist after write/edit
-                --system-prompt <text>     Override system prompt
-                --append-system-prompt <text>
-                                           Append system prompt section
-                --skill <path>             Add a skill directory or SKILL.md path (repeatable)
-                --skills <path>            Alias for --skill
-                --no-skills                Disable skill loading entirely
-            -h, --help                     Show this help message
-
-          Retry:
-            Retriable provider errors (429/5xx/408/409/network) use the budget from
-            retry.provider.maxRetries in the agent config directory
-            (~/.gf/agent/settings.json),
-            falling back to retry.maxRetries when the nested section is absent.
-          ""
-        ) ;&-
+        "gf pi - AI coding assistant script mode\n"
+        "\n"
+        "Usage:\n"
+        "  gf pi [options] [--] [@files...] [messages...]\n"
+        "  gf pi auth print-api-key --provider <provider>\n"
+        "\n"
+        "Options:\n"
+        "  -p, --print                    Print response to stdout and exit\n"
+        "      --mode <mode>              Output mode: text, json, verbose (default: verbose)\n"
+        "      --model <id>               Model ID to use\n"
+        "      --provider <name>          Provider to search for --model (requires --model)\n"
+        "      --thinking <level>         Thinking level: off, minimal, low, medium, high, xhigh, max\n"
+        "      --list-models [search]     List all models with activation status (with optional search)\n"
+        "      --proxy <url>              Proxy URL (e.g. socks5h://127.0.0.1:1080)\n"
+        "      --tools <list>             Comma-separated list of tools\n"
+        "      --exclude-tools <list>     Comma-separated list of tools to exclude\n"
+        "      --no-tools                 Disable all tools\n"
+        "      --no-builtin-tools         Alias for --no-tools\n"
+        "      --max-turns <n>            Maximum turns limit (0 or unset for unlimited)\n"
+        "      --timeout <seconds>        Timeout in seconds for bash and HTTP (default: 600)\n"
+        "      --session-timeout <seconds>\n"
+        "                                 Total session timeout in seconds (default: 0, unlimited)\n"
+        "  -c, --continue                 Continue previous session\n"
+        "  -r, --resume                   Select a session to resume\n"
+        "  -n, --name <name>              Set session display name\n"
+        "      --compact                  Compact latest session, then run the prompt (if any)\n"
+        "      --no-auto-compact          Disable automatic context compaction\n"
+        "      --no-session               Do not persist session\n"
+        "      --session-dir <dir>        Directory for session storage and lookup\n"
+        "                                 (overrides PI_CODING_AGENT_SESSION_DIR\n"
+        "                                 and sessionDir in settings.json)\n"
+        "      --code-review              Review uncommitted changes and print a report\n"
+        "      --simplify                 Review uncommitted changes for simplification (read-only)\n"
+        "      --apply                    With --simplify, apply within-range changes\n"
+        "      --staged                   With --code-review/--simplify, review only staged changes\n"
+        "      --ref <ref>                With --code-review/--simplify, diff against the given ref\n"
+        "      --auto-review              Inject a per-language review checklist after write/edit\n"
+        "      --system-prompt <text>     Override system prompt\n"
+        "      --append-system-prompt <text>\n"
+        "                                 Append system prompt section\n"
+        "      --skill <path>             Add a skill directory or SKILL.md path (repeatable)\n"
+        "      --skills <path>            Alias for --skill\n"
+        "      --no-skills                Disable skill loading entirely\n"
+        "  -h, --help                     Show this help message\n"
+        "\n"
+        "Retry:\n"
+        "  Retriable provider errors (429/5xx/408/409/network) use the budget from\n"
+        "  retry.provider.maxRetries in the agent config directory\n"
+        "  (~/.gf/agent/settings.json),\n"
+        "  falling back to retry.maxRetries when the nested section is absent.\n"
         "\n"
       ) ;string-append
     ) ;define

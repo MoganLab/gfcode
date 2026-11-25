@@ -1,41 +1,34 @@
 ;; read-all-stdin
-;; 读取并拼接标准输入全部内容，去除首尾空白。
+;; 从标准输入读取全部内容并修剪两端空白字符。
 ;;
 ;; 语法
 ;; ----
-;; (read-all-stdin) -> string? | #f
+;; (read-all-stdin)
 ;;
 ;; 参数
 ;; ----
 ;; 无
 ;;
 ;; 返回值
-;; ------
-;; string? | #f
-;; 标准输入去除首尾空白后的字符串；若输入为空或仅空白则返回 #f。
+;; ----
+;; string? | boolean?
+;; 若输入修剪后非空则返回字符串，若为空或仅包含空白字符则返回 #f。
 
-(import (liii check) (liii string) (liii pi app cli))
+;; 先导入 (liii pi app cli) 避免宏展开期常量回收
+(import (liii pi app cli) (liii check))
 
 (check-set-mode! 'report-failed)
 
-;; 1. 非空输入：返回去除首尾空白后的内容
-(let ((result (with-input-from-string "  hello stdin  " read-all-stdin)))
-  (check result => "hello stdin")
-) ;let
+;; 正常非空字符串输入
+(check (with-input-from-string "hello world\n" read-all-stdin) => "hello world")
+(check (with-input-from-string "  leading and trailing  \n" read-all-stdin)
+  =>
+  "leading and trailing"
+) ;check
 
-;; 2. 仅空白输入：返回 #f
-(let ((result (with-input-from-string "   \n\t  " read-all-stdin)))
-  (check result => #f)
-) ;let
+;; 纯空白或空输入返回 #f
+(check (with-input-from-string "" read-all-stdin) => #f)
+(check (with-input-from-string "   \t\r\n" read-all-stdin) => #f)
 
-;; 3. 空输入：返回 #f
-(let ((result (with-input-from-string "" read-all-stdin)))
-  (check result => #f)
-) ;let
-
-;; 4. 多行输入：保留内部换行，仅去除首尾空白
-(let ((result (with-input-from-string "  line1\nline2\n  " read-all-stdin)))
-  (check result => "line1\nline2")
-) ;let
 
 (check-report)

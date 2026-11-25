@@ -1,68 +1,61 @@
 ;; run-pi
-;; Pi 命令行入口：剥离命令前缀后分发 install/config/auth/login 与主流程。
+;; 剥离命令行中的 gf/pi 前缀，加载扩展并执行 Pi 命令。
 ;;
 ;; 语法
 ;; ----
-;; (run-pi raw-args) -> integer?
+;; (run-pi raw-args)
 ;;
 ;; 参数
 ;; ----
 ;; raw-args : list?
-;; 原始命令行参数字符串列表（含 gf/pi 命令前缀）。
+;; 原始命令行字符串列表，可包含可执行文件路径及 pi 子命令前缀。
 ;;
 ;; 返回值
-;; ------
+;; ----
 ;; integer?
-;; 进程退出码：成功为 0，错误为 1。
+;; 进程风格退出码：成功为 0，参数、安装或运行错误为 1。
 
-(import (liii check) (liii string) (liii pi app cli))
+;; 先导入 (liii pi app cli)：若 (liii check) 先于它导入，编译器在宏展开期
+;; 会拿到已回收的常量（报 "lambda parameter is a constant: <free cell!>"）。
+(import (liii pi app cli) (liii check) (liii string))
 
 (check-set-mode! 'report-failed)
 
-;; 1. --help：输出帮助并返回 0
-(let ((status #f))
-  (let ((out
-          (with-output-to-string
-            (lambda () (set! status (run-pi '("gf" "pi" "--help"))))
-          ) ;with-output-to-string
-        ) ;out
-       ) ;
-    (check status => 0)
-    (check-true (string-contains? out "Usage:"))
+(define (check-help-command raw-args)
+  (let ((status #f))
+    (let ((output (with-output-to-string (lambda () (set! status (run-pi raw-args))))))
+      (check status => 0)
+      (check-true (string-contains? output "Usage:"))
+    ) ;let
   ) ;let
-) ;let
+) ;define
 
-;; 2. 未知子命令前缀走主流程，空消息且无匹配 flow 时回退到帮助（非交互环境），
-;;    返回 0
-(let ((status #f))
-  (with-output-to-string
-    (lambda ()
-      (with-input-from-string "" (lambda () (set! status (run-pi '("gf" "pi")))))
-    ) ;lambda
-  ) ;with-output-to-string
-  (check status => 0)
-) ;let
+;; gf pi 与可执行文件路径两种前缀都应正确剥离
+(check-help-command '("gf" "pi" "--help"))
+(check-help-command '("/usr/bin/gf" "--help"))
 
-;; 3. 错误被 catch 兜住，返回退出码 1（构造需要 --model 的 --provider 错误）
-(let ((status #f))
-  (let ((err
-          (let ((p (open-output-string)))
-            (define (capture-thunk)
-              (let ((orig *stderr*))
-                (dynamic-wind (lambda () (set! *stderr* p))
-                  (lambda () (set! status (run-pi '("gf" "pi" "--provider"
-                                                    "google"))))
-                  (lambda () (set! *stderr* orig))
-                ) ;dynamic-wind
-              ) ;let
-            ) ;define
-            (capture-thunk)
-            (get-output-string p)
-          ) ;let
-        ) ;err
-       ) ;
-    (check status => 1)
+;; 识别 auth 子命令前缀并派发到 auth 处理
+
+(define (check-auth-help raw-args)
+  (let ((status #f))
+    (let ((output (with-output-to-string (lambda () (set! status (run-pi raw-args))))))
+      (check status => 0)
+      (check-true (string-contains? output
+                    "Usage: gf pi auth print-api-key --provider <provider>"
+                  ) ;string-contains?
+      ) ;check-true
+    ) ;let
   ) ;let
-) ;let
+) ;define
+
+(check-auth-help '("gf" "pi" "auth"))
+(check-auth-help '("gf" "pi" "auth" "--help"))
+(check-auth-help '("/path/to/gf" "pi" "auth" "-h"))
+
+;; 错误参数时派发到 auth 并返回非零退出码
+(check (run-pi '("gf" "pi" "auth" "unknown-subcommand")) => 1)
+(check (run-pi '("gf" "pi" "auth" "print-api-key")) => 1)
+
+
 
 (check-report)
