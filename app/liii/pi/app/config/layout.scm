@@ -50,11 +50,12 @@
     ;; ---------- 列宽 ----------
 
     ;; 返回 (左 中 右)；右列不足 12 列时置 0（隐藏），左列按剩余宽度收缩
+    ;; 三列阈值由 width-56 提高到 width-80，常规 providers/models 列宽各拉宽到 32/48
     (define (pi-config-column-widths width)
-      (let* ((w (max width 1)) (raw-right (- w 56)))
+      (let* ((w (max width 1)) (raw-right (- w 80)))
         (if (>= raw-right 12)
-          (list 22 34 raw-right)
-          (let ((left (min 22 (max 10 (quotient w 2)))))
+          (list 32 48 raw-right)
+          (let ((left (min 32 (max 10 (quotient w 2)))))
             (list left (max 8 (- w left)) 0)
           ) ;let
         ) ;if

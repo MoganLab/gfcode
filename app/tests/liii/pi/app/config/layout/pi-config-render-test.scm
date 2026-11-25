@@ -67,12 +67,14 @@
   (display-width (plain s))
 ) ;define
 
-;; 1. 列宽：宽屏三等分（第一列 22，第二列 34，其余给预览）
-(check (pi-config-column-widths 120) => '(22 34 64))
-;; 2. 中等宽度：第三列变窄但保留
-(check (pi-config-column-widths 80) => '(22 34 24))
+;; 1. 列宽：宽屏三等分（第一列 32，第二列 48，其余给预览）
+(check (pi-config-column-widths 120) => '(32 48 40))
+;; 2. 中等宽度：第三列变窄但保留（width - 80 >= 12 时为三列）
+(check (pi-config-column-widths 92) => '(32 48 12))
 ;; 3. 窄屏：第三列宽度为 0（隐藏）
-(check (pi-config-column-widths 56) => '(22 34 0))
+;;    80 列进入双列模式：providers 取 32，models 取剩余 48
+(check (pi-config-column-widths 80) => '(32 48 0))
+(check (pi-config-column-widths 56) => '(28 28 0))
 (check (pi-config-column-widths 40) => '(20 20 0))
 
 ;; 4. 行数与宽度约束
@@ -203,5 +205,39 @@
   (check (string-contains text-a "nodes · coding-fast") => #t)
   (check (string-contains text-a "node #1") => #t)
 ) ;let
+
+;; 12. 长供应商名与长模型 id 完整渲染（/config providers/models 列拉宽后不再被截断）
+;;     使用 qwen-token-plan-cn 供应商与 deepseek-v4.1-flash-1017 模型验证。
+(let* ((wide-dir (string-append FIXTURE "/config-tui-wide"))
+       (wide-st (pi-config-state wide-dir :env '()))
+       (wide-p-index
+         (list-index (lambda (p) (string=? (pi-config-provider-id p) "qwen-token-plan-cn"))
+           (pi-config-state-providers wide-st)
+         ) ;list-index
+       ) ;wide-p-index
+       (text-120
+         (plain (string-join (pi-config-render wide-st (pi-config-cursor wide-p-index 0) 0 120 20)
+                  "\n"
+                ) ;string-join
+         ) ;plain
+       ) ;text-120
+      ) ;
+  ;; 宽屏（120 列）三列模式下，长供应商名与长模型 id 都完整可见
+  (check (string-contains text-120 "qwen-token-plan-cn") => #t)
+  (check (string-contains text-120 "deepseek-v4.1-flash-1017") => #t)
+  ;; 被选中的 qwen-token-plan-cn 带默认标记 *；其下 deepseek-v4.1-flash-1017 也是默认
+  (check (string-contains text-120 "● qwen-token-plan-cn *") => #t)
+  (check (string-contains text-120 "● deepseek-v4.1-flash-1017 *") => #t)
+  ;; preview 列标题也完整展示长模型 id
+  (check (string-contains text-120 "preview · deepseek-v4.1-flash-1017") => #t)
+  ;; 每行可见宽度不超过 120，三列边框不错位、不重叠
+  (check
+    (every (lambda (l) (<= (line-width l) 120))
+      (pi-config-render wide-st (pi-config-cursor wide-p-index 0) 0 120 20)
+    ) ;every
+    =>
+    #t
+  ) ;check
+) ;let*
 
 (check-report)

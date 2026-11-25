@@ -166,7 +166,7 @@
               (make-select-list items
                 10
                 :min-primary-column-width 12
-                :max-primary-column-width 48
+                :max-primary-column-width 64
                 :selected-text    (lambda (text) (%colored %accent text))
                 :description-text (lambda (text) (%colored %muted text))
                 :scroll-text      (lambda (text) (%colored %muted text))
