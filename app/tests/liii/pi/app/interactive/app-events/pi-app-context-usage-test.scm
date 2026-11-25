@@ -91,4 +91,29 @@
   ) ;check-false
 ) ;let*
 
+;; 5. 全零 usage（错误占位/异常结算/网关缺失 usage）：不消耗上下文，
+;;    占比应沿用上一次已知值，而非闪回 "0.0%"
+(let* ((app (make-pi-app :terminal (make-virtual-terminal :width 80 :height 24)))
+       (ch (pi-app-event-chan app))
+       (usage '((input . 250000) (output . 0) (cacheRead . 0) (cacheWrite . 0)))
+       (zero-usage '((input . 0)
+                     (output . 0)
+                     (cacheRead . 0)
+                     (cacheWrite . 0)
+                     (totalTokens . 0)
+                     (cost . 0))
+       ) ;zero-usage
+      ) ;
+  (chan-send! ch (list 'message_usage usage 1000000))
+  (pi-app-poll-events! app)
+  (check-true (string-contains (pi-footer-stats (%pi-app-footer app)) "25.0%/1.0M (auto)")
+  ) ;check-true
+  (chan-send! ch (list 'message_usage zero-usage 1000000))
+  (pi-app-poll-events! app)
+  (check-true (string-contains (pi-footer-stats (%pi-app-footer app)) "25.0%/1.0M (auto)")
+  ) ;check-true
+  (check-false (string-contains (pi-footer-stats (%pi-app-footer app)) "0.0%/1.0M (auto)")
+  ) ;check-false
+) ;let*
+
 (check-report)

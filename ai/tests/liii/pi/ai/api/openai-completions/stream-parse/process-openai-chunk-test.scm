@@ -74,4 +74,24 @@
   (check (openai-stream-state-stop-reason stream-state) => "length")
 ) ;let
 
+;; 全零 usage 占位 chunk 不得覆盖已累积的真实用量：
+;; 部分网关逐 chunk 下发全零 usage，若末 chunk 缺失 usage 会清零统计
+(let* ((stream-state (make-openai-stream-state '() #f '() "stop" #f '()))
+       (real-chunk
+         (list (cons "usage" (list (cons "prompt_tokens" 100) (cons "completion_tokens" 20)))
+         ) ;list
+       ) ;real-chunk
+       (zero-chunk
+         (list (cons "choices" (vector))
+           (cons "usage" (list (cons "prompt_tokens" 0) (cons "completion_tokens" 0)))
+         ) ;list
+       ) ;zero-chunk
+      ) ;
+  (process-openai-chunk real-chunk stream-state #f)
+  (check (cdr (assoc 'input (openai-stream-state-usage stream-state))) => 100)
+  (process-openai-chunk zero-chunk stream-state #f)
+  (check (cdr (assoc 'input (openai-stream-state-usage stream-state))) => 100)
+  (check (cdr (assoc 'output (openai-stream-state-usage stream-state))) => 20)
+) ;let*
+
 (check-report)
