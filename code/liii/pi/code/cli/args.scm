@@ -26,7 +26,7 @@
     (define *extensions-loaded* #f)
 
     ;; 统一扩展加载入口：经 pi-discover-extensions 做层级仲裁
-    ;; （内置 → gf 配置目录 → agent 目录 → 项目级），同名只加载胜出副本。
+    ;; （内置 → ~/.gf/gfcode → 项目级 .gf/gfcode），同名只加载胜出副本。
     ;; 若先加载内置、再补加载用户级同名副本，listeners / prompt-injectors /
     ;; validators / augmenters 等 append 型注册会重复挂载（事件双发、注入双份），
     ;; 故内置与用户级必须一次性按仲裁结果加载，不能分两批。

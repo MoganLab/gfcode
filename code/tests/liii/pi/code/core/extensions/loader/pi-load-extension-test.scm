@@ -1,5 +1,5 @@
 ;; pi-load-extension
-;; 加载单个扩展脚本并返回加载结果。
+;; 加载单个library 扩展并返回加载结果。
 ;;
 ;; 语法
 ;; ----
@@ -8,7 +8,7 @@
 ;; 参数
 ;; ----
 ;; path-or-entry : (or string path)
-;; 扩展脚本路径。
+;; library 扩展路径。
 ;;
 ;; api : (or extension-api extension-registry)
 ;; 扩展宿主 API 或注册表记录。
@@ -26,11 +26,11 @@
 (check-set-mode! 'report-failed)
 
 (define (get-fixtures-dir)
-  (cond ((file-exists? "tests/fixtures/extensions") "tests/fixtures/extensions")
-        ((file-exists? "tools/pi/tests/fixtures/extensions")
-         "tools/pi/tests/fixtures/extensions"
+  (cond ((file-exists? "tests/fixtures/gfcode") "tests/fixtures/gfcode")
+        ((file-exists? "tools/pi/tests/fixtures/gfcode")
+         "tools/pi/tests/fixtures"
         ) ;
-        (else "../../tools/pi/tests/fixtures/extensions")
+        (else "../../tools/pi/tests/fixtures/gfcode")
   ) ;cond
 ) ;define
 
@@ -49,9 +49,9 @@
   ) ;let
 ) ;let*
 
-;; 2. 加载包含 index.scm 的目录扩展
+;; 2. 加载第二个 library 扩展
 (let* ((api (make-extension-api))
-       (path (string-append (get-fixtures-dir) "/valid-pkg/index.scm"))
+       (path (string-append (get-fixtures-dir) "/valid-pkg.scm"))
        (res (pi-load-extension path api))
       ) ;
   (check (pair? res) => #t)
@@ -64,14 +64,14 @@
   ) ;let
 ) ;let*
 
-;; 3. 加载非过程返回值的扩展文件，安全返回 ok
+;; 3. 未导出 extension 的库返回 error
 (let* ((api (make-extension-api))
        (path (string-append (get-fixtures-dir) "/non-proc.scm"))
        (res (pi-load-extension path api))
       ) ;
   (check (pair? res) => #t)
-  (check (eq? (cdr (assq 'status res)) 'ok) => #t)
-  (check (equal? (cdr (assq 'value res)) "not-a-procedure") => #t)
+  (check (eq? (cdr (assq 'status res)) 'error) => #t)
+  (check (string? (cdr (assq 'error res))) => #t)
 ) ;let*
 
 ;; 4. 加载不存在的文件，捕获错误返回 status: error，不崩溃

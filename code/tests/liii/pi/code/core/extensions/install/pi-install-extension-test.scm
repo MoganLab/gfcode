@@ -63,7 +63,9 @@
         ) ;
     (path-mkdir source-repo :parents #t :exist-ok #t)
     (run-either (list "git" "init") :cwd source-repo-str :timeout 30)
-    (path-write-text (path-join source-repo "index.scm") ";; sample\n")
+    (path-write-text (path-join source-repo "sample-plugin.scm")
+      "(define-library (gfcode sample-plugin) (import (scheme base)) (export extension) (begin (define (extension api) \"sample-loaded\")))\n"
+    ) ;path-write-text
     (run-either (list "git" "config" "user.name" "Test")
       :cwd     source-repo-str
       :timeout 30
@@ -96,8 +98,15 @@
         (check-true
           (pair?
             (member
-              (path->string (path-resolve (path-join (path installed) "index.scm")))
-              discovered
+              (cdr (assq 'path
+                       (find (lambda (entry)
+                               (equal? (cdr (assq 'name entry)) '(gfcode sample-plugin))
+                             ) ;lambda
+                         discovered
+                       ) ;find
+                     ) ;assq
+              ) ;cdr
+              (path->string (path-resolve (path installed)))
             ) ;member
           ) ;pair?
         ) ;check-true
@@ -121,8 +130,15 @@
         (check-true
           (pair?
             (member
-              (path->string (path-resolve (path-join (path local-installed) "index.scm")))
-              discovered
+              (cdr (assq 'path
+                       (find (lambda (entry)
+                               (equal? (cdr (assq 'name entry)) '(gfcode sample-plugin))
+                             ) ;lambda
+                         discovered
+                       ) ;find
+                     ) ;assq
+              ) ;cdr
+              (path->string (path-resolve (path local-installed)))
             ) ;member
           ) ;pair?
         ) ;check-true

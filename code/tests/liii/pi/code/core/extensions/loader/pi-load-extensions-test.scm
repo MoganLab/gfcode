@@ -1,5 +1,5 @@
 ;; pi-load-extensions
-;; 批量加载扩展脚本并汇总加载结果。
+;; 批量加载library 扩展并汇总加载结果。
 ;;
 ;; 语法
 ;; ----
@@ -8,7 +8,7 @@
 ;; 参数
 ;; ----
 ;; paths : list?
-;; 扩展脚本路径列表。
+;; library 扩展路径列表。
 ;;
 ;; api : (or extension-api extension-registry)
 ;; 扩展宿主 API 或注册表记录。
@@ -26,11 +26,11 @@
 (check-set-mode! 'report-failed)
 
 (define (get-fixtures-dir)
-  (cond ((file-exists? "tests/fixtures/extensions") "tests/fixtures/extensions")
-        ((file-exists? "tools/pi/tests/fixtures/extensions")
-         "tools/pi/tests/fixtures/extensions"
+  (cond ((file-exists? "tests/fixtures/gfcode") "tests/fixtures/gfcode")
+        ((file-exists? "tools/pi/tests/fixtures/gfcode")
+         "tools/pi/tests/fixtures"
         ) ;
-        (else "../../tools/pi/tests/fixtures/extensions")
+        (else "../../tools/pi/tests/fixtures/gfcode")
   ) ;cond
 ) ;define
 
@@ -47,7 +47,7 @@
 ;; 2. 批量加载两个合法扩展
 (let* ((api (make-extension-api))
        (paths (list (string-append (get-fixtures-dir) "/valid-ext1.scm")
-                (string-append (get-fixtures-dir) "/valid-pkg/index.scm")
+                (string-append (get-fixtures-dir) "/valid-pkg.scm")
               ) ;list
        ) ;paths
        (report (pi-load-extensions paths api))

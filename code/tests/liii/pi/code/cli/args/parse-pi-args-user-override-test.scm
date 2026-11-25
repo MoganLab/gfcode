@@ -36,19 +36,20 @@
 ;; 扩展加载 initializer 每进程只执行一次。
 
 (define (%probe-source mark)
-  (string-append "(import (scheme base) (liii pi code core extensions))\n"
-    "(define (probe-ext api . ctx)\n" "  (register-flag! api\n"
-    "    (make-extension-flag-def \"--probe-mark\" \"probe\" :key 'probe-mark\n"
-    "      :takes-arg? #t))\n" "  (pi-on! api 'agent_end (lambda (payload c) '"
-    mark "))\n" "  (register-prompt-injector! api (lambda (tool-calls) #f))\n"
-    "  '" mark ")\n" "probe-ext\n"
+  (string-append "(define-library (gfcode user-override-probe)\n"
+    "  (import (scheme base) (liii pi code core extensions)) (export extension)\n"
+    "  (begin (define (extension api . ctx)\n" "    (register-flag! api\n"
+    "      (make-extension-flag-def \"--probe-mark\" \"probe\" :key 'probe-mark\n"
+    "        :takes-arg? #t))\n" "    (pi-on! api 'agent_end (lambda (payload c) '"
+    mark "))\n" "    (register-prompt-injector! api (lambda (tool-calls) #f))\n"
+    "    '" mark ")))\n"
   ) ;string-append
 ) ;define
 
 (let* ((root (path-join (path-temp-dir) "pi-user-override-probe"))
        (home (path-join root "home"))
-       (builtin (path-join root "builtin"))
-       (user-ext (path-join home ".gf" "agent" "extensions"))
+       (builtin (path-join root "builtin" "gfcode"))
+       (user-ext (path-join home ".gf" "gfcode"))
        (saved-home (get-environment-variable "HOME"))
        (saved-profile (get-environment-variable "USERPROFILE"))
        (saved-builtin (get-environment-variable "PI_BUILTIN_EXTENSIONS_DIR"))
