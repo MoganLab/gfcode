@@ -13,6 +13,8 @@
 ;; ----
 ;; list
 ;; 同名仲裁后的 library 扩展描述符列表。
+;; 多文件扩展包（gfcode/<dir>/ 内含 index.scm）只返回 index.scm 入口，
+;; 同目录其余 .scm 视为内部子库，不作为独立扩展。
 
 (import (scheme base)
   (scheme process-context)
@@ -148,6 +150,50 @@
     (check (cdr (assq 'path found))
       =>
       (string-replace (path->string (path-resolve file)) "\\" "/")
+    ) ;check
+  ) ;let*
+  (set! *load-path* saved-load-path)
+  (rmtree (path->string root) #t)
+) ;let*
+
+;; 5. 多文件扩展包只收录 index.scm 入口，同目录内部子库不作为扩展。
+(let* ((root (path-join (path-temp-dir) "pi-discover-package-siblings"))
+       (ext-dir (path-join root "gfcode" "pkg-ext"))
+       (index-file (path-join ext-dir "index.scm"))
+       (helper-file (path-join ext-dir "helper.scm"))
+       (saved-load-path *load-path*)
+      ) ;
+  (path-mkdir ext-dir :parents #t :exist-ok #t)
+  (path-write-text index-file
+    (string-append "(define-library (gfcode pkg-ext index)\n"
+      "  (import (scheme base)) (export extension)\n"
+      "  (begin (define (extension api) \"pkg-ext\"))))\n"
+    ) ;string-append
+  ) ;path-write-text
+  (path-write-text helper-file
+    (string-append "(define-library (gfcode pkg-ext helper)\n"
+      "  (import (scheme base)) (export helper)\n"
+      "  (begin (define (helper) 1))))\n"
+    ) ;string-append
+  ) ;path-write-text
+  (set! *load-path* (cons (path->string root) *load-path*))
+  (let* ((entries (pi-discover-extensions :cwd (path->string (path-temp-dir))))
+         (pkg-entries
+           (filter
+             (lambda (entry)
+               (let ((name (%entry-name entry)))
+                 (and (>= (length name) 2) (eq? (cadr name) 'pkg-ext))
+               ) ;let
+             ) ;lambda
+             entries
+           ) ;filter
+         ) ;pkg-entries
+        ) ;
+    (check (length pkg-entries) => 1)
+    (check (%entry-name (car pkg-entries)) => '(gfcode pkg-ext index))
+    (check (cdr (assq 'path (car pkg-entries)))
+      =>
+      (string-replace (path->string (path-resolve index-file)) "\\" "/")
     ) ;check
   ) ;let*
   (set! *load-path* saved-load-path)

@@ -109,6 +109,17 @@
       ) ;let
     ) ;define
 
+    ;; 多文件扩展包：gfcode/<dir>/ 下存在 index.scm 时，只有 index.scm
+    ;; 是扩展入口（导出 extension 工厂），同目录其余 .scm 为内部子库，
+    ;; 不作为独立扩展加载。
+    (define (%package-index-path? root path-str)
+      (let* ((p (path path-str)) (dir (path-parent p)))
+        (and (string=? (path-name p) "index.scm")
+          (not (string=? (%normalize-path dir) (%normalize-path root)))
+        ) ;and
+      ) ;let*
+    ) ;define
+
     (define (%valid-library-file? name)
       (and (not (string-null? name))
         (not (char=? (string-ref name 0) #\.))
@@ -158,10 +169,28 @@
     (define (pi-scan-extension-dir dir)
       (let ((root (%normalize-path dir)))
         (if (and (path-exists? (path root)) (path-dir? (path root)))
-          (map
-            (lambda (p) (%library-entry (path-parent (path root)) p))
-            (%scan-library-tree root "")
-          ) ;map
+          (let* ((files (%scan-library-tree root ""))
+                 (package-dirs
+                   (map
+                     (lambda (p) (%normalize-path (path-parent (path p))))
+                     (filter (lambda (p) (%package-index-path? root p)) files)
+                   ) ;map
+                 ) ;package-dirs
+                ) ;
+            (map
+              (lambda (p) (%library-entry (path-parent (path root)) p))
+              (filter
+                (lambda (p)
+                  (or (%package-index-path? root p)
+                    (not
+                      (member (%normalize-path (path-parent (path p))) package-dirs)
+                    ) ;not
+                  ) ;or
+                ) ;lambda
+                files
+              ) ;filter
+            ) ;map
+          ) ;let*
           '()
         ) ;if
       ) ;let
