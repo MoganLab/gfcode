@@ -19,30 +19,20 @@
 ;; string?
 ;; 加载标记 "web-search-loaded"。
 
-(set! *load-path*
-  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
-            "web-search"
-          ) ;list
-    *load-path*
-  ) ;append
-) ;set!
+(set! *load-path* (append (list "." "..") *load-path*))
 
 (import (scheme base) (liii check) (liii path) (liii pi code core extensions))
 
 (check-set-mode! 'report-failed)
 
 (define (get-web-search-path)
-  (let ((test-path (path-resolve "tests/gfcode/web-search/extension-test.scm")))
-    (path->string
-      (path-resolve
-        (path-join
-          (path-parent (path-parent (path-parent (path-parent test-path))))
-          "gfcode"
-          "web-search.scm"
-        ) ;path-join
-      ) ;path-resolve
-    ) ;path->string
-  ) ;let
+  (path->string
+    (path-resolve (if (path-exists? (path "gfcode/web-search/index.scm"))
+                    (path "gfcode/web-search/index.scm")
+                    (path "../gfcode/web-search/index.scm")
+                  ) ;if
+    ) ;path-resolve
+  ) ;path->string
 ) ;define
 
 ;; 1. 加载扩展并验证 web_search 工具注册

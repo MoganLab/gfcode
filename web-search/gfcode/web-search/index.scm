@@ -6,7 +6,7 @@
 ;; Licensed under the MIT License
 ;;
 
-(define-library (gfcode web-search)
+(define-library (gfcode web-search index)
   (import (scheme base)
     (liii pi code core extensions)
     (liii pi web-search schema)

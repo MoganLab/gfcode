@@ -70,10 +70,16 @@ jobs:
         run: gf test .gf/tests/gfcode
 
       - name: Test review plugin
-        run: gf test review/tests/liii
+        run: |
+          gf test review/tests/liii
+          gf test review/tests/gfcode
 
       - name: Test simplify plugin
-        run: gf test simplify/tests/liii
+        run: |
+          gf test simplify/tests/liii
+          gf test simplify/tests/gfcode
 
       - name: Test web-search plugin
-        run: gf test web-search/tests/liii
+        run: |
+          gf test web-search/tests/liii
+          gf test web-search/tests/gfcode

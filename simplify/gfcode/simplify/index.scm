@@ -4,7 +4,7 @@
 ;; Licensed under the MIT License
 ;;
 
-(define-library (gfcode simplify)
+(define-library (gfcode simplify index)
   (import (scheme base)
     (liii string)
     (liii pi code core extensions)

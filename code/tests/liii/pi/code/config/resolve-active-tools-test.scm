@@ -67,9 +67,9 @@
        (args-empty (parse-pi-args '()))
        (args-override (parse-pi-args '("--tools" "read,bash")))
        (api-ws (make-extension-api))
-       (_ (pi-load-extension (if (file-exists? ".gf/gfcode/web-search.scm")
-                               ".gf/gfcode/web-search.scm"
-                               "../.gf/gfcode/web-search.scm"
+       (_ (pi-load-extension (if (file-exists? "web-search/gfcode/web-search/index.scm")
+                               "web-search/gfcode/web-search/index.scm"
+                               "../web-search/gfcode/web-search/index.scm"
                              ) ;if
             api-ws
           ) ;pi-load-extension

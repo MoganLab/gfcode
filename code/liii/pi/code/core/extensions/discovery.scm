@@ -20,19 +20,33 @@
   ) ;export
   (begin
 
+    ;; 源码树内的扩展候选目录：除 .gf/gfcode 外，各 domain 根下的
+    ;; gfcode/ 目录（如 review/gfcode、simplify/gfcode、web-search/gfcode）
+    ;; 也参与内置发现；同一 gfcode 目录只收录一次。
     (define (%source-tree-extension-candidates)
       (let loop
         ((roots *load-path*) (acc '()))
         (if (null? roots)
           (reverse acc)
-          (let ((root (path (car roots))))
+          (let* ((root (path (car roots)))
+                 (gfcode-dir (path-join root "gfcode"))
+                 (next-acc (if (path-dir? gfcode-dir) (cons gfcode-dir acc) acc))
+                ) ;
             (loop (cdr roots)
-              (if (and (string=? (path-name root) ".gf") (path-dir? (path-join root "gfcode")))
-                (cons (path-join root "gfcode") acc)
-                acc
-              ) ;if
+              (let dedup
+                ((rest next-acc) (seen '()) (out '()))
+                (if (null? rest)
+                  (reverse out)
+                  (let ((key (%normalize-path (car rest))))
+                    (dedup (cdr rest)
+                      (cons key seen)
+                      (if (member key seen) out (cons (car rest) out))
+                    ) ;dedup
+                  ) ;let
+                ) ;if
+              ) ;let
             ) ;loop
-          ) ;let
+          ) ;let*
         ) ;if
       ) ;let
     ) ;define
@@ -231,7 +245,39 @@
              ) ;user-entries
              (project-entries (pi-scan-extension-dir (path-join (path cwd-dir) ".gf" "gfcode"))
              ) ;project-entries
-             (builtin-entries (if include-builtin? (pi-scan-extension-dir builtin-dir) '()))
+             ;; 内置层 = 默认内置目录 + 源码树各 domain 的 gfcode/ 目录；
+             ;; 按归一化路径去重，同名扩展由 %merge-extension-layer 仲裁。
+             ;; PI_BUILTIN_EXTENSIONS_DIR 显式指定时只用该目录，保证隔离。
+             (builtin-dirs
+               (let dedup
+                 ((rest
+                    (cond ((not include-builtin?) '())
+                          ((get-environment-variable "PI_BUILTIN_EXTENSIONS_DIR")
+                           =>
+                           (lambda (dir) (list dir))
+                          ) ;
+                          (else (append (list builtin-dir)
+                                  (%source-tree-extension-candidates)
+                                  (list (path ".gf/gfcode") (path "../.gf/gfcode"))
+                                ) ;append
+                          ) ;else
+                    ) ;cond
+                  ) ;rest
+                  (seen '())
+                  (out '())
+                 ) ;
+                 (if (null? rest)
+                   (reverse out)
+                   (let ((key (%normalize-path (car rest))))
+                     (dedup (cdr rest)
+                       (cons key seen)
+                       (if (member key seen) out (cons (car rest) out))
+                     ) ;dedup
+                   ) ;let
+                 ) ;if
+               ) ;let
+             ) ;builtin-dirs
+             (builtin-entries (append-map pi-scan-extension-dir builtin-dirs))
              (project-gfcode-dir (path-join (path cwd-dir) ".gf" "gfcode"))
              ;; 内置扩展与项目扩展统一位于 .gf/gfcode：cwd 的 .gf/gfcode 即内置目录
              ;; 时只扫描一次，避免同名副本重复注册；用户级 ~/.gf/gfcode 作为中间层。
