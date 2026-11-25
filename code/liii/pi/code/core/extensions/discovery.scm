@@ -14,7 +14,10 @@
     (liii sort)
     (liii pi code core tools read)
   ) ;import
-  (export pi-scan-extension-dir pi-discover-extensions pi-default-builtin-extensions-dir)
+  (export pi-scan-extension-dir
+    pi-discover-extensions
+    pi-default-builtin-extensions-dir
+  ) ;export
   (begin
 
     (define (%source-tree-extension-candidates)
@@ -24,8 +27,8 @@
           (reverse acc)
           (let ((root (path (car roots))))
             (loop (cdr roots)
-              (if (path-file? (path-join root "liii/pi/code/cli.scm"))
-                (cons (path-join (path-parent root) "gfcode") acc)
+              (if (and (string=? (path-name root) ".gf") (path-dir? (path-join root "gfcode")))
+                (cons (path-join root "gfcode") acc)
                 acc
               ) ;if
             ) ;loop
@@ -39,16 +42,15 @@
         (if
           (and (string? env-dir) (not (string-null? (string-trim-both env-dir))))
           env-dir
-          (let* ((candidates
-                   (append (%source-tree-extension-candidates)
-                     (list (path "gfcode") (path "../gfcode"))
-                   ) ;append
+          (let* ((candidates (append (%source-tree-extension-candidates)
+                               (list (path ".gf/gfcode") (path "../.gf/gfcode"))
+                             ) ;append
                  ) ;candidates
                  (found
                    (find (lambda (c) (and (path-exists? c) (path-dir? c))) candidates)
                  ) ;found
                 ) ;
-            (if found (path->string (path-resolve found)) "gfcode")
+            (if found (path->string (path-resolve found)) ".gf/gfcode")
           ) ;let*
         ) ;if
       ) ;let
@@ -101,24 +103,20 @@
     ) ;define
 
     (define (%scan-library-tree root relative)
-      (let ((dir (if (string-null? relative)
-                   (path root)
-                   (path-join (path root) relative)
-                 ) ;if
-           ) ;dir
-          ) ;
+      (let ((dir (if (string-null? relative) (path root) (path-join (path root) relative)))
+           ) ;
         (if (not (and (path-exists? dir) (path-dir? dir)))
           '()
-          (let ((names (catch #t
-                         (lambda () (vector->list (listdir (path->string dir))))
-                         (lambda args '())
-                       ) ;catch
-              ) ;names
+          (let ((names
+                  (catch #t
+                    (lambda () (vector->list (listdir (path->string dir))))
+                    (lambda args '())
+                  ) ;catch
+                ) ;names
                ) ;
             (append-map
               (lambda (name)
-                (let* ((child-relative
-                         (if (string-null? relative) name (string-append relative "/" name))
+                (let* ((child-relative (if (string-null? relative) name (string-append relative "/" name))
                        ) ;child-relative
                        (child (path-join dir name))
                       ) ;
@@ -146,7 +144,8 @@
     (define (pi-scan-extension-dir dir)
       (let ((root (%normalize-path dir)))
         (if (and (path-exists? (path root)) (path-dir? (path root)))
-          (map (lambda (p) (%library-entry (path-parent (path root)) p))
+          (map
+            (lambda (p) (%library-entry (path-parent (path root)) p))
             (%scan-library-tree root "")
           ) ;map
           '()
@@ -173,33 +172,35 @@
       ) ;let
     ) ;define
 
-    (define (%upsert-extension entries key new-entry)
-      (display (list 'UPSERT-IN entries key new-entry)) (newline)
-      (let loop
-        ((rest entries) (acc '()))
-        (cond ((null? rest) (reverse (cons (cons key new-entry) acc)))
-              ((string=? (car (car rest)) key)
-               (append (reverse acc) (list (cons key new-entry)) (cdr rest))
-              ) ;
-              (else (loop (cdr rest) (cons (car rest) acc)))
-        ) ;cond
-      ) ;let
-    ) ;define
-
     (define (%merge-extension-layer entries new-entries protected-names)
-      (let loop
-        ((rest new-entries) (acc entries))
-        (if (null? rest)
-          acc
-          (let ((key (%extension-key (car rest))))
-            (loop (cdr rest)
-              (if (%protected-extension? key protected-names)
-                acc
-                (%upsert-extension acc key (car rest))
-              ) ;if
-            ) ;loop
-          ) ;let
-        ) ;if
+      (let ((result entries))
+        (for-each
+          (lambda (entry)
+            (let* ((key (%extension-key entry))
+                   (existing
+                     (let find-existing
+                       ((rest result))
+                       (cond ((null? rest) #f)
+                             ((string=? key (%extension-key (car rest))) (car rest))
+                             (else (find-existing (cdr rest)))
+                       ) ;cond
+                     ) ;let
+                   ) ;existing
+                  ) ;
+              (unless (%protected-extension? key protected-names)
+                (if existing
+                  (begin
+                    (set-car! existing (car entry))
+                    (set-cdr! existing (cdr entry))
+                  ) ;begin
+                  (set! result (append result (list entry)))
+                ) ;if
+              ) ;unless
+            ) ;let*
+          ) ;lambda
+          new-entries
+        ) ;for-each
+        result
       ) ;let
     ) ;define
 
@@ -218,24 +219,34 @@
                                (pi-default-builtin-extensions-dir)
                              ) ;if
              ) ;builtin-option
-             (builtin-dir (if (string=? (path-name (path builtin-option)) "gfcode")
-                            builtin-option
-                            (path-join (path builtin-option) "gfcode")
-                          ) ;if
+             (builtin-dir
+               (if (string=? (path-name (path builtin-option)) "gfcode")
+                 builtin-option
+                 (path-join (path builtin-option) "gfcode")
+               ) ;if
              ) ;builtin-dir
              (cwd-dir (pi-keyword-value :cwd options (getcwd)))
              (include-builtin? (pi-keyword-value ':include-builtin? options #t))
-             (user-entries (pi-scan-extension-dir (path-join (%config-library-root) "gfcode")))
-             (project-entries
-               (pi-scan-extension-dir (path-join (path cwd-dir) ".gf" "gfcode"))
+             (user-entries (pi-scan-extension-dir (path-join (%config-library-root) "gfcode"))
+             ) ;user-entries
+             (project-entries (pi-scan-extension-dir (path-join (path cwd-dir) ".gf" "gfcode"))
              ) ;project-entries
              (builtin-entries (if include-builtin? (pi-scan-extension-dir builtin-dir) '()))
+             (project-gfcode-dir (path-join (path cwd-dir) ".gf" "gfcode"))
+             ;; 内置扩展与项目扩展统一位于 .gf/gfcode：cwd 的 .gf/gfcode 即内置目录
+             ;; 时只扫描一次，避免同名副本重复注册；用户级 ~/.gf/gfcode 作为中间层。
+             (builtin-is-project? (string=? (%normalize-path builtin-dir) (%normalize-path project-gfcode-dir))
+             ) ;builtin-is-project?
              (protected-names '())
-             (user-layer (%merge-extension-layer '() user-entries protected-names))
-             (project-layer (%merge-extension-layer user-layer project-entries protected-names))
-             (all-entries (%merge-extension-layer project-layer builtin-entries '()))
+             (builtin-layer (%merge-extension-layer '() builtin-entries '()))
+             (user-layer (%merge-extension-layer builtin-layer user-entries protected-names))
+             (project-layer (%merge-extension-layer user-layer
+                              (if builtin-is-project? '() project-entries)
+                              protected-names
+                            ) ;%merge-extension-layer
+             ) ;project-layer
             ) ;
-        (map cdr all-entries)
+        project-layer
       ) ;let*
     ) ;define
 

@@ -20,13 +20,14 @@
 
 (import (scheme base)
   (liii check)
-  (liii check)
+  (liii list)
+  (liii string)
   (liii path)
   (liii os)
   (liii subprocess)
   (liii either)
+  (liii pi code core extensions)
   (liii pi code core extensions install)
-  (liii pi code core extensions discovery)
 ) ;import
 
 (define (rmdir-rec d)
@@ -91,25 +92,10 @@
          ) ;
       (check-true (string? installed))
       (check-true (path-exists? (path installed)))
-      ;; 验证能被 pi-discover-extensions 发现
-      (let ((discovered (pi-discover-extensions :agent-dir agent-dir-str :cwd project-dir-str)
-            ) ;discovered
-           ) ;
-        (check-true
-          (pair?
-            (member
-              (cdr (assq 'path
-                       (find (lambda (entry)
-                               (equal? (cdr (assq 'name entry)) '(gfcode sample-plugin))
-                             ) ;lambda
-                         discovered
-                       ) ;find
-                     ) ;assq
-              ) ;cdr
-              (path->string (path-resolve (path installed)))
-            ) ;member
-          ) ;pair?
-        ) ;check-true
+      ;; 安装结果必须是可被唯一 library loader 加载的单文件。
+      (let ((loaded (pi-load-extension installed (make-extension-api))))
+        (check (cdr (assq 'status loaded)) => 'ok)
+        (check (cdr (assq 'value loaded)) => "sample-loaded")
       ) ;let
     ) ;let
 
@@ -124,24 +110,9 @@
          ) ;
       (check-true (string? local-installed))
       (check-true (path-exists? (path local-installed)))
-      (let ((discovered (pi-discover-extensions :agent-dir agent-dir-str :cwd project-dir-str)
-            ) ;discovered
-           ) ;
-        (check-true
-          (pair?
-            (member
-              (cdr (assq 'path
-                       (find (lambda (entry)
-                               (equal? (cdr (assq 'name entry)) '(gfcode sample-plugin))
-                             ) ;lambda
-                         discovered
-                       ) ;find
-                     ) ;assq
-              ) ;cdr
-              (path->string (path-resolve (path local-installed)))
-            ) ;member
-          ) ;pair?
-        ) ;check-true
+      (let ((loaded (pi-load-extension local-installed (make-extension-api))))
+        (check (cdr (assq 'status loaded)) => 'ok)
+        (check (cdr (assq 'value loaded)) => "sample-loaded")
       ) ;let
     ) ;let
   ) ;let*
