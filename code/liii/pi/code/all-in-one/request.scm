@@ -40,8 +40,11 @@
 
     ;; 节点键不变量：thinking-level 一律以节点默认值为准，supports-thinking 必须取
     ;; 节点真实模型能力，否则会被主 cfg 中伪模型的值覆盖，导致页脚判错等级后缀。
+    ;; headers 必须随节点交接：模型文件声明的自定义认证头（如 x-goog-api-key）
+    ;; 由 resolve-pi-config 解析进节点配置，request 适配器要把它原样带回协议层，
+    ;; 否则会被主 cfg 中伪模型的默认 Authorization 头覆盖，导致 Vertex MaaS 401。
     (define (%node-request-keys)
-      '(provider provider-api model-id api-key model-meta models-store
+      '(provider provider-api model-id api-key model-meta models-store headers
          thinking-level supports-thinking proxy-url config-dir
          thinking-level-explicit?)
     ) ;define
