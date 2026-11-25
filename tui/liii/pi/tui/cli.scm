@@ -10,7 +10,7 @@
     (scheme eval)
     (liii pi tui cli help)
   ) ;import
-  (export main display-pi-help read-all-stdin run-goldpi run-pi)
+  (export display-pi-help read-all-stdin run-goldpi run-pi)
   (begin
 
     (define (strip-command-prefix args)
@@ -64,8 +64,5 @@
 
     (define run-goldpi run-pi)
 
-    (define (main)
-      (exit (run-pi (command-line)))
-    ) ;define
   ) ;begin
 ) ;define-library
