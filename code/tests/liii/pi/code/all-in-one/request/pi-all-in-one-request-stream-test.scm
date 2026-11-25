@@ -47,6 +47,7 @@
   (liii shutil)
   (liii string)
   (liii pi ai message)
+  (liii pi ai config model-metadata)
   (liii pi code all-in-one alarm)
   (liii pi code all-in-one request)
   (liii pi code all-in-one state)
@@ -68,7 +69,7 @@
 ) ;when
 (path-mkdir (path (path-join TMP-DIR "models" "stub")) :parents #t :exist-ok #t)
 (path-write-text (path->string (path-join TMP-DIR "all-in-one.json"))
-  "{\"provider\":\"all-in-one\",\"probeTimeoutMs\":1234,\"continuous\":false,\"chains\":[{\"id\":\"coding-deep\",\"nodes\":[{\"provider\":\"stub\",\"model\":\"one\"},{\"provider\":\"stub\",\"model\":\"two\",\"thinkingLevel\":\"high\"}]},{\"id\":\"coding-single\",\"nodes\":[{\"provider\":\"stub\",\"model\":\"one\"}]}]}"
+  "{\"provider\":\"all-in-one\",\"probeTimeoutMs\":1234,\"continuous\":false,\"chains\":[{\"id\":\"coding-deep\",\"nodes\":[{\"provider\":\"stub\",\"model\":\"one\"},{\"provider\":\"stub\",\"model\":\"two\",\"thinkingLevel\":\"high\"}]},{\"id\":\"coding-single\",\"nodes\":[{\"provider\":\"stub\",\"model\":\"one\"}]},{\"id\":\"header-chain\",\"nodes\":[{\"provider\":\"stub\",\"model\":\"three\"}]}]}"
 ) ;path-write-text
 (path-write-text (path->string (path-join TMP-DIR "models" "providers.json"))
   "[\"stub\"]"
@@ -77,13 +78,18 @@
   "{\"stub\":{\"type\":\"api_key\",\"key\":\"fixture-key\"}}"
 ) ;path-write-text
 (path-write-text (path->string (path-join TMP-DIR "models" "stub.json"))
-  "{\"api\":\"openai-completions\",\"baseUrl\":\"http://127.0.0.1:1\",\"models\":[\"one\",\"two\"]}"
+  "{\"api\":\"openai-completions\",\"baseUrl\":\"http://127.0.0.1:1\",\"models\":[\"one\",\"two\",\"three\"]}"
 ) ;path-write-text
 (path-write-text (path->string (path-join TMP-DIR "models" "stub" "one.json"))
   "{\"id\":\"one\",\"name\":\"one\"}"
 ) ;path-write-text
 (path-write-text (path->string (path-join TMP-DIR "models" "stub" "two.json"))
   "{\"id\":\"two\",\"name\":\"two\",\"reasoning\":true,\"contextWindow\":234567}"
+) ;path-write-text
+;; three 在 stub 的 models 白名单内，模型文件声明自定义认证头
+;; x-goog-api-key: ${API_KEY}，用于验证链节点自定义认证头透传到请求配置。
+(path-write-text (path->string (path-join TMP-DIR "models" "stub" "three.json"))
+  "{\"id\":\"three\",\"name\":\"three\",\"headers\":{\"x-goog-api-key\":\"${API_KEY}\"},\"contextWindow\":321000,\"maxTokens\":8192}"
 ) ;path-write-text
 
 (define CONFIG
@@ -374,6 +380,50 @@
         "[EXHAUSTED]"
       ) ;string-contains?
     ) ;check-true
+  ) ;let
+) ;let
+
+;; 链节点自定义认证头透传：stub/three 在 models 白名单内，模型文件声明
+;; x-goog-api-key: ${API_KEY}。链节点 header-chain 显式引用它，真实请求获得
+;; 节点配置，自定义认证头模板透传到请求配置（底层按本次节点 api-key 展开
+;; ${API_KEY}），修复前 %node-request-keys 遗漏 headers 会丢弃它导致 401。
+;; 探活与真实请求获得相同节点 headers 的一致性由 pi-probe-node-test.scm
+;; 直接断言。
+(pi-chain-reset-state!)
+(let ((captured #f))
+  (let ((response
+          (pi-all-in-one-request-stream "all-in-one"
+            (list (cons 'provider "all-in-one")
+              (cons 'model-id "header-chain")
+              (cons 'config-dir TMP-DIR)
+            ) ;list
+            (list (pi-user-message "ping"))
+            ""
+            '()
+            #f
+            30
+            (lambda (node timeout-ms dir request-fn) #t)
+            (lambda (provider node-cfg messages system-prompt tools on-event timeout)
+              (set! captured (list provider node-cfg))
+              (pi-assistant-message (list (pi-text-block "pong")) "stop")
+            ) ;lambda
+          ) ;pi-all-in-one-request-stream
+        ) ;response
+       ) ;
+    (check (pi-assistant-message-stop-reason response) => "stop")
+    (check (car captured) => "stub")
+    (let ((cfg (cadr captured)))
+      (check (cdr (assoc 'model-id cfg)) => "three")
+      (check (cdr (assoc 'api-key cfg)) => "fixture-key")
+      (let ((hdr (cdr (assoc 'headers cfg))))
+        (check (cdr (assoc "x-goog-api-key" hdr)) => "${API_KEY}")
+      ) ;let
+      (check (cdr (assoc 'provider-api cfg)) => "openai-completions")
+      (let ((meta (cdr (assoc 'model-meta cfg))))
+        (check (pi-model-metadata-context-window meta) => 321000)
+        (check (pi-model-metadata-matched? meta) => #t)
+      ) ;let
+    ) ;let
   ) ;let
 ) ;let
 

@@ -35,6 +35,9 @@
   (liii shutil)
   (liii string)
   (liii pi ai message)
+  (liii pi ai config model-metadata)
+  (liii pi code config)
+  (liii pi code cli args)
   (liii pi code all-in-one probe)
   (liii pi code all-in-one alarm)
   (liii pi code all-in-one types)
@@ -56,6 +59,28 @@
   (rmtree TMP-DIR #t)
 ) ;when
 (path-mkdir (path TMP-DIR) :parents #t :exist-ok #t)
+;; gprov 夹具：plain 在 gprov 的 models 白名单内，模型文件声明自定义认证头
+;; x-goog-api-key: ${API_KEY}，用于验证链节点探活获得与真实请求一致的节点
+;; headers 透传。other 不在白名单内，用于反向对照普通 resolve-pi-config。
+(path-mkdir (path (path-join TMP-DIR "models" "gprov"))
+  :parents  #t
+  :exist-ok #t
+) ;path-mkdir
+(path-write-text (path->string (path-join TMP-DIR "models" "providers.json"))
+  "[\"gprov\"]"
+) ;path-write-text
+(path-write-text (path->string (path-join TMP-DIR "auth.json"))
+  "{\"gprov\":{\"type\":\"api_key\",\"key\":\"gprov-secret\"}}"
+) ;path-write-text
+(path-write-text (path->string (path-join TMP-DIR "models" "gprov.json"))
+  "{\"api\":\"openai-completions\",\"baseUrl\":\"http://127.0.0.1:2\",\"models\":[\"plain\"]}"
+) ;path-write-text
+(path-write-text (path->string (path-join TMP-DIR "models" "gprov" "plain.json"))
+  "{\"id\":\"plain\",\"name\":\"plain\",\"headers\":{\"x-goog-api-key\":\"${API_KEY}\"},\"contextWindow\":123456,\"maxTokens\":4096}"
+) ;path-write-text
+(path-write-text (path->string (path-join TMP-DIR "models" "gprov" "other.json"))
+  "{\"id\":\"other\",\"name\":\"other\"}"
+) ;path-write-text
 
 (define (reset-log!)
   (let ((file (resolve-alarm-log-path TMP-DIR)))
@@ -247,6 +272,47 @@
 (check-false (pi-probe-node NODE 1000 TMP-DIR))
 (check-true (string-contains? (log-text) " [FAIL] provider=kimi1 model=kimi-k3 ")
 ) ;check-true
+
+;; 6. 链节点探活获得与真实请求相同的节点 headers：gprov/plain 在 gprov 的
+;; models 白名单内，模型文件声明 x-goog-api-key: ${API_KEY}；探活解析节点配置后
+;; 自定义认证头模板透传到探活请求配置，与真实请求使用同一 %probe-node-config。
+(reset-log!)
+(let ((hdr-node (make-chain-node "gprov" "plain" "off")) (captured #f))
+  (check-true
+    (pi-probe-node hdr-node
+      1000
+      TMP-DIR
+      (lambda (provider config msgs sys-prompt tools timeout retry)
+        (set! captured (list provider config))
+        (pi-assistant-message (list (pi-text-block "pong")) "stop")
+      ) ;lambda
+    ) ;pi-probe-node
+  ) ;check-true
+  (check (car captured) => "gprov")
+  (let ((cfg (cadr captured)))
+    (check (pi-cfg-ref cfg 'model-id) => "plain")
+    (check (pi-cfg-ref cfg 'api-key) => "gprov-secret")
+    (let ((hdr (pi-cfg-ref cfg 'headers)))
+      (check (cdr (assoc "x-goog-api-key" hdr)) => "${API_KEY}")
+    ) ;let
+    (check (pi-cfg-ref cfg 'provider-api) => "openai-completions")
+    (let ((meta (pi-cfg-ref cfg 'model-meta)))
+      (check (pi-model-metadata-context-window meta) => 123456)
+      (check (pi-model-metadata-matched? meta) => #t)
+    ) ;let
+  ) ;let
+  ;; 探活成功不写 FAIL 日志
+  (check-false (file-exists? (path->string (resolve-alarm-log-path TMP-DIR))))
+) ;let
+
+;; 7. 白名单边界保持不变：gprov/other 模型文件存在但不在 gprov 的 models 白名单内，
+;; 普通显式模型路由仍按白名单外模型拒绝（pi-config-error）。
+(let* ((args (parse-pi-args (list "--provider" "gprov" "--model" "other" "--no-tools"))
+       ) ;args
+       (env `(("PI_CODING_AGENT_DIR" . ,TMP-DIR)))
+      ) ;
+  (check-catch 'pi-config-error (resolve-pi-config args env))
+) ;let*
 
 (when (file-exists? TMP-DIR)
   (rmtree TMP-DIR #t)
