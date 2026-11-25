@@ -15,9 +15,7 @@
 ;; 视具体调用结果而定。
 
 (set! *load-path*
-  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
-            "web-search" "../.gf" ".gf"
-          ) ;list
+  (append (list "../review" "../web-search" "review" "web-search" "../.gf" ".gf")
     *load-path*
   ) ;append
 ) ;set!

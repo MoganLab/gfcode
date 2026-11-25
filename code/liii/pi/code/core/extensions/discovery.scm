@@ -21,7 +21,7 @@
   (begin
 
     ;; 源码树内的扩展候选目录：除 .gf/gfcode 外，各 domain 根下的
-    ;; gfcode/ 目录（如 review/gfcode、simplify/gfcode、web-search/gfcode）
+    ;; gfcode/ 目录（如 review/gfcode、web-search/gfcode）
     ;; 也参与内置发现；同一 gfcode 目录只收录一次。
     (define (%source-tree-extension-candidates)
       (let loop

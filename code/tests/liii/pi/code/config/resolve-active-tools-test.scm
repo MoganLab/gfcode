@@ -20,11 +20,7 @@
 ;; 去重且保持顺序的工具名列表。
 
 (set! *load-path*
-  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
-            "web-search"
-          ) ;list
-    *load-path*
-  ) ;append
+  (append (list "../review" "../web-search" "review" "web-search") *load-path*)
 ) ;set!
 
 (import (liii check)

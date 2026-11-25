@@ -53,21 +53,17 @@
         (lambda (parsed . extra)
           (let ((code-review (pi-args-ref parsed 'code-review))
                 (auto-review (pi-args-ref parsed 'auto-review))
-                (simplify (pi-args-ref parsed 'simplify))
                 (staged (pi-args-ref parsed 'staged))
                 (ref (pi-args-ref parsed 'review-ref))
                ) ;
             (when (and code-review auto-review)
               (error 'pi-arg-error "--code-review and --auto-review cannot be used together")
             ) ;when
-            (when (and code-review simplify)
-              (error 'pi-arg-error "--code-review and --simplify cannot be used together")
+            (when (and staged (not code-review))
+              (error 'pi-arg-error "--staged requires --code-review")
             ) ;when
-            (when (and staged (not (or code-review simplify)))
-              (error 'pi-arg-error "--staged requires --code-review or --simplify")
-            ) ;when
-            (when (and ref (not (or code-review simplify)))
-              (error 'pi-arg-error "--ref requires --code-review or --simplify")
+            (when (and ref (not code-review))
+              (error 'pi-arg-error "--ref requires --code-review")
             ) ;when
           ) ;let
         ) ;lambda
