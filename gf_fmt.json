@@ -5,6 +5,7 @@
       "ai/",
       "agent/",
       "code/",
+      ".gf/extensions/",
       "extensions/",
       "review/",
       "simplify/",

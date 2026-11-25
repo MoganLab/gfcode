@@ -10,6 +10,7 @@ on:
   push:
     branches: [main]
     paths:
+      - '.gf/extensions/**'
       - 'ai/**'
       - 'agent/**'
       - 'code/**'
@@ -25,6 +26,7 @@ on:
       - '.github/workflows/check-debian.yml'
   pull_request:
     paths:
+      - '.gf/extensions/**'
       - 'ai/**'
       - 'agent/**'
       - 'code/**'
@@ -77,6 +79,7 @@ jobs:
           gf fmt --check ai
           gf fmt --check agent
           gf fmt --check code
+          gf fmt --check .gf/extensions
           gf fmt --check extensions
           gf fmt --check review
           gf fmt --check simplify

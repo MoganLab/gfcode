@@ -55,9 +55,9 @@
   (check-true (and (member (%resolved ext) res) #t))
 ) ;let
 
-;; 2. 项目级扩展（cwd/.pi/extensions）被发现
+;; 2. 项目级扩展（cwd/.gf/extensions）被发现
 (let ((proj-root (path-join (path-temp-dir) "pi-discover-extensions-proj")) (res #f))
-  (let ((proj-ext (path->string (path-join proj-root ".pi" "extensions"))))
+  (let ((proj-ext (path->string (path-join proj-root ".gf" "extensions"))))
     (let ((ext-file (path->string (path-join (path proj-ext) "proj-ext.scm"))))
       (catch #t
         (lambda ()

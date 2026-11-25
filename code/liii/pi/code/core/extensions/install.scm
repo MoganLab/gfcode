@@ -86,7 +86,7 @@
              (agent-dir (pi-keyword-value :agent-dir opts (pi-get-agent-dir)))
              (cwd-dir (pi-keyword-value :cwd opts (getcwd)))
              (base-dir (if local?
-                         (path-join (path cwd-dir) ".pi" "extensions")
+                         (path-join (path cwd-dir) ".gf" "extensions")
                          (path-join agent-dir "extensions")
                        ) ;if
              ) ;base-dir

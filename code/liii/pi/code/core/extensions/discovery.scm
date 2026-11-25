@@ -210,7 +210,7 @@
              ) ;global-dir-str
              (project-dir-str
                (if (string? cwd-dir)
-                 (path->string (path-join (path cwd-dir) ".pi" "extensions"))
+                 (path->string (path-join (path cwd-dir) ".gf" "extensions"))
                  #f
                ) ;if
              ) ;project-dir-str
@@ -223,7 +223,8 @@
              ;; 用户级可覆盖内置；项目级可覆盖普通用户级，但不能覆盖内置名称。
              ;; include-builtin? 为 #f 时仍用内置名称仲裁，仅不重复返回内置文件。
              ;; 层级：内置 → gf 配置目录（~/.gf/agent/extensions）→
-             ;;       agent 目录（~/.gf/agent/extensions，默认与上层重合）→ 项目级 → 显式。
+             ;;       agent 目录（~/.gf/agent/extensions，默认与上层重合）→
+             ;;       项目级（.gf/extensions）→ 显式。
              (gf-config-entries (%merge-extension-layer (if include-builtin? (%extension-entries builtin-list) '())
                                   gf-config-list
                                   '()
