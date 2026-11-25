@@ -79,10 +79,12 @@
     ;; 节点配置解析失败收敛：模型已落盘但未启用时 resolve-pi-config 抛
     ;; pi-config-error（原始文本为 Model ... is not available for provider ...）。
     ;; 该异常发生在真实请求之前，调度器的 stop-reason=error 顺延逻辑捕获不到，
-    ;; 会直接中断整条链。这里在解析边界记录一条带原始原因的节点级 [FAIL]，
-    ;; 再返回 stop-reason=error 的结构化失败交回 %run-chain-turn，由它统一
-    ;; 调用 %record-and-skip 记录故障、清粘性并继续后续节点。不记录凭据，
+    ;; 会直接中断整条链。这里在解析边界只捕获 pi-config-error，记录一条带原始原因
+    ;; 的节点级 [FAIL]，再返回 stop-reason=error 的结构化失败交回 %run-chain-turn，
+    ;; 由它统一调用 %record-and-skip 记录故障、清粘性并继续后续节点。不记录凭据，
     ;; 不构造伪配置发起请求，也不放宽 resolve-pi-config 的白名单语义。
+    ;; providers.json 重复/格式错等全局配置错误抢 value-error/type-error，不在此捕获，
+    ;; 维持原有冒泡行为，避免被误当成节点故障顺延并掩盖真正问题。
     (define (%node-config-failure provider model-id tag args dir)
       (let* ((detail
                (if (pair? args)
@@ -92,7 +94,7 @@
                  (object->string tag)
                ) ;if
              ) ;detail
-             (code (if (eq? tag 'pi-config-error) 'config-error 'exception))
+             (code 'config-error)
             ) ;
         (pi-alarm-log! "FAIL" provider model-id code detail dir)
         (pi-assistant-message '() :stop-reason "error" :error-message detail)
@@ -162,7 +164,7 @@
                   ) ;when
                ) ;_
                (dir-str (path->string (pi-cfg-config-dir config)))
-               (node-config (catch #t
+               (node-config (catch 'pi-config-error
                               (lambda () (%node-config config provider model-id eff-tl))
                               (lambda (tag . args) (%node-config-failure provider model-id tag args dir-str))
                             ) ;catch

@@ -357,11 +357,77 @@
   ) ;let
 ) ;let
 
+;; (5) 全局配置错误不当作节点故障：providers.json 中 provider id 重复抛 value-error
+;; 时，这是该目录下所有节点共享的永久性配置错误，不应被节点配置解析边界收敛为
+;; stop-reason=error 后顺延，而应维持原有冒泡行为，立即向调用方报错。修复前会把它
+;; 记成普通节点 [FAIL] 并依次试其他节点、最终进入 exhausted/recovery，掩盖真正问题。
+;; 用独立夹具构造重复 provider 的 providers.json，断言整次请求抢出 value-error，
+;; 请求桩不被调用，也不进入 recovery（continuous=false 且未到达 exhausted）。
+
+(define DUP-DIR
+  (path->string
+    (path-join (path-temp-dir)
+      (string-append "aio-dup-test-" (number->string (getpid)))
+    ) ;path-join
+  ) ;path->string
+) ;define
+(when (file-exists? DUP-DIR)
+  (rmtree DUP-DIR #t)
+) ;when
+(path-mkdir (path (path-join DUP-DIR "models" "stub")) :parents #t :exist-ok #t)
+(path-write-text (path->string (path-join DUP-DIR "all-in-one.json"))
+  "{\"provider\":\"all-in-one\",\"probeTimeoutMs\":1234,\"continuous\":false,\"chains\":[{\"id\":\"dup-chain\",\"nodes\":[{\"provider\":\"stub\",\"model\":\"one\"},{\"provider\":\"stub\",\"model\":\"two\"}]}]}"
+) ;path-write-text
+;; providers.json 中 stub 重复，触发 value-error（全局配置错误，非节点级未启用）
+(path-write-text (path->string (path-join DUP-DIR "models" "providers.json"))
+  "[\"stub\",\"stub\"]"
+) ;path-write-text
+(path-write-text (path->string (path-join DUP-DIR "auth.json"))
+  "{\"stub\":{\"type\":\"api_key\",\"key\":\"fixture-key\"}}"
+) ;path-write-text
+(path-write-text (path->string (path-join DUP-DIR "models" "stub.json"))
+  "{\"api\":\"openai-completions\",\"baseUrl\":\"http://127.0.0.1:1\",\"models\":[\"one\",\"two\"]}"
+) ;path-write-text
+(path-write-text (path->string (path-join DUP-DIR "models" "stub" "one.json"))
+  "{\"id\":\"one\",\"name\":\"one\"}"
+) ;path-write-text
+(path-write-text (path->string (path-join DUP-DIR "models" "stub" "two.json"))
+  "{\"id\":\"two\",\"name\":\"two\"}"
+) ;path-write-text
+
+(pi-chain-reset-state!)
+(let ((requested '()))
+  ;; 重复 provider 的全局配置错误必须立即抢出 value-error，不被收敛为节点故障顺延
+  (check-catch 'value-error
+    (pi-all-in-one-request-stream "all-in-one"
+      (list (cons 'provider "all-in-one")
+        (cons 'model-id "dup-chain")
+        (cons 'config-dir DUP-DIR)
+      ) ;list
+      '()
+      ""
+      '()
+      #f
+      60
+      (lambda (node timeout-ms config-dir request-fn) #t)
+      (lambda (provider config . args)
+        (set! requested (cons (cdr (assoc 'model-id config)) requested))
+        (pi-assistant-message (list (pi-text-block "ok")) "stop")
+      ) ;lambda
+    ) ;pi-all-in-one-request-stream
+  ) ;check-catch
+  ;; 全局错误未到达任何真实请求桩，也未进入 exhausted/recovery
+  (check requested => '())
+) ;let
+
 (when (file-exists? DISABLED-DIR)
   (rmtree DISABLED-DIR #t)
 ) ;when
 (when (file-exists? MID-DIR)
   (rmtree MID-DIR #t)
+) ;when
+(when (file-exists? DUP-DIR)
+  (rmtree DUP-DIR #t)
 ) ;when
 
 (check-report)
