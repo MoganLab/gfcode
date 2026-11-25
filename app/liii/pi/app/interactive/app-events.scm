@@ -278,9 +278,6 @@
     ) ;define
 
     (define (%pi-app-handle-models-updated! app ev)
-      (with-output-to-file "C:/Users/darcy/AppData/Local/Temp/gf1410-event-detail.log"
-        (lambda () (write ev))
-      ) ;with-output-to-file
       ;; worker reload_models 成功后回灌主 app：按新白名单重建 models/default-model
       ;; 并重渲（对齐上游 completeProviderAuthentication 中 updateAvailableProviderCount
       ;; + footer.invalidate + requestRender）。重建全程 catch，失败只记日志不崩溃。
@@ -296,9 +293,6 @@
                         ) ;
               (%pi-app-models-set! app models)
               (%pi-app-default-model-set! app default-model)
-              (with-output-to-file "C:/Users/darcy/AppData/Local/Temp/gf1410-event-models.log"
-                (lambda () (write (length models)))
-              ) ;with-output-to-file
             ) ;let-values
             (pi-app-render! app)
           ) ;let

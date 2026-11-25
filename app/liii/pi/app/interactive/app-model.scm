@@ -225,9 +225,6 @@
     ) ;define
 
     (define (%show-model-selector! app initial-search)
-      (with-output-to-file "C:/Users/darcy/AppData/Local/Temp/gf1410-selector-models.log"
-        (lambda () (write (map (lambda (m) (assoc 'provider m)) (pi-app-models app))))
-      ) ;with-output-to-file
       (editor-set-focused! (pi-app-editor app) #f)
       (%pi-app-active-selector-set! app
         (make-model-selector (list (cons 'provider (pi-app-provider app)) (cons 'id (pi-app-model app)))
