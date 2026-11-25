@@ -20,15 +20,18 @@
 ;;   - 输出优先走 ctx.ui.notify（TUI 下渲染为聊天区状态行，不进输入区），
 ;;     未 arm notify 时回退 stderr（verbose / 一次性运行场景）。
 
-(import (scheme base)
-  (liii list)
-  (liii date-time)
-  (liii pi ai time)
-  (liii pi ai message)
-  (liii pi code core extensions)
-  (liii pi code core extension-notify)
-  (liii pi code modes output)
-) ;import
+(define-library (gfcode tps)
+  (import (scheme base)
+    (liii list)
+    (liii date-time)
+    (liii pi ai time)
+    (liii pi ai message)
+    (liii pi code core extensions)
+    (liii pi code core extension-notify)
+    (liii pi code modes output)
+  ) ;import
+  (export extension)
+  (begin
 
 ;; 盒子记录本轮 agent_start 的单调毫秒时间戳；多 run 串扰由 run 入口重置兜底。
 
@@ -198,7 +201,7 @@
   (if (defined? '*stderr*) *stderr* (current-error-port))
 ) ;define
 
-(define (tps-extension api . opt-context)
+(define (extension api . opt-context)
   (pi-on! api
     'agent_start
     (lambda (payload ctx) (%start-ms-set! (pi-current-monotonic-millis)))
@@ -252,4 +255,5 @@
   "tps-loaded"
 ) ;define
 
-tps-extension
+  ) ;begin
+) ;define-library

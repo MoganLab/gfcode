@@ -35,7 +35,11 @@
 
 (define (get-tps-path)
   (let ((test-path (path-resolve "tests/tps-test.scm")))
-    (path->string (path-resolve (path-join (path-parent test-path) ".." "tps.scm")))
+    (path->string
+      (path-resolve
+        (path-join (path-parent (path-parent (path-parent test-path))) "gfcode" "tps.scm")
+      ) ;path-resolve
+    ) ;path->string
   ) ;let
 ) ;define
 
