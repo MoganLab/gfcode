@@ -15,7 +15,7 @@
 ;; 返回值
 ;; ----
 ;; list?，执行完成后的完整消息历史列表。
-;; 注意：回退仅作用于内存结算与事件上报，落盘消息保留原始全零 usage。
+;; 注意：回退仅作用于事件上报，落盘消息保留原始全零 usage。
 
 (import (scheme base) (liii check) (liii pi ai message) (liii pi agent loop))
 
@@ -70,7 +70,7 @@
   (check round => 2)
   ;; 第二轮结算事件（最新一条）的 usage 应回填为已知值
   (check (cdr (assoc 'input (car end-usages))) => 100)
-  ;; 落盘历史保留原始全零 usage（会话恢复会自行跳过）
+  ;; 落盘历史保留原始全零 usage
   (check
     (cdr (assoc 'input (pi-assistant-message-usage (list-ref res 3))))
     =>

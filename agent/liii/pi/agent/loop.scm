@@ -81,7 +81,7 @@
 
     ;; 结算响应 usage 全零/缺失时回填最近已知 usage：
     ;; 请求并未消耗上下文，沿用已知值可避免 message_usage 把占比打回 0.0%。
-    ;; 仅作用于内存结算与事件上报，不改动落盘消息（会话恢复会跳过全零 usage）
+    ;; 仅作用于内存结算与事件上报，不改动落盘消息
     (define (%carry-last-usage resp msgs)
       (let* ((u (if (pi-assistant-message? resp)
                   (pi-assistant-message-usage resp)
@@ -208,8 +208,7 @@
         (when (procedure? emit)
           (emit 'turn_start)
           (emit 'message_start resp)
-          ;; 事件上报使用回填后的 resp；返回/落盘保留原始占位 usage，
-          ;; 会话恢复按“跳过全零 usage”逻辑自行回退
+          ;; 事件上报使用回填后的 resp；返回/落盘保留原始占位 usage
           (emit 'message_end (%carry-last-usage resp msgs))
           (emit 'turn_end resp #())
           (pi-emit-agent-end emit final-msgs "error" config)
