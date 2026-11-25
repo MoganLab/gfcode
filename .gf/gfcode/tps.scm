@@ -201,56 +201,65 @@
       (if (defined? '*stderr*) *stderr* (current-error-port))
     ) ;define
 
+    ;; 从 agent_end payload 中取消息列表。
+
+    (define (%payload-messages payload)
+      (let ((p (and (pair? payload) (assq 'messages payload))))
+        (if (pair? p) (cdr p) '())
+      ) ;let
+    ) ;define
+
+    ;; 输出 TPS 行：优先 ctx 携带的 notify（TUI 已 arm），
+    ;; 其次全局注入点，最后回退 stderr。
+
+    (define (%emit-tps-line line ctx)
+      (let ((ctx-notify (and ctx (extension-context-notify ctx))))
+        (unless (and (procedure? ctx-notify) (ctx-notify line))
+          (unless (pi-extension-notify line)
+            (let ((port (%stderr-port)))
+              (display line port)
+              (newline port)
+            ) ;let
+          ) ;unless
+        ) ;unless
+      ) ;let
+    ) ;define
+
+    ;; agent_end 钩子：累加 usage、计算 TPS 并输出。
+
+    (define (%on-agent-end payload ctx)
+      (let ((start-ms (%start-ms)))
+        ;; 无配对的 start 时戳则跳过（避免误触发）
+        (when start-ms
+          (%start-ms-set! #f)
+          (let* ((messages (%payload-messages payload))
+                 (assistant-usages (map %assistant-usage (filter %assistant? messages)))
+                 (out (%sum-usage-key assistant-usages 'output))
+                 (in (%sum-usage-key assistant-usages 'input))
+                 (cr (%sum-usage-key assistant-usages 'cacheRead))
+                 (cw (%sum-usage-key assistant-usages 'cacheWrite))
+                 (total (%sum-usage-key assistant-usages 'totalTokens))
+                 (elapsed-ms (- (pi-current-monotonic-millis) start-ms))
+                 (elapsed-dt (milliseconds-delta elapsed-ms))
+                 (elapsed-s (if (number? elapsed-ms) (/ elapsed-ms 1000.0) 0.0))
+                 (tps (if (> elapsed-s 0) (/ out elapsed-s) 0.0))
+                ) ;
+            ;; 仅在确实有输出 token 时输出。
+            (when (> out 0)
+              (%emit-tps-line (%tps-line tps out in cr cw total elapsed-dt) ctx)
+            ) ;when
+          ) ;let*
+        ) ;when
+      ) ;let
+    ) ;define
+
     (define (extension api . opt-context)
       (pi-on! api
         'agent_start
         (lambda (payload ctx) (%start-ms-set! (pi-current-monotonic-millis)))
       ) ;pi-on!
 
-      (pi-on! api
-        'agent_end
-        (lambda (payload ctx)
-          (let ((start-ms (%start-ms)))
-            ;; 无配对的 start 时戳则跳过（避免误触发）
-            (when start-ms
-              (%start-ms-set! #f)
-              (let* ((messages
-                       (let ((p (and (pair? payload) (assq 'messages payload))))
-                         (if (pair? p) (cdr p) '())
-                       ) ;let
-                     ) ;messages
-                     (assistant-usages (map %assistant-usage (filter %assistant? messages)))
-                     (out (%sum-usage-key assistant-usages 'output))
-                     (in (%sum-usage-key assistant-usages 'input))
-                     (cr (%sum-usage-key assistant-usages 'cacheRead))
-                     (cw (%sum-usage-key assistant-usages 'cacheWrite))
-                     (total (%sum-usage-key assistant-usages 'totalTokens))
-                     (elapsed-ms (- (pi-current-monotonic-millis) start-ms))
-                     (elapsed-dt (milliseconds-delta elapsed-ms))
-                     (elapsed-s (if (number? elapsed-ms) (/ elapsed-ms 1000.0) 0.0))
-                     (tps (if (> elapsed-s 0) (/ out elapsed-s) 0.0))
-                    ) ;
-                ;; 仅在确实有输出 token 时输出。对齐上游 ctx.ui.notify / ctx.hasUI：
-                ;; 优先用 ctx 携带的 notify（TUI 已 arm），其次全局注入点，最后回退 stderr。
-                (when (> out 0)
-                  (let ((line (%tps-line tps out in cr cw total elapsed-dt))
-                        (ctx-notify (and ctx (extension-context-notify ctx)))
-                       ) ;
-                    (unless (and (procedure? ctx-notify) (ctx-notify line))
-                      (unless (pi-extension-notify line)
-                        (let ((port (%stderr-port)))
-                          (display line port)
-                          (newline port)
-                        ) ;let
-                      ) ;unless
-                    ) ;unless
-                  ) ;let
-                ) ;when
-              ) ;let*
-            ) ;when
-          ) ;let
-        ) ;lambda
-      ) ;pi-on!
+      (pi-on! api 'agent_end %on-agent-end)
 
       "tps-loaded"
     ) ;define
