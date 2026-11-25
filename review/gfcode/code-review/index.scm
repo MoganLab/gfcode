@@ -9,8 +9,8 @@
     (liii string)
     (liii pi code core extensions)
     (liii pi code cli args query)
-    (liii pi review auto)
-    (liii pi review modes)
+    (gfcode code-review auto)
+    (gfcode code-review modes)
   ) ;import
   (export extension)
   (begin

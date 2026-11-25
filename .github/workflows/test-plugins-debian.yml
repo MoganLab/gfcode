@@ -69,7 +69,6 @@ jobs:
 
       - name: Test review plugin
         run: |
-          gf test review/tests/liii
           gf test review/tests/gfcode
 
       - name: Test web-search plugin
