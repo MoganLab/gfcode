@@ -18,11 +18,7 @@
 ;; 解析后的运行配置。
 
 (set! *load-path*
-  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
-            "web-search"
-          ) ;list
-    *load-path*
-  ) ;append
+  (append (list "../review" "../web-search" "review" "web-search") *load-path*)
 ) ;set!
 
 (import (liii check)

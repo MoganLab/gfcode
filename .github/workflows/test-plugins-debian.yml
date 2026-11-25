@@ -14,7 +14,6 @@ on:
       - 'agent/**'
       - 'code/**'
       - 'review/**'
-      - 'simplify/**'
       - 'tests/**'
       - 'web-search/**'
       - 'gfproject.json'
@@ -27,7 +26,6 @@ on:
       - 'agent/**'
       - 'code/**'
       - 'review/**'
-      - 'simplify/**'
       - 'tests/**'
       - 'web-search/**'
       - 'gfproject.json'
@@ -71,15 +69,8 @@ jobs:
 
       - name: Test review plugin
         run: |
-          gf test review/tests/liii
           gf test review/tests/gfcode
-
-      - name: Test simplify plugin
-        run: |
-          gf test simplify/tests/liii
-          gf test simplify/tests/gfcode
 
       - name: Test web-search plugin
         run: |
-          gf test web-search/tests/liii
           gf test web-search/tests/gfcode

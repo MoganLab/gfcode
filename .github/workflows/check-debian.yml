@@ -16,7 +16,6 @@ on:
       - 'agent/**'
       - 'code/**'
       - 'review/**'
-      - 'simplify/**'
       - 'tests/**'
       - 'app/**'
       - 'web-search/**'
@@ -32,7 +31,6 @@ on:
       - 'agent/**'
       - 'code/**'
       - 'review/**'
-      - 'simplify/**'
       - 'tests/**'
       - 'app/**'
       - 'web-search/**'
@@ -82,7 +80,6 @@ jobs:
           gf fmt --check .gf/gfcode
           gf fmt --check .gf/tests
           gf fmt --check review
-          gf fmt --check simplify
           gf fmt --check app
           gf fmt --check web-search
           gf fmt --check tests

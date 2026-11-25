@@ -16,9 +16,7 @@
 ;; 默认激活的扩展工具名列表。
 
 (set! *load-path*
-  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
-            "web-search" "../.gf" ".gf"
-          ) ;list
+  (append (list "../review" "../web-search" "review" "web-search" "../.gf" ".gf")
     *load-path*
   ) ;append
 ) ;set!

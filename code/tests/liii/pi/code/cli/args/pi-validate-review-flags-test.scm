@@ -16,11 +16,7 @@
 ;; 参数组合非法时抛出错误。
 
 (set! *load-path*
-  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
-            "web-search"
-          ) ;list
-    *load-path*
-  ) ;append
+  (append (list "../review" "../web-search" "review" "web-search") *load-path*)
 ) ;set!
 
 (import (liii check) (liii pi code cli args))
@@ -49,34 +45,6 @@
 ) ;check-catch
 (check-catch 'pi-arg-error
   (pi-validate-review-flags (parse-pi-args '("--ref=main")))
-) ;check-catch
-
-;; simplify 组合
-(check (pi-validate-review-flags (parse-pi-args '("--simplify"))) => #t)
-(check (pi-validate-review-flags (parse-pi-args '("--simplify" "--staged")))
-  =>
-  #t
-) ;check
-(check (pi-validate-review-flags (parse-pi-args '("--simplify" "--ref=main")))
-  =>
-  #t
-) ;check
-(check (pi-validate-review-flags (parse-pi-args '("--simplify" "--apply")))
-  =>
-  #t
-) ;check
-(check (pi-validate-review-flags (parse-pi-args '("--simplify"
-                                                  "--apply"
-                                                  "--staged")))
-  =>
-  #t
-) ;check
-
-(check-catch 'pi-arg-error
-  (pi-validate-review-flags (parse-pi-args '("--apply")))
-) ;check-catch
-(check-catch 'pi-arg-error
-  (pi-validate-review-flags (parse-pi-args '("--simplify" "--code-review")))
 ) ;check-catch
 
 (check-report)

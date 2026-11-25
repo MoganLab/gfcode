@@ -16,6 +16,5 @@ gf test .gf/tests/gfcode
 
 ```bash
 gf test review/tests/gfcode
-gf test simplify/tests/gfcode
 gf test web-search/tests/gfcode
 ```

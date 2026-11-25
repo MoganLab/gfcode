@@ -9,14 +9,14 @@
 (define-library (gfcode web-search index)
   (import (scheme base)
     (liii pi code core extensions)
-    (liii pi web-search schema)
-    (liii pi web-search execute)
+    (gfcode web-search schema)
+    (gfcode web-search execute)
   ) ;import
   (export extension)
   (begin
 
     ;; web-search 扩展：注册 web_search 工具并声明默认启用（:default-active? #t，
-    ;; 由 resolve-active-tools 并入默认集）；实现位于 (liii pi web-search ...) 子库。
+    ;; 由 resolve-active-tools 并入默认集）；实现位于 (gfcode web-search ...) 子库。
 
     (define (extension api . opt-context)
       (register-tool! api

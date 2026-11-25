@@ -29,13 +29,6 @@
       ],
       "mode": "r7rs"
     },
-    "simplify": {
-      "root": "simplify/",
-      "depends-on": [
-        "agent", "code"
-      ],
-      "mode": "r7rs"
-    },
     "web-search": {
       "root": "web-search/",
       "depends-on": [
