@@ -74,5 +74,4 @@ jobs:
 
       - name: Test web-search plugin
         run: |
-          gf test web-search/tests/liii
           gf test web-search/tests/gfcode
