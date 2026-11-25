@@ -8,11 +8,11 @@ on:
   push:
     branches: [main]
     paths:
-      - '.gf/extensions/**'
+      - '.gf/gfcode/**'
+      - '.gf/tests/**'
       - 'ai/**'
       - 'agent/**'
       - 'code/**'
-      - 'extensions/**'
       - 'review/**'
       - 'simplify/**'
       - 'tests/**'
@@ -21,11 +21,11 @@ on:
       - '.github/workflows/test-plugins-debian.yml'
   pull_request:
     paths:
-      - '.gf/extensions/**'
+      - '.gf/gfcode/**'
+      - '.gf/tests/**'
       - 'ai/**'
       - 'agent/**'
       - 'code/**'
-      - 'extensions/**'
       - 'review/**'
       - 'simplify/**'
       - 'tests/**'
@@ -67,7 +67,7 @@ jobs:
           gf version
 
       - name: Test tps project extension
-        run: gf test .gf/extensions/tests
+        run: gf test .gf/tests/gfcode
 
       - name: Test review plugin
         run: gf test review/tests/liii
