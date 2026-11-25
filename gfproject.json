@@ -2,7 +2,7 @@
   "package": {
     "name": "pi",
     "organization": "liii",
-    "version": "2026.11.24",
+    "version": "2026.11.25",
     "description": "Pi coding agent for Goldfish Scheme"
   },
   "domains": {
@@ -22,8 +22,8 @@
       ],
       "mode": "r7rs"
     },
-    "tui": {
-      "root": "tui/",
+    "app": {
+      "root": "app/",
       "depends-on": [
         "code", "agent", "ai"
       ],
@@ -54,9 +54,9 @@
   "tools": {
     "pi": {
       "tools_dir": ".",
-      "tool": "tui",
+      "tool": "app",
       "organization": "liii",
-      "module": "pi/tui/cli",
+      "module": "pi/app/cli",
       "description": {
         "en_US": "gf pi subcommand",
         "zh_CN": "gf pi 子命令"
