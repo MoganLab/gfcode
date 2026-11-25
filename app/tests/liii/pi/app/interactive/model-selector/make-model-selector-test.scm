@@ -191,4 +191,140 @@
   (check (length (select-list-items (model-selector-list selector))) => 1)
 ) ;let
 
+;; 7. 长模型 id 与长 provider 组成的主列文本完整渲染（/model 主列拉宽后不再被截断）。
+;;    主列标签构造为 “模型 id [provider]”，max-primary-column-width 由 48 拉宽到 64
+;;    后，deepseek-v4.1-flash-1017 [qwen-token-plan-cn] 在宽终端下完整可见。
+(let* ((long-models (list (list (cons 'provider "qwen-token-plan-cn")
+                            (cons 'id "deepseek-v4.1-flash-1017")
+                            (cons 'name "DeepSeek V4.1 Flash 1017")
+                            (cons 'reasoning #t)
+                          ) ;list
+                      (list (cons 'provider "qwen-token-plan-cn")
+                        (cons 'id "kimi-k3.1-pro-prime")
+                        (cons 'name "Kimi K3.1 Pro Prime")
+                        (cons 'reasoning #t)
+                      ) ;list
+                      (list (cons 'provider "google")
+                        (cons 'id "gemini-2.5-pro")
+                        (cons 'name "Gemini 2.5 Pro")
+                        (cons 'reasoning #t)
+                      ) ;list
+                    ) ;list
+       ) ;long-models
+       (selector (make-model-selector (list (cons 'provider "qwen-token-plan-cn")
+                                        (cons 'id "deepseek-v4.1-flash-1017")
+                                      ) ;list
+                   #f
+                   long-models
+                   (lambda (model) #f)
+                   (lambda () #f)
+                   (lambda (model) #f)
+                 ) ;make-model-selector
+       ) ;selector
+       (lines (map strip-ansi (component-render selector 120)))
+       (text (string-join lines "\n"))
+      ) ;
+  ;; 行数与表头与原选择器一致
+  (check (length lines) => 14)
+  (check (list-ref lines 2) => "Model")
+  ;; 当前模型置顶并标 ✓；主列完整显示长模型 id 与方括号中的长 provider
+  (check-true (string-contains? text "✓ deepseek-v4.1-flash-1017 [qwen-token-plan-cn]")
+  ) ;check-true
+  ;; 同一 provider 下的另一个长模型 id 也完整可见
+  (check-true (string-contains? text "kimi-k3.1-pro-prime [qwen-token-plan-cn]"))
+  ;; 描述列与主列分隔，仍完整显示模型名且不再受主列截断影响
+  (check-true (string-contains? text "DeepSeek V4.1 Flash 1017"))
+  (check-true (string-contains? text "Kimi K3.1 Pro Prime"))
+) ;let*
+
+;; 8. 长名称组合下搜索与选择行为不回归：长 id / 长 provider 前缀复合搜索
+;;    均命中，按上下键移动选中后 Enter 提交仍返回正确模型，且退出可取消。
+(let* ((long-saved '())
+       (long-cancel 0)
+       (long-models (list (list (cons 'provider "qwen-token-plan-cn")
+                            (cons 'id "deepseek-v4.1-flash-1017")
+                            (cons 'name "DeepSeek V4.1 Flash 1017")
+                            (cons 'reasoning #t)
+                          ) ;list
+                      (list (cons 'provider "qwen-token-plan-cn")
+                        (cons 'id "kimi-k3.1-pro-prime")
+                        (cons 'name "Kimi K3.1 Pro Prime")
+                        (cons 'reasoning #t)
+                      ) ;list
+                      (list (cons 'provider "google")
+                        (cons 'id "gemini-2.5-pro")
+                        (cons 'name "Gemini 2.5 Pro")
+                        (cons 'reasoning #t)
+                      ) ;list
+                    ) ;list
+       ) ;long-models
+       (selector
+         (make-model-selector (list (cons 'provider "qwen-token-plan-cn")
+                                (cons 'id "deepseek-v4.1-flash-1017")
+                              ) ;list
+           #f
+           long-models
+           (lambda (model) (set! long-saved (cons model long-saved)))
+           (lambda () (set! long-cancel (+ long-cancel 1)))
+           (lambda (model) #f)
+         ) ;make-model-selector
+       ) ;selector
+      ) ;
+  ;; 裸 id 搜索命中 qwen-token-plan-cn 下的两个长模型
+  (component-handle-input selector "deepseek")
+  (check (length (select-list-items (model-selector-list selector))) => 1)
+  (component-handle-input selector 'enter)
+  (check (length long-saved) => 1)
+  (check (cdr (assoc 'id (car long-saved))) => "deepseek-v4.1-flash-1017")
+  (check (cdr (assoc 'provider (car long-saved))) => "qwen-token-plan-cn")
+) ;let*
+
+(let ((long-saved '())
+      (long-cancel 0)
+      (long-models (list (list (cons 'provider "qwen-token-plan-cn")
+                           (cons 'id "deepseek-v4.1-flash-1017")
+                           (cons 'name "DeepSeek V4.1 Flash 1017")
+                           (cons 'reasoning #t)
+                         ) ;list
+                     (list (cons 'provider "qwen-token-plan-cn")
+                       (cons 'id "kimi-k3.1-pro-prime")
+                       (cons 'name "Kimi K3.1 Pro Prime")
+                       (cons 'reasoning #t)
+                     ) ;list
+                     (list (cons 'provider "google")
+                       (cons 'id "gemini-2.5-pro")
+                       (cons 'name "Gemini 2.5 Pro")
+                       (cons 'reasoning #t)
+                     ) ;list
+                   ) ;list
+      ) ;long-models
+     ) ;
+  ;; provider 前缀复合搜索命中 qwen-token-plan-cn 下两个模型；上下键移动后 Enter 选中
+  (let ((selector
+          (make-model-selector (list (cons 'provider "qwen-token-plan-cn")
+                                 (cons 'id "deepseek-v4.1-flash-1017")
+                               ) ;list
+            #f
+            long-models
+            (lambda (model) (set! long-saved (cons model long-saved)))
+            (lambda () (set! long-cancel (+ long-cancel 1)))
+            (lambda (model) #f)
+          ) ;make-model-selector
+        ) ;selector
+       ) ;
+    (component-handle-input selector "qwen-token-plan-cn/")
+    (check (length (select-list-items (model-selector-list selector))) => 2)
+    ;; 下移选中第二项 kimi-k3.1-pro-prime 后提交，返回该模型（证明长名称下导航与选择正常）
+    (component-handle-input selector 'down)
+    (component-handle-input selector 'enter)
+    (check (length long-saved) => 1)
+    (check (cdr (assoc 'id (car long-saved))) => "kimi-k3.1-pro-prime")
+    (check (cdr (assoc 'provider (car long-saved))) => "qwen-token-plan-cn")
+    ;; Escape 仍可取消，且不会误触发选择回调
+    (component-handle-input selector 'escape)
+    (check long-cancel => 1)
+    (check (length long-saved) => 1)
+  ) ;let
+) ;let
+
 (check-report)
