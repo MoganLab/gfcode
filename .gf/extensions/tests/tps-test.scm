@@ -1,5 +1,5 @@
 ;; tps-extension
-;; 验证内置 tps 扩展脚本的加载，以及 agent_start / agent_end 事件钩子对 usage 的统计与
+;; 验证项目级 tps 扩展脚本的加载，以及 agent_start / agent_end 事件钩子对 usage 的统计与
 ;; TPS 行的格式化输出（捕获 stderr 后断言内容）。
 ;;
 ;; 语法
@@ -21,6 +21,7 @@
 
 (import (scheme base)
   (liii check)
+  (liii path)
   (liii string)
   (liii pi ai time)
   (liii pi ai message)
@@ -33,10 +34,9 @@
 (check-set-mode! 'report-failed)
 
 (define (get-tps-path)
-  (cond ((file-exists? "tools/pi/extensions/tps.scm") "tools/pi/extensions/tps.scm")
-        ((file-exists? "extensions/tps.scm") "extensions/tps.scm")
-        (else "../../extensions/tps.scm")
-  ) ;cond
+  (let ((test-path (path-resolve "tests/tps-test.scm")))
+    (path->string (path-resolve (path-join (path-parent test-path) ".." "tps.scm")))
+  ) ;let
 ) ;define
 
 ;; 把 *stderr* 重定向到字符串端口，跑完 start/end 后取回捕获文本。

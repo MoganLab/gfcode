@@ -43,6 +43,13 @@
       ],
       "mode": "r7rs"
     },
+    "extensions": {
+      "root": ".gf/extensions/",
+      "depends-on": [
+        "agent", "code"
+      ],
+      "mode": "r7rs"
+    },
     "review": {
       "root": "review/",
       "depends-on": [

@@ -53,7 +53,7 @@
   (check-true (string? target))
   (check-true
     (string=? target
-      (path->string (path-resolve (path "/project/dir/.pi/extensions/demo-ext")))
+      (path->string (path-resolve (path "/project/dir/.gf/extensions/demo-ext")))
     ) ;string=?
   ) ;check-true
 ) ;let

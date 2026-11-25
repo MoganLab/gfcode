@@ -8,6 +8,7 @@ on:
   push:
     branches: [main]
     paths:
+      - '.gf/extensions/**'
       - 'ai/**'
       - 'agent/**'
       - 'code/**'
@@ -20,6 +21,7 @@ on:
       - '.github/workflows/test-plugins-debian.yml'
   pull_request:
     paths:
+      - '.gf/extensions/**'
       - 'ai/**'
       - 'agent/**'
       - 'code/**'
@@ -63,6 +65,9 @@ jobs:
             "https://github.com/MoganLab/goldfish/releases/download/$TAG/goldfish-scheme-x86_64-$TAG.deb"
           apt-get install -y /tmp/goldfish.deb
           gf version
+
+      - name: Test tps project extension
+        run: gf test .gf/extensions/tests
 
       - name: Test review plugin
         run: gf test review/tests/liii
