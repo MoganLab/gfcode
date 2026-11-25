@@ -15,5 +15,5 @@ gf test app/tests/liii/pi/app/cli/
 
 - `auth/` — `(liii pi app cli auth)` auth 子命令参数解析与密钥管理
 - `help/` — `(liii pi app cli help)` 帮助文本定义与输出
-- `main/` — `(liii pi app cli main)` 完整 CLI 分发与程序入口
+- `impl/` — `(liii pi app cli impl)` 完整 CLI 分发与程序入口
 - `tui/` — `(liii pi app cli tui)` TUI 启动信息提取

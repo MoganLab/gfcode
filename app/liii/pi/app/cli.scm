@@ -10,7 +10,7 @@
     (scheme eval)
     (liii pi app cli help)
   ) ;import
-  (export display-pi-help)
+  (export main display-pi-help)
   (begin
 
     (define (strip-command-prefix args)
@@ -43,7 +43,7 @@
     ) ;define
 
     (define (main-binding name)
-      (eval name (environment '(liii pi app cli main)))
+      (eval name (environment '(liii pi app cli impl)))
     ) ;define
 
     (define (read-all-stdin)
@@ -63,6 +63,10 @@
     ) ;define
 
     (define run-goldpi run-pi)
+
+    (define (main)
+      (exit (run-pi (command-line)))
+    ) ;define
 
   ) ;begin
 ) ;define-library

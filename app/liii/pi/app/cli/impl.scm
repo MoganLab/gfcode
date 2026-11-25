@@ -4,7 +4,7 @@
 ;; Licensed under the MIT License
 ;;
 
-(define-library (liii pi app cli main)
+(define-library (liii pi app cli impl)
   (import (scheme base)
     (scheme process-context)
     (liii string)
@@ -36,7 +36,7 @@
     (liii pi code core skills)
     (liii pi code config settings)
   ) ;import
-  (export main read-all-stdin run-goldpi run-pi)
+  (export main display-pi-help read-all-stdin run-goldpi run-pi)
   (begin
 
     (define (read-all-stdin)

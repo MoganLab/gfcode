@@ -14,8 +14,8 @@
 ;; 不返回
 ;; 读取命令行参数并以相应退出状态码退出程序。
 
-;; 先导入 (liii pi app cli main) 避免宏展开期常量回收
-(import (liii pi app cli main) (liii check))
+;; 先导入 (liii pi app cli) 避免宏展开期常量回收
+(import (liii pi app cli) (liii check))
 
 (check-set-mode! 'report-failed)
 

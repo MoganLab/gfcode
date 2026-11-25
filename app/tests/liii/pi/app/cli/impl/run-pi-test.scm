@@ -15,7 +15,7 @@
 ;; integer?
 ;; 进程退出码：成功为 0，错误为 1。
 
-(import (liii check) (liii string) (liii pi app cli main))
+(import (liii check) (liii string) (liii pi app cli impl))
 
 (check-set-mode! 'report-failed)
 

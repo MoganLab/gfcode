@@ -19,7 +19,7 @@
 ;; （exit 不会被 catch 兜住）。此处仅断言 main 为过程且已导出绑定，
 ;; 真正的退出码行为由 run-pi 的测试覆盖。
 
-(import (liii check) (liii pi app cli main))
+(import (liii check) (liii pi app cli impl))
 
 (check-set-mode! 'report-failed)
 
