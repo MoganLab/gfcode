@@ -1,23 +1,23 @@
-;; tps-extension
-;; 验证项目级 tps 扩展脚本的加载，以及 agent_start / agent_end 事件钩子对 usage 的统计与
-;; TPS 行的格式化输出（捕获 stderr 后断言内容）。
+;; extension
+;; tps 扩展工厂：注册 agent_start / agent_end 事件钩子，累加 assistant 消息 usage，
+;; 运行结束时输出 TPS 行（ctx notify 优先，回退 stderr）。本文件验证加载与统计输出。
 ;;
 ;; 语法
 ;; ----
-;; (pi-load-extension path api)
+;; (extension api . opt-context)
 ;;
 ;; 参数
 ;; ----
-;; path : string?
-;; 扩展脚本路径。
-;;
 ;; api : extension-api?
 ;; 扩展宿主 API 实例。
 ;;
+;; opt-context : extension-context（可选）
+;; 扩展上下文。
+;;
 ;; 返回值
 ;; ----
-;; list?
-;; 扩展加载结果字典。
+;; string?
+;; 加载标记 "tps-loaded"。
 
 (import (scheme base)
   (liii check)
@@ -34,8 +34,16 @@
 (check-set-mode! 'report-failed)
 
 (define (get-tps-path)
-  (let ((test-path (path-resolve "tests/tps-test.scm")))
-    (path->string (path-resolve (path-join (path-parent test-path) ".." "tps.scm")))
+  (let ((test-path (path-resolve "tests/gfcode/tps/extension-test.scm")))
+    (path->string
+      (path-resolve
+        (path-join
+          (path-parent (path-parent (path-parent (path-parent test-path))))
+          "gfcode"
+          "tps.scm"
+        ) ;path-join
+      ) ;path-resolve
+    ) ;path->string
   ) ;let
 ) ;define
 

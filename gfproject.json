@@ -44,7 +44,7 @@
       "mode": "r7rs"
     },
     "extensions": {
-      "root": ".gf/extensions/",
+      "root": ".gf/",
       "depends-on": [
         "agent", "code"
       ],

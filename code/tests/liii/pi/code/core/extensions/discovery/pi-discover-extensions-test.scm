@@ -1,6 +1,5 @@
 ;; pi-discover-extensions
-;; 多层级扩展发现：合并内置、gf 配置目录、agent 目录、项目级、显式扩展路径，
-;; 返回去重后的扩展入口脚本绝对路径列表。
+;; 发现内置、用户级 ~/.gf/gfcode 与项目级 .gf/gfcode 的 library 扩展。
 ;;
 ;; 语法
 ;; ----
@@ -8,16 +7,17 @@
 ;;
 ;; 参数
 ;; ----
-;; options : 关键字参数（:builtin-dir / :agent-dir / :config-dir / :cwd /
-;;           :explicit-extensions / :include-builtin?）
+;; options : 关键字参数（:builtin-dir / :cwd / :include-builtin?）
 ;;
 ;; 返回值
 ;; ----
-;; list of string
-;; 扩展入口脚本绝对路径，按层级合并并去重（同名首见胜出，内置名受保护）。
+;; list
+;; 同名仲裁后的 library 扩展描述符列表。
 
 (import (scheme base)
+  (scheme process-context)
   (liii check)
+  (liii list)
   (liii string)
   (liii path)
   (liii os)
@@ -27,115 +27,98 @@
 
 (check-set-mode! 'report-failed)
 
-(define %FIX (path->string (path-resolve "code/tests/fixtures/extensions")))
+(define %FIX (path->string (path-resolve "code/tests/fixtures")))
 
-;; 工具：从结果列表中提取文件名集合
-
-(define (%names paths)
-  (map (lambda (p) (path-name (path p))) paths)
+(define (%entry-name entry)
+  (cdr (assq 'name entry))
 ) ;define
 
-(define (%resolved str)
-  (path->string (path-resolve (path str)))
+(define (%probe-source name)
+  (string-append "(define-library (gfcode " name ")\n"
+    "  (import (scheme base)) (export extension)\n"
+    "  (begin (define (extension api) \"" name "\"))))\n"
+  ) ;string-append
 ) ;define
 
-;; 1. 显式扩展被纳入：:explicit-extensions 指向 fixture 内的 .scm 文件
-(let ((ext (path->string (path-join (path %FIX) "valid-ext1.scm")))
-      (res
-        (pi-discover-extensions
-          :explicit-extensions
-          (list (path->string (path-join (path %FIX) "valid-ext1.scm")))
-          :builtin-dir %FIX
-          :agent-dir   %FIX
-          :config-dir  %FIX
-        ) ;pi-discover-extensions
-      ) ;res
-     ) ;
-  (check-true (pair? res))
-  (check-true (and (member (%resolved ext) res) #t))
-) ;let
-
-;; 2. 项目级扩展（cwd/.gf/extensions）被发现
-(let ((proj-root (path-join (path-temp-dir) "pi-discover-extensions-proj")) (res #f))
-  (let ((proj-ext (path->string (path-join proj-root ".gf" "extensions"))))
-    (let ((ext-file (path->string (path-join (path proj-ext) "proj-ext.scm"))))
-      (catch #t
-        (lambda ()
-          (path-mkdir (path proj-ext) :parents #t :exist-ok #t)
-          (path-write-text (path ext-file) ";; proj ext\n(lambda (api) 'ok)\n")
-          (set! res
-            (pi-discover-extensions
-              :cwd         (path->string proj-root)
-              :builtin-dir %FIX
-              :agent-dir   %FIX
-              :config-dir  %FIX
-            ) ;pi-discover-extensions
-          ) ;set!
-        ) ;lambda
-        (lambda args (set! res '()))
-      ) ;catch
-      (check-true (and (member (%resolved ext-file) res) #t))
-    ) ;let
+;; 1. 项目级 .gf/gfcode 扩展被发现。
+(let* ((root (path-join (path-temp-dir) "pi-discover-library-project"))
+       (dir (path-join root ".gf" "gfcode"))
+       (file (path-join dir "proj-ext.scm"))
+      ) ;
+  (path-mkdir dir :parents #t :exist-ok #t)
+  (path-write-text file (%probe-source "proj-ext"))
+  (let ((result (pi-discover-extensions :cwd (path->string root) :builtin-dir %FIX)))
+    (check-true
+      (and
+        (find (lambda (entry) (equal? (%entry-name entry) '(gfcode proj-ext))) result)
+        #t
+      ) ;and
+    ) ;check-true
   ) ;let
-  (rmtree (path->string proj-root) #t)
-) ;let
+  (rmtree (path->string root) #t)
+) ;let*
 
-;; 3. 用户级目录可覆盖内置同名扩展（gf-config-dir 层覆盖 builtin-dir 层）
-(let ((dup-root (path-join (path-temp-dir) "pi-discover-extensions-dup")))
-  (let ((dup-ext-dir (path->string (path-join dup-root "extensions"))))
-    (path-mkdir (path dup-ext-dir) :parents #t :exist-ok #t)
-    (let ((dup-ext (path->string (path-join (path dup-ext-dir) "valid-ext1.scm"))))
-      (path-write-text (path dup-ext) ";; override\n(lambda (api) 'dup)\n")
-      (let ((res (pi-discover-extensions
-                   :builtin-dir %FIX
-                   :config-dir  (path->string dup-root)
-                   :agent-dir   %FIX
-                 ) ;pi-discover-extensions
-            ) ;res
-           ) ;
-        (check-true (and (member (%resolved dup-ext) res) #t))
-        (check-true
-          (and
-            (not
-              (member
-                (%resolved (path->string (path-join (path %FIX) "valid-ext1.scm")))
-                res
-              ) ;member
-            ) ;not
-            #t
-          ) ;and
-        ) ;check-true
-      ) ;let
-    ) ;let
-  ) ;let
-  (rmtree (path->string dup-root) #t)
-) ;let
+;; 2. 项目级同名扩展覆盖用户级扩展。
+(let* ((root (path-join (path-temp-dir) "pi-discover-library-override"))
+       (home (path-join root "home"))
+       (project (path-join root "project"))
+       (user-dir (path-join home ".gf" "gfcode"))
+       (project-dir (path-join project ".gf" "gfcode"))
+       (saved-home (get-environment-variable "HOME"))
+       (saved-profile (get-environment-variable "USERPROFILE"))
+       (saved-gf (get-environment-variable "GF_CONFIG_DIR"))
+       (saved-pi (get-environment-variable "PI_CODING_AGENT_DIR"))
+      ) ;
+  (path-mkdir user-dir :parents #t :exist-ok #t)
+  (path-mkdir project-dir :parents #t :exist-ok #t)
+  (path-write-text (path-join user-dir "shared.scm") (%probe-source "shared"))
+  (path-write-text (path-join project-dir "shared.scm") (%probe-source "shared"))
+  (putenv "HOME" (path->string home))
+  (when (os-windows?)
+    (putenv "USERPROFILE" (path->string home))
+  ) ;when
+  (unsetenv "GF_CONFIG_DIR")
+  (unsetenv "PI_CODING_AGENT_DIR")
+  (let* ((entries (pi-discover-extensions :cwd (path->string project) :builtin-dir %FIX))
+         (matches
+           (filter (lambda (entry) (equal? (%entry-name entry) '(gfcode shared))) entries)
+         ) ;matches
+        ) ;
+    (check (length matches) => 1)
+    (check (cdr (assq 'path (car matches)))
+      =>
+      (string-replace (path->string (path-resolve (path-join project-dir "shared.scm")))
+        "\\"
+        "/"
+      ) ;string-replace
+    ) ;check
+  ) ;let*
+  (if saved-home (putenv "HOME" saved-home) (unsetenv "HOME"))
+  (when (os-windows?)
+    (if saved-profile (putenv "USERPROFILE" saved-profile) (unsetenv "USERPROFILE"))
+  ) ;when
+  (if saved-gf (putenv "GF_CONFIG_DIR" saved-gf) (unsetenv "GF_CONFIG_DIR"))
+  (if saved-pi
+    (putenv "PI_CODING_AGENT_DIR" saved-pi)
+    (unsetenv "PI_CODING_AGENT_DIR")
+  ) ;if
+  (rmtree (path->string root) #t)
+) ;let*
 
-;; 4. include-builtin? #f 时不返回内置文件
-(let ((res (pi-discover-extensions
-             :builtin-dir      %FIX
-             :agent-dir        %FIX
-             :config-dir       %FIX
-             :include-builtin? #f
-           ) ;pi-discover-extensions
-      ) ;res
+;; 3. include-builtin? #f 时不返回内置 fixture。
+(let ((result (pi-discover-extensions
+                :builtin-dir      (path-join (path %FIX) "gfcode")
+                :include-builtin? #f
+                :cwd              (path->string (path-temp-dir))
+              ) ;pi-discover-extensions
+      ) ;result
      ) ;
-  (let ((names (%names res)))
-    (check-true (not (member "valid-ext1.scm" names)))
-    (check-true (not (member "valid-pkg" names)))
-    (check-true (and (list? res) #t))
-  ) ;let
-) ;let
-
-;; 5. 返回值为绝对路径字符串列表
-(let ((res (pi-discover-extensions :builtin-dir %FIX :agent-dir %FIX :config-dir %FIX)
-      ) ;res
-     ) ;
-  (check-true (list? res))
-  (for-each
-    (lambda (p) (check-true (string? p)) (check-true (path-absolute? (path p))))
-    res
-  ) ;for-each
+  (check-false
+    (and
+      (find (lambda (entry) (equal? (%entry-name entry) '(gfcode valid-ext1))) result)
+      #t
+    ) ;and
+  ) ;check-false
 ) ;let
 
 (check-report)

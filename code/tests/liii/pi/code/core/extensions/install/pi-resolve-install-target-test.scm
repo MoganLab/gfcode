@@ -37,7 +37,7 @@
   (check-true (string? target))
   (check-true
     (string=? target
-      (path->string (path-resolve (path "/custom/agent/extensions/demo-ext")))
+      (path->string (path-resolve (path "/custom/gfcode/demo-ext.scm")))
     ) ;string=?
   ) ;check-true
 ) ;let
@@ -53,7 +53,7 @@
   (check-true (string? target))
   (check-true
     (string=? target
-      (path->string (path-resolve (path "/project/dir/.gf/extensions/demo-ext")))
+      (path->string (path-resolve (path "/project/dir/.gf/gfcode/demo-ext.scm")))
     ) ;string=?
   ) ;check-true
 ) ;let

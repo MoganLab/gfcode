@@ -1,5 +1,5 @@
 ;; pi-scan-extension-dir
-;; 扫描扩展目录，返回其中的扩展入口脚本路径。
+;; 扫描 gfcode library 扩展目录，返回 library 扩展描述符。
 ;;
 ;; 语法
 ;; ----
@@ -8,121 +8,78 @@
 ;; 参数
 ;; ----
 ;; dir : (or string path)
-;; 待扫描的扩展目录。
+;; gfcode 扩展目录。
 ;;
 ;; 返回值
 ;; ----
 ;; list
-;; 扩展入口脚本绝对路径列表，按字典序排列。
+;; 按路径字典序排列的 library 扩展描述符，包含 name、root 和 path。
 
 (import (liii check)
+  (liii list)
+  (liii string)
   (liii path)
   (liii os)
-  (liii list)
   (liii pi code core extensions)
 ) ;import
 
 (check-set-mode! 'report-failed)
 
+(define (%normalized p)
+  (string-replace (path->string (path-resolve (path p))) "\\" "/")
+) ;define
+
 (define (get-fixtures-dir)
-  (cond ((file-exists? "tests/fixtures/extensions") "tests/fixtures/extensions")
-        ((file-exists? "tools/pi/tests/fixtures/extensions")
-         "tools/pi/tests/fixtures/extensions"
-        ) ;
-        (else "../../tools/pi/tests/fixtures/extensions")
+  (cond ((file-exists? "tests/fixtures") "tests/fixtures")
+        ((file-exists? "tools/pi/tests/fixtures") "tools/pi/tests/fixtures")
+        (else "../../tools/pi/tests/fixtures")
   ) ;cond
 ) ;define
 
-;; 1. 扫描不存在的目录安全返回空列表
+;; 1. 不存在的目录和普通文件安全返回空列表。
 (check (pi-scan-extension-dir "/non/existent/path/for/sure/12345") => '())
-
-;; 2. 扫描非目录文件安全返回空列表
-(check (pi-scan-extension-dir (string-append (get-fixtures-dir) "/ignore.txt"))
+(check (pi-scan-extension-dir (string-append (get-fixtures-dir) "/extensions/ignore.txt")
+       ) ;pi-scan-extension-dir
   =>
   '()
 ) ;check
 
-;; 3. 扫描测试 fixtures 目录：
-;; 包含 valid-ext1.scm, valid-pkg/index.scm, non-proc.scm, syntax-error.scm, runtime-error.scm
-;; 排除 ignore.txt (.txt 不是 .scm), .hidden.scm (以 . 开头), dir-without-index (无 index.scm)
-(let* ((fixture-dir (get-fixtures-dir)) (found (pi-scan-extension-dir fixture-dir)))
-  (check (list? found) => #t)
-  ;; 验证发现的项目都是 .scm 结尾
+;; 2. 扫描 gfcode 目录，返回库名、搜索根和绝对路径。
+(let* ((fixture-dir (string-append (get-fixtures-dir) "/gfcode"))
+       (found (pi-scan-extension-dir fixture-dir))
+       (valid
+         (find
+           (lambda (entry) (equal? (cdr (assq 'name entry)) '(gfcode valid-ext1)))
+           found
+         ) ;find
+       ) ;valid
+      ) ;
+  (check-true (pair? found))
+  (check-true (and valid #t))
+  (check (cdr (assq 'type valid)) => 'library)
+  (check (cdr (assq 'root valid)) => (%normalized (get-fixtures-dir)))
+  (check (cdr (assq 'path valid))
+    =>
+    (%normalized (string-append fixture-dir "/valid-ext1.scm"))
+  ) ;check
   (for-each
-    (lambda (p)
-      (check (string? p) => #t)
-      (check (string=? (path-suffix (path p)) ".scm") => #t)
+    (lambda (entry)
+      (check (eq? (cdr (assq 'type entry)) 'library) => #t)
+      (check
+        (string=?
+          (path-suffix (path (cdr (assq 'path entry))))
+          ".scm"
+        ) ;string=?
+        =>
+        #t
+      ) ;check
     ) ;lambda
     found
   ) ;for-each
-
-  ;; 验证包含 valid-ext1.scm
-  (check
-    (pair?
-      (filter
-        (lambda (p) (string=? (path-name (path p)) "valid-ext1.scm"))
-        found
-      ) ;filter
-    ) ;pair?
-    =>
-    #t
-  ) ;check
-
-  ;; 验证包含 valid-pkg/index.scm
-  (check
-    (pair?
-      (filter
-        (lambda (p)
-          (and (string=? (path-name (path p)) "index.scm")
-            (string=? (path-name (path-parent (path p))) "valid-pkg")
-          ) ;and
-        ) ;lambda
-        found
-      ) ;filter
-    ) ;pair?
-    =>
-    #t
-  ) ;check
-
-  ;; 验证排除了 ignore.txt
-  (check
-    (null?
-      (filter
-        (lambda (p) (string=? (path-name (path p)) "ignore.txt"))
-        found
-      ) ;filter
-    ) ;null?
-    =>
-    #t
-  ) ;check
-
-  ;; 验证排除了 .hidden.scm
-  (check
-    (null?
-      (filter
-        (lambda (p) (string=? (path-name (path p)) ".hidden.scm"))
-        found
-      ) ;filter
-    ) ;null?
-    =>
-    #t
-  ) ;check
-
-  ;; 验证排除了 dir-without-index
-  (check
-    (null?
-      (filter
-        (lambda (p) (string=? (path-name (path-parent (path p))) "dir-without-index"))
-        found
-      ) ;filter
-    ) ;null?
-    =>
-    #t
-  ) ;check
 ) ;let*
 
-;; 4. 扫描空目录返回空列表
-(let ((empty-dir (string-append (get-fixtures-dir) "/empty-temp-dir")))
+;; 3. 空目录返回空列表。
+(let ((empty-dir (string-append (get-fixtures-dir) "/empty-gfcode")))
   (catch #t (lambda () (mkdir empty-dir)) (lambda args #f))
   (check (pi-scan-extension-dir empty-dir) => '())
   (catch #t (lambda () (rmdir empty-dir)) (lambda args #f))

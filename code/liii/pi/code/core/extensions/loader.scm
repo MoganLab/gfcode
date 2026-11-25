@@ -7,6 +7,7 @@
 (define-library (liii pi code core extensions loader)
   (import (scheme base)
     (scheme load)
+    (scheme eval)
     (liii string)
     (liii list)
     (liii path)
@@ -17,96 +18,114 @@
   ) ;export
   (begin
 
-    (define (%eval-extension-file path-str err-p)
-      (let ((load-ok #t) (load-val #f) (err-msg #f))
-        (catch #t
-          (lambda () (set! load-val (load path-str)))
-          (lambda (key . args)
-            (set! load-ok #f)
-            (set! err-msg (string-append (object->string key) ": " (object->string args)))
-            (display (string-append "[WARN] failed to load extension " path-str ": ") err-p)
-            (display key err-p)
-            (display " " err-p)
-            (display args err-p)
-            (newline err-p)
-          ) ;lambda
-        ) ;catch
-        (if load-ok (cons 'ok load-val) (cons 'error err-msg))
-      ) ;let
+    (define (%entry-field entry key)
+      (cond ((assq key entry) => cdr)
+            (else #f)
+      ) ;cond
     ) ;define
 
-    (define (%call-factory-safely factory api-obj ctx)
-      (if (and ctx (procedure? factory))
-        (catch #t (lambda () (factory api-obj ctx)) (lambda args (factory api-obj)))
-        (factory api-obj)
+    (define (%extension-entry entry)
+      (if (and (pair? entry) (eq? (%entry-field entry 'type) 'library))
+        entry
+        (let* ((path-str (if (path? entry) (path->string entry) entry))
+               (p (path path-str))
+               (filename (path-name p))
+               (name
+                 (if (string-ends? filename ".scm")
+                   (substring filename 0 (- (string-length filename) 4))
+                   filename
+                 ) ;if
+               ) ;name
+               (root (path-parent (path-parent p)))
+              ) ;
+          (list (cons 'type 'library)
+            (cons 'name (list 'gfcode (string->symbol name)))
+            (cons 'root (path->string (path-resolve root)))
+            (cons 'path (path->string (path-resolve p)))
+          ) ;list
+        ) ;let*
       ) ;if
     ) ;define
 
-    (define (%invoke-factory factory api-obj ctx path-str err-p)
-      (let ((invoke-ok #t) (invoke-res #f) (invoke-err #f))
-        (catch #t
-          (lambda () (set! invoke-res (%call-factory-safely factory api-obj ctx)))
-          (lambda (key . args)
-            (set! invoke-ok #f)
-            (set! invoke-err
-              (string-append (object->string key) ": " (object->string args))
+    (define (%call-with-library-root root thunk)
+      (let ((saved-load-path *load-path*))
+        (dynamic-wind
+          (lambda ()
+            (set! *load-path*
+              (cons root (remove (lambda (p) (string=? p root)) *load-path*))
             ) ;set!
-            (display (string-append "[WARN] extension factory error in " path-str ": ")
-              err-p
-            ) ;display
-            (display key err-p)
-            (display " " err-p)
-            (display args err-p)
-            (newline err-p)
           ) ;lambda
-        ) ;catch
-        (if invoke-ok
-          (list (cons 'status 'ok) (cons 'path path-str) (cons 'value invoke-res))
-          (list (cons 'status 'error) (cons 'path path-str) (cons 'error invoke-err))
-        ) ;if
+          thunk
+          (lambda () (set! *load-path* saved-load-path))
+        ) ;dynamic-wind
       ) ;let
     ) ;define
 
-    (define (pi-load-extension path-or-entry api . opt-context)
+    (define (%import-extension-factory library-name)
+      (eval 'extension (environment library-name))
+    ) ;define
+
+    (define (%call-factory factory api ctx)
+      (if
+        (and ctx (> (car (arity factory)) 1))
+        (factory api ctx)
+        (factory api)
+      ) ;if
+    ) ;define
+
+    (define (%load-library-extension entry api ctx)
+      (let ((path-str (%entry-field entry 'path))
+            (root (%entry-field entry 'root))
+            (library-name (%entry-field entry 'name))
+           ) ;
+        (%call-with-library-root root
+          (lambda ()
+            (load path-str)
+            (let ((factory (%import-extension-factory library-name)))
+              (if (procedure? factory)
+                (%call-factory factory api ctx)
+                (value-error "Extension must export an extension procedure")
+              ) ;if
+            ) ;let
+          ) ;lambda
+        ) ;%call-with-library-root
+      ) ;let
+    ) ;define
+
+    (define (pi-load-extension entry api . opt-context)
       (let* ((ctx (if (pair? opt-context) (car opt-context) #f))
              (api-obj (if (extension-api? api) api (make-extension-api api)))
-             (p (if (path? path-or-entry) path-or-entry (path path-or-entry)))
-             (path-str (path->string (path-resolve p)))
+             (desc (%extension-entry entry))
+             (path-str (%entry-field desc 'path))
              (err-p (if (defined? '*stderr*) *stderr* (current-error-port)))
             ) ;
-        (if (not (and (path-exists? p) (path-file? p)))
-          (begin
-            (display (string-append "[WARN] failed to load extension " path-str ": file not found\n")
-              err-p
-            ) ;display
-            (list (cons 'status 'error)
-              (cons 'path path-str)
-              (cons 'error "file not found")
-            ) ;list
-          ) ;begin
-          (let ((eval-res (%eval-extension-file path-str err-p)))
-            (if (eq? (car eval-res) 'error)
-              (list (cons 'status 'error) (cons 'path path-str) (cons 'error (cdr eval-res)))
-              (let ((val (cdr eval-res)))
-                (if (procedure? val)
-                  (%invoke-factory val api-obj ctx path-str err-p)
-                  (list (cons 'status 'ok) (cons 'path path-str) (cons 'value val))
-                ) ;if
-              ) ;let
-            ) ;if
-          ) ;let
-        ) ;if
+        (catch #t
+          (lambda ()
+            (let ((value (%load-library-extension desc api-obj ctx)))
+              (list (cons 'status 'ok) (cons 'path path-str) (cons 'value value))
+            ) ;let
+          ) ;lambda
+          (lambda (key . args)
+            (let ((message (string-append (object->string key) ": " (object->string args))))
+              (display (string-append "[WARN] failed to load extension " path-str ": ") err-p)
+              (display key err-p)
+              (display " " err-p)
+              (display args err-p)
+              (newline err-p)
+              (list (cons 'status 'error) (cons 'path path-str) (cons 'error message))
+            ) ;let
+          ) ;lambda
+        ) ;catch
       ) ;let*
     ) ;define
 
-    (define (pi-load-extensions paths api . opt-context)
+    (define (pi-load-extensions entries api . opt-context)
       (let* ((ctx (if (pair? opt-context) (car opt-context) #f))
              (results
-               (map (if ctx
-                      (lambda (p) (pi-load-extension p api ctx))
-                      (lambda (p) (pi-load-extension p api))
-                    ) ;if
-                 (if (list? paths) paths '())
+               (map (lambda (entry)
+                      (if ctx (pi-load-extension entry api ctx) (pi-load-extension entry api))
+                    ) ;lambda
+                 (if (list? entries) entries '())
                ) ;map
              ) ;results
              (total (length results))

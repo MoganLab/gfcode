@@ -20,13 +20,14 @@
 
 (import (scheme base)
   (liii check)
-  (liii check)
+  (liii list)
+  (liii string)
   (liii path)
   (liii os)
   (liii subprocess)
   (liii either)
+  (liii pi code core extensions)
   (liii pi code core extensions install)
-  (liii pi code core extensions discovery)
 ) ;import
 
 (define (rmdir-rec d)
@@ -63,7 +64,9 @@
         ) ;
     (path-mkdir source-repo :parents #t :exist-ok #t)
     (run-either (list "git" "init") :cwd source-repo-str :timeout 30)
-    (path-write-text (path-join source-repo "index.scm") ";; sample\n")
+    (path-write-text (path-join source-repo "sample-plugin.scm")
+      "(define-library (gfcode sample-plugin) (import (scheme base)) (export extension) (begin (define (extension api) \"sample-loaded\")))\n"
+    ) ;path-write-text
     (run-either (list "git" "config" "user.name" "Test")
       :cwd     source-repo-str
       :timeout 30
@@ -89,18 +92,10 @@
          ) ;
       (check-true (string? installed))
       (check-true (path-exists? (path installed)))
-      ;; 验证能被 pi-discover-extensions 发现
-      (let ((discovered (pi-discover-extensions :agent-dir agent-dir-str :cwd project-dir-str)
-            ) ;discovered
-           ) ;
-        (check-true
-          (pair?
-            (member
-              (path->string (path-resolve (path-join (path installed) "index.scm")))
-              discovered
-            ) ;member
-          ) ;pair?
-        ) ;check-true
+      ;; 安装结果必须是可被唯一 library loader 加载的单文件。
+      (let ((loaded (pi-load-extension installed (make-extension-api))))
+        (check (cdr (assq 'status loaded)) => 'ok)
+        (check (cdr (assq 'value loaded)) => "sample-loaded")
       ) ;let
     ) ;let
 
@@ -115,17 +110,9 @@
          ) ;
       (check-true (string? local-installed))
       (check-true (path-exists? (path local-installed)))
-      (let ((discovered (pi-discover-extensions :agent-dir agent-dir-str :cwd project-dir-str)
-            ) ;discovered
-           ) ;
-        (check-true
-          (pair?
-            (member
-              (path->string (path-resolve (path-join (path local-installed) "index.scm")))
-              discovered
-            ) ;member
-          ) ;pair?
-        ) ;check-true
+      (let ((loaded (pi-load-extension local-installed (make-extension-api))))
+        (check (cdr (assq 'status loaded)) => 'ok)
+        (check (cdr (assq 'value loaded)) => "sample-loaded")
       ) ;let
     ) ;let
   ) ;let*

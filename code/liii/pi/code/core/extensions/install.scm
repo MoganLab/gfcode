@@ -83,14 +83,16 @@
         (value-error (string-append "Invalid extension name: " name))
       ) ;unless
       (let* ((local? (pi-keyword-value :local? opts #f))
-             (agent-dir (pi-keyword-value :agent-dir opts (pi-get-agent-dir)))
+             (agent-dir (path (pi-keyword-value :agent-dir opts (pi-get-agent-dir))))
              (cwd-dir (pi-keyword-value :cwd opts (getcwd)))
+             (user-root (if (string=? (path-name agent-dir) "agent") (path-parent agent-dir) agent-dir)
+             ) ;user-root
              (base-dir (if local?
-                         (path-join (path cwd-dir) ".gf" "extensions")
-                         (path-join agent-dir "extensions")
+                         (path-join (path cwd-dir) ".gf" "gfcode")
+                         (path-join user-root "gfcode")
                        ) ;if
              ) ;base-dir
-             (target-path (path-join base-dir name))
+             (target-path (path-join base-dir (string-append name ".scm")))
             ) ;
         (path->string (path-resolve target-path))
       ) ;let*
@@ -168,8 +170,31 @@
         (let* ((target-dir (apply pi-resolve-install-target ext-name opts))
                (timeout (pi-keyword-value :timeout opts 120))
               ) ;
-          (pi-git-clone-extension url target-dir :timeout timeout)
-          target-dir
+          (let ((clone-dir (string-append target-dir ".clone")))
+            (catch #t
+              (lambda ()
+                (pi-git-clone-extension url clone-dir :timeout timeout)
+                (let ((source (path-join (path clone-dir) (string-append ext-name ".scm"))))
+                  (unless (and (path-exists? source) (path-file? source))
+                    (value-error (string-append "Extension repository must contain " ext-name ".scm")
+                    ) ;value-error
+                  ) ;unless
+                  (unless (path-exists? (path-parent (path target-dir)))
+                    (path-mkdir (path-parent (path target-dir)) :parents #t :exist-ok #t)
+                  ) ;unless
+                  (path-write-text (path target-dir) (path-read-text source))
+                ) ;let
+                (%rmdir-rec clone-dir)
+                target-dir
+              ) ;lambda
+              (lambda args
+                (when (path-exists? (path clone-dir))
+                  (%rmdir-rec clone-dir)
+                ) ;when
+                (apply error args)
+              ) ;lambda
+            ) ;catch
+          ) ;let
         ) ;let*
       ) ;let*
     ) ;define

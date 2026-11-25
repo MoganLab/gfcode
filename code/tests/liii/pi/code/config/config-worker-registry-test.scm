@@ -17,7 +17,7 @@
 
 (set! *load-path*
   (append (list "../review" "../simplify" "../web-search" "review" "simplify"
-            "web-search"
+            "web-search" "../.gf" ".gf"
           ) ;list
     *load-path*
   ) ;append

@@ -14,6 +14,14 @@
 ;; any
 ;; 视具体调用结果而定。
 
+(set! *load-path*
+  (append (list "../review" "../simplify" "../web-search" "review" "simplify"
+            "web-search" "../.gf" ".gf"
+          ) ;list
+    *load-path*
+  ) ;append
+) ;set!
+
 (import (scheme base)
   (scheme file)
   (scheme write)
