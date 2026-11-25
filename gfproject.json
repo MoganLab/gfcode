@@ -46,7 +46,7 @@
     "extensions": {
       "root": ".gf/",
       "depends-on": [
-        "agent", "code"
+        "agent", "code", "review", "simplify", "web-search"
       ],
       "mode": "r7rs"
     },

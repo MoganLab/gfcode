@@ -121,4 +121,37 @@
   ) ;check-false
 ) ;let
 
+;; 4. 源码树 domain 根下的 gfcode/<name>/index.scm 作为内置扩展被发现，
+;;    库名为 (gfcode <name> index)。
+(let* ((root (path-join (path-temp-dir) "pi-discover-domain-builtin"))
+       (ext-dir (path-join root "gfcode" "domain-ext"))
+       (file (path-join ext-dir "index.scm"))
+       (saved-load-path *load-path*)
+      ) ;
+  (path-mkdir ext-dir :parents #t :exist-ok #t)
+  (path-write-text file
+    (string-append "(define-library (gfcode domain-ext index)\n"
+      "  (import (scheme base)) (export extension)\n"
+      "  (begin (define (extension api) \"domain-ext\"))))\n"
+    ) ;string-append
+  ) ;path-write-text
+  (set! *load-path* (cons (path->string root) *load-path*))
+  (let* ((entries (pi-discover-extensions :cwd (path->string (path-temp-dir))))
+         (found
+           (find (lambda (entry) (equal? (%entry-name entry) '(gfcode domain-ext
+                                                                index)))
+             entries
+           ) ;find
+         ) ;found
+        ) ;
+    (check-true (and found #t))
+    (check (cdr (assq 'path found))
+      =>
+      (string-replace (path->string (path-resolve file)) "\\" "/")
+    ) ;check
+  ) ;let*
+  (set! *load-path* saved-load-path)
+  (rmtree (path->string root) #t)
+) ;let*
+
 (check-report)

@@ -190,9 +190,9 @@
 
   ;; 11. 通过 execute-tool-call 分发执行（web_search 为扩展工具，需在注册表内分发）
   (let* ((api (make-extension-api))
-         (_ (pi-load-extension (if (file-exists? ".gf/gfcode/web-search.scm")
-                                 ".gf/gfcode/web-search.scm"
-                                 "../.gf/gfcode/web-search.scm"
+         (_ (pi-load-extension (if (file-exists? "gfcode/web-search/index.scm")
+                                 "gfcode/web-search/index.scm"
+                                 "../gfcode/web-search/index.scm"
                                ) ;if
               api
             ) ;pi-load-extension

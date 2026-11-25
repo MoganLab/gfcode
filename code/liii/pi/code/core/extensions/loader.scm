@@ -30,16 +30,27 @@
         (let* ((path-str (if (path? entry) (path->string entry) entry))
                (p (path path-str))
                (filename (path-name p))
-               (name
+               (stem
                  (if (string-ends? filename ".scm")
                    (substring filename 0 (- (string-length filename) 4))
                    filename
                  ) ;if
+               ) ;stem
+               (parent-dir (path-parent p))
+               ;; index.scm 位于扩展子目录内：库名为 (gfcode <dir> index)，
+               ;; root 取 gfcode 目录本身；单文件入口仍为 (gfcode <stem>)。
+               (index? (string=? stem "index"))
+               (name
+                 (if index?
+                   (list 'gfcode (string->symbol (path-name parent-dir)) 'index)
+                   (list 'gfcode (string->symbol stem))
+                 ) ;if
                ) ;name
-               (root (path-parent (path-parent p)))
+               (root (if index? (path-parent (path-parent parent-dir)) (path-parent parent-dir))
+               ) ;root
               ) ;
           (list (cons 'type 'library)
-            (cons 'name (list 'gfcode (string->symbol name)))
+            (cons 'name name)
             (cons 'root (path->string (path-resolve root)))
             (cons 'path (path->string (path-resolve p)))
           ) ;list
