@@ -24,6 +24,13 @@
 ;; boolean
 ;; 响应未标记 error/aborted 时返回 #t（max_tokens 截断导致正文为空也算健康）；
 ;; 失败时记录一条 FAIL 日志并返回 #f。
+;;
+;; 说明
+;; ----
+;; 节点配置解析（含模型未启用）在 %probe-node-config 进行；解析抛 pi-config-error
+;; 时由本函数的外层 catch 收敛为 config-error 分类并记 [FAIL]，保留原始
+;; "Model ... is not available for provider ..." 原因后返回 #f，不构造空 baseUrl
+;; 兜底配置，也不进入探活请求桩。
 
 (import (scheme base)
   (scheme file)
@@ -62,24 +69,37 @@
 ;; gprov 夹具：plain 在 gprov 的 models 白名单内，模型文件声明自定义认证头
 ;; x-goog-api-key: ${API_KEY}，用于验证链节点探活获得与真实请求一致的节点
 ;; headers 透传。other 不在白名单内，用于反向对照普通 resolve-pi-config。
+;; kimi1 夹具：kimi-k3 在 kimi1 的 models 白名单内并带可解析的模型文件，
+;; 使探活能真实走 resolve-pi-config（修复 %probe-node-config 不再用兜底配置
+;; 吞掉配置异常后，未完整配置的节点会探活失败，因此主路径 NODE 必须可解析）。
 (path-mkdir (path (path-join TMP-DIR "models" "gprov"))
   :parents  #t
   :exist-ok #t
 ) ;path-mkdir
+(path-mkdir (path (path-join TMP-DIR "models" "kimi1"))
+  :parents  #t
+  :exist-ok #t
+) ;path-mkdir
 (path-write-text (path->string (path-join TMP-DIR "models" "providers.json"))
-  "[\"gprov\"]"
+  "[\"gprov\",\"kimi1\"]"
 ) ;path-write-text
 (path-write-text (path->string (path-join TMP-DIR "auth.json"))
-  "{\"gprov\":{\"type\":\"api_key\",\"key\":\"gprov-secret\"}}"
+  "{\"gprov\":{\"type\":\"api_key\",\"key\":\"gprov-secret\"},\"kimi1\":{\"type\":\"api_key\",\"key\":\"kimi-secret\"}}"
 ) ;path-write-text
 (path-write-text (path->string (path-join TMP-DIR "models" "gprov.json"))
   "{\"api\":\"openai-completions\",\"baseUrl\":\"http://127.0.0.1:2\",\"models\":[\"plain\"]}"
+) ;path-write-text
+(path-write-text (path->string (path-join TMP-DIR "models" "kimi1.json"))
+  "{\"api\":\"openai-completions\",\"baseUrl\":\"http://127.0.0.1:3\",\"models\":[\"kimi-k3\"]}"
 ) ;path-write-text
 (path-write-text (path->string (path-join TMP-DIR "models" "gprov" "plain.json"))
   "{\"id\":\"plain\",\"name\":\"plain\",\"headers\":{\"x-goog-api-key\":\"${API_KEY}\"},\"contextWindow\":123456,\"maxTokens\":4096}"
 ) ;path-write-text
 (path-write-text (path->string (path-join TMP-DIR "models" "gprov" "other.json"))
   "{\"id\":\"other\",\"name\":\"other\"}"
+) ;path-write-text
+(path-write-text (path->string (path-join TMP-DIR "models" "kimi1" "kimi-k3.json"))
+  "{\"id\":\"kimi-k3\",\"name\":\"kimi-k3\",\"reasoning\":true,\"contextWindow\":262144}"
 ) ;path-write-text
 
 (define (reset-log!)
@@ -313,6 +333,28 @@
       ) ;
   (check-catch 'pi-config-error (resolve-pi-config args env))
 ) ;let*
+
+;; 8. 未启用候选探活失败：模型文件存在但不在 providers/<provider>.json 的
+;; models 白名单内时，%probe-node-config 解析抛 pi-config-error，由 pi-probe-node
+;; 的外层 catch 收敛为 #f 并记一条 [FAIL]，错误文本保留原始的
+;; "Model ... is not available for provider ..." 原因；未启用节点不进入探活请求桩。
+(reset-log!)
+(let ((disabled-node (make-chain-node "gprov" "other" "off")) (probe-called #f))
+  (check-false (pi-probe-node disabled-node
+                 1000
+                 TMP-DIR
+                 (lambda args (set! probe-called #t) (pi-assistant-message '() "stop"))
+               ) ;pi-probe-node
+  ) ;check-false
+  ;; 配置解析失败发生在 request-fn 调用之前，探活请求桩不应被调用
+  (check-false probe-called)
+  (let ((content (log-text)))
+    (check-true (string-contains? content " [FAIL] provider=gprov model=other "))
+    (check-true (string-contains? content "is not available for provider"))
+    ;; 错误分类保留原始 tag，便于诊断
+    (check-true (string-contains? content "error=config-error"))
+  ) ;let
+) ;let
 
 (when (file-exists? TMP-DIR)
   (rmtree TMP-DIR #t)

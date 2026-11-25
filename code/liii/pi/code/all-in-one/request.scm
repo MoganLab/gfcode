@@ -17,6 +17,7 @@
     (liii pi code cli args query)
     (liii pi code config)
     (liii pi code modes output)
+    (liii pi code all-in-one alarm)
     (liii pi code all-in-one defaults)
     (liii pi code all-in-one loader)
     (liii pi code all-in-one probe)
@@ -73,6 +74,29 @@
             ((eq? key 'thinking-level-explicit?) (cons key #f))
             (else (cons key (pi-cfg-ref node-cfg key)))
       ) ;cond
+    ) ;define
+
+    ;; 节点配置解析失败收敛：模型已落盘但未启用时 resolve-pi-config 抛
+    ;; pi-config-error（原始文本为 Model ... is not available for provider ...）。
+    ;; 该异常发生在真实请求之前，调度器的 stop-reason=error 顺延逻辑捕获不到，
+    ;; 会直接中断整条链。这里在解析边界记录一条带原始原因的节点级 [FAIL]，
+    ;; 再返回 stop-reason=error 的结构化失败交回 %run-chain-turn，由它统一
+    ;; 调用 %record-and-skip 记录故障、清粘性并继续后续节点。不记录凭据，
+    ;; 不构造伪配置发起请求，也不放宽 resolve-pi-config 的白名单语义。
+    (define (%node-config-failure provider model-id tag args dir)
+      (let* ((detail
+               (if (pair? args)
+                 (let ((d (car args)))
+                   (if (string? d) d (object->string d))
+                 ) ;let
+                 (object->string tag)
+               ) ;if
+             ) ;detail
+             (code (if (eq? tag 'pi-config-error) 'config-error 'exception))
+            ) ;
+        (pi-alarm-log! "FAIL" provider model-id code detail dir)
+        (pi-assistant-message '() :stop-reason "error" :error-message detail)
+      ) ;let*
     ) ;define
 
     (define (%node-context-window node-config)
@@ -137,12 +161,25 @@
                     ) ;pi-log-thinking-clamp!
                   ) ;when
                ) ;_
-               (node-config (%node-config config provider model-id eff-tl))
-               (request (or request-fn pi-request-provider-stream))
+               (dir-str (path->string (pi-cfg-config-dir config)))
+               (node-config (catch #t
+                              (lambda () (%node-config config provider model-id eff-tl))
+                              (lambda (tag . args) (%node-config-failure provider model-id tag args dir-str))
+                            ) ;catch
+               ) ;node-config
               ) ;
-          ;; 交接前把实际节点告知前台，供页脚展示（active_node 载荷不变）
-          (%emit-active-node config provider model-id eff-tl node-config)
-          (request provider node-config messages system-prompt tools on-event timeout)
+          ;; 未启用等配置解析失败已交回 stop-reason=error 的结构化失败，
+          ;; 不变发 active_node、不进入真实请求桩，由 %run-chain-turn 按链式规则顺延。
+          (if (%request-failed? node-config)
+            node-config
+            (begin
+              ;; 交接前把实际节点告知前台，供页脚展示（active_node 载荷不变）
+              (%emit-active-node config provider model-id eff-tl node-config)
+              (let ((request (or request-fn pi-request-provider-stream)))
+                (request provider node-config messages system-prompt tools on-event timeout)
+              ) ;let
+            ) ;begin
+          ) ;if
         ) ;let*
       ) ;lambda
     ) ;define

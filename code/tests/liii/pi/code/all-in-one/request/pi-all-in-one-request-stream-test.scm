@@ -37,6 +37,15 @@
 ;; 都用尽预算，此时 request 调用 scheduler 的全链结算（写 [EXHAUSTED] 日志并清除
 ;; 粘性）后把 all-nodes-exhausted 交回门面，由 recovery 统一接管；成功路径不多发
 ;; 请求，单节点也不额外重试。
+;;
+;; 未启用模型顺延：链中某节点模型文件存在但不在 providers/<provider>.json 的
+;; models 白名单内时，resolve-pi-config 抛 pi-config-error。本门面在节点配置解析
+;; 边界收敛该异常，写一条带原始 "Model ... is not available for provider ..."
+;; 原因的 [FAIL] 日志后返回 stop-reason=error 的结构化失败，由 %run-chain-turn 按
+;; 既有链式规则记录故障、清粘性并继续后续节点；未启用节点不产生 active_node、
+;; 不进入真实请求桩，也不放宽 resolve-pi-config 的白名单语义。未启用链首/中间/
+;; 粘性节点与全链未启用的场景回归见同目录
+;; pi-all-in-one-disabled-model-failover-test.scm。
 
 (import (scheme base)
   (scheme file)
@@ -426,7 +435,6 @@
     ) ;let
   ) ;let
 ) ;let
-
 (when (file-exists? TMP-DIR)
   (rmtree TMP-DIR #t)
 ) ;when
