@@ -25,6 +25,7 @@
   (liii string)
   (liii list)
   (liii path)
+  (liii json)
   (liii go)
   (liii tempfile)
   (liii tui)
@@ -51,12 +52,14 @@
   (apply append (map (lambda (c) (component-render c 80)) (pi-app-chat app)))
 ) ;define
 
-;; 1. 成功：落盘 oauth 凭据、关闭选择器、上屏 Saved、发 reload_models
+;; 1. 成功：落盘 oauth 凭据、激活 provider、关闭选择器、上屏 Saved、发 reload_models
 (let* ((tmp (make-temp-dir "gf-oauth-done-" ""))
        (saved-env (getenv "GF_CONFIG_DIR"))
        (app (make-test-app))
       ) ;
   (putenv "GF_CONFIG_DIR" tmp)
+  (path-mkdir (path-join tmp "models") :parents #t :exist-ok #t)
+  (path-write-text (path-join tmp "models" "providers.json") "[\"google\"]\n")
   (pi-app-handle-oauth-done! app
     (list 'kimi_oauth_done "kimi-coding" "acc-tok" "ref-tok" 1893456000000 #f #f #f)
   ) ;pi-app-handle-oauth-done!
@@ -65,6 +68,10 @@
     (check (length creds) => 1)
     (check-true (pi-credential-oauth? (car creds)))
     (check (pi-credential-access (car creds)) => "acc-tok")
+  ) ;let
+  ;; 保留原白名单并激活 OAuth provider，随后 reload_models 会刷新 /model
+  (let ((wl (string->json (path-read-text (path-join tmp "models" "providers.json")))))
+    (check (vector->list wl) => '("google" "kimi-coding"))
   ) ;let
   (check-true (any (lambda (l) (string-contains? l "Saved OAuth credential for kimi-coding"))
                 (chat-lines app)
@@ -76,6 +83,8 @@
   ) ;let
   (if saved-env (putenv "GF_CONFIG_DIR" saved-env) (unsetenv "GF_CONFIG_DIR"))
   (path-unlink (path (path-join tmp "auth.json")))
+  (path-unlink (path-join tmp "models" "providers.json"))
+  (path-rmdir (path-join tmp "models"))
   (path-rmdir tmp)
 ) ;let*
 

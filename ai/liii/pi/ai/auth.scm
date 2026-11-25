@@ -352,6 +352,20 @@
              (auth-file-str (path->string (path-join dir-path "auth.json")))
              (existing (or (%read-json-file auth-file-str) '()))
              (existing-alist (if (pair? existing) existing '()))
+             (auth-path
+               (pi-auth-write-json! dir-path
+                 (pi-auth-replace-entry existing-alist
+                   p-str
+                   (append (list (cons "type" "oauth")
+                             (cons "access" a-str)
+                             (cons "refresh" r-str)
+                             (cons "expires" expires)
+                           ) ;list
+                     (if region (list (cons "region" region)) '())
+                   ) ;append
+                 ) ;pi-auth-replace-entry
+               ) ;pi-auth-write-json!
+             ) ;auth-path
             ) ;
         (unless (number? expires)
           (type-error "pi-save-auth-oauth!: expires must be a number")
@@ -363,18 +377,10 @@
           (or (not region) (and (string? region) (not (string-null? region))))
           (type-error "pi-save-auth-oauth!: region must be a non-empty string or #f")
         ) ;unless
-        (pi-auth-write-json! dir-path
-          (pi-auth-replace-entry existing-alist
-            p-str
-            (append (list (cons "type" "oauth")
-                      (cons "access" a-str)
-                      (cons "refresh" r-str)
-                      (cons "expires" expires)
-                    ) ;list
-              (if region (list (cons "region" region)) '())
-            ) ;append
-          ) ;pi-auth-replace-entry
-        ) ;pi-auth-write-json!
+        ;; 与 API Key 登录一致：OAuth 凭据落盘后自动激活 provider，
+        ;; 随后的 reload_models/models_updated 会让 /model 与 --list-models 立即可见。
+        (pi-auth-save-provider-whitelist! (path->string dir-path) p-str)
+        auth-path
       ) ;let*
     ) ;define
 

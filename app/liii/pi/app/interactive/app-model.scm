@@ -12,6 +12,7 @@
   ) ;export
   (import (scheme base)
     (scheme char)
+    (scheme write)
     (liii go)
     (liii string)
     (liii list)

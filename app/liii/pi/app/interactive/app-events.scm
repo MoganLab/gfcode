@@ -13,7 +13,9 @@
     pi-app-restore-queues!
   ) ;export
   (import (scheme base)
+    (scheme write)
     (liii go)
+    (liii path)
     (liii string)
     (liii tui)
     (liii pi agent queue)
