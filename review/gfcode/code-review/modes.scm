@@ -20,7 +20,7 @@
     (gfcode code-review format)
   ) ;import
   (export pi-prepare-code-review pi-code-review-parsed pi-code-review-config
-    run-code-review-flow
+    pi-code-review-response run-code-review-flow
   ) ;export
   (begin
 
@@ -80,6 +80,12 @@
       ) ;cons
     ) ;define
 
+    (define (%field alist key)
+      (let ((pair (assoc key alist)))
+        (if pair (cdr pair) '())
+      ) ;let
+    ) ;define
+
     (define (%normalize-blocks content)
       (let ((items (cond ((vector? content) (vector->list content))
                          ((list? content) content)
@@ -135,30 +141,47 @@
       ) ;let
     ) ;define
 
-    (define (%print-review-result res-msgs)
+    (define (pi-code-review-response res-msgs)
       (let* ((last-msg (and (pair? res-msgs) (car (reverse res-msgs))))
              (stop-reason (%message-field "stopReason" 'stopReason last-msg #f))
              (err-msg (%message-field "errorMessage" 'errorMessage last-msg #f))
             ) ;
         (cond
          ((or (equal? stop-reason "error") (equal? stop-reason "aborted"))
-          (display-stderr (or err-msg (string-append "Request " stop-reason)))
-          1
+          (list (cons 'status 'error)
+            (cons 'message (or err-msg (string-append "Request " stop-reason)))
+          ) ;list
          ) ;
          ((equal? stop-reason "length")
-          (display-stderr "Response was truncated: the model reached its output token limit."
-          ) ;display-stderr
-          1
+          (list (cons 'status 'error)
+            (cons 'message
+              "Response was truncated: the model reached its output token limit."
+            ) ;cons
+          ) ;list
          ) ;
          (else
            (let ((findings (pi-parse-review-findings (%last-assistant-text res-msgs))))
-             (display (pi-format-review-findings findings))
-             (newline)
-             0
+             (list (cons 'status 'ok) (cons 'report (pi-format-review-findings findings)))
            ) ;let
          ) ;else
         ) ;cond
       ) ;let*
+    ) ;define
+
+    (define (%print-review-result res-msgs)
+      (let ((result (pi-code-review-response res-msgs)))
+        (if (eq? (cdr (assoc 'status result)) 'error)
+          (begin
+            (display-stderr (cdr (assoc 'message result)))
+            1
+          ) ;begin
+          (begin
+            (display (cdr (assoc 'report result)))
+            (newline)
+            0
+          ) ;begin
+        ) ;if
+      ) ;let
     ) ;define
 
     (define (run-code-review-flow parsed cfg mode)

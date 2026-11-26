@@ -9,7 +9,7 @@
     pi-cfg-with-thinking pi-cfg-with-model %worker-job-cfg %cfg-override
     pi-worker-ensure-session-file! pi-worker-handle-job %assistant-error-text
     %poll-one-injected %pi-worker-poll-cfg %worker-cfg-with-session-id
-    %job-explicit
+    %job-explicit pi-tui-run-extension-command!
   ) ;export
   (import (scheme base)
     (scheme write)
@@ -189,6 +189,70 @@
       ) ;%pi-with-turn-diff
     ) ;define*
 
+    (define (pi-tui-run-extension-command! command args parsed cfg sfile event-chan)
+      (catch #t
+        (lambda ()
+          (let* ((handler (extension-command-def-handler command))
+                 (result (handler args (list (cons 'config cfg) (cons 'cwd (path->string (path-cwd))))))
+                 (status (and (pair? result) (assq 'status result) (cdr (assq 'status result))))
+                ) ;
+            (cond
+             ((or (eq? status 'error) (not status))
+              (pi-tui-send-event! event-chan
+                (list 'extension_command_error
+                  (if status
+                    (cdr (assoc 'message result))
+                    (string-append "Command returned no session request: "
+                      (extension-command-def-name command)
+                    ) ;string-append
+                  ) ;if
+                ) ;list
+              ) ;pi-tui-send-event!
+             ) ;
+             ((eq? status 'no-files)
+              (pi-tui-send-event! event-chan (list 'extension_command_notice (cdr (assoc 'message result))))
+             ) ;
+             (else
+               (when (cdr (assoc 'notice result))
+                 (pi-tui-send-event! event-chan
+                   (list 'tps_report (cdr (assoc 'notice result)))
+                 ) ;pi-tui-send-event!
+               ) ;when
+               (let ((response (run-session-flow (cdr (assoc 'parsed result))
+                                 (cdr (assoc 'config result))
+                                 (cdr (assoc 'prompt result))
+                                 (make-tui-emit event-chan)
+                                 (cdr (assoc 'on-finish result))
+                                 sfile
+                                 '()
+                                 #f
+                               ) ;run-session-flow
+                     ) ;response
+                    ) ;
+                 (if (eq? (cdr (assoc 'status response)) 'error)
+                   (pi-tui-send-event! event-chan
+                     (list 'extension_command_error (cdr (assoc 'message response)))
+                   ) ;pi-tui-send-event!
+                   (pi-tui-send-event! event-chan
+                     (list 'extension_command_report (cdr (assoc 'report response)))
+                   ) ;pi-tui-send-event!
+                 ) ;if
+               ) ;let
+             ) ;else
+            ) ;cond
+          ) ;let*
+        ) ;lambda
+        (lambda (tag . err)
+          (pi-tui-send-event! event-chan
+            (list 'extension_command_error
+              (string-append (object->string tag) ": " (object->string err))
+            ) ;list
+          ) ;pi-tui-send-event!
+        ) ;lambda
+      ) ;catch
+      (pi-tui-send-event! event-chan '(agent_settled #f))
+    ) ;define
+
     (define (pi-worker-ensure-session-file! parsed cfg sfile-box)
       (unless (vector-ref sfile-box 0)
         (let-values (((sf _sdir) (setup-session-file-with-name parsed cfg (path->string (path-cwd))))
@@ -366,6 +430,29 @@
           (when eff-box
             (pi-effective-cfg-set! eff-box effective-cfg)
           ) ;when
+         ) ;
+         ((and (pair? job) (eq? (car job) 'extension_command))
+          (let ((command (or (find-extension-command (default-extension-registry) (cadr job))
+                           (find-extension-command (default-extension-registry)
+                             (string-append "/" (cadr job))
+                           ) ;find-extension-command
+                         ) ;or
+                ) ;command
+               ) ;
+            (if command
+              (let ((sfile (pi-worker-ensure-session-file! parsed cfg sfile-box)))
+                (pi-tui-run-extension-command! command (caddr job) parsed cfg sfile event-chan)
+              ) ;let
+              (begin
+                (pi-tui-send-event! event-chan
+                  (list 'extension_command_error
+                    (string-append "Unknown extension command: " (cadr job))
+                  ) ;list
+                ) ;pi-tui-send-event!
+                (pi-tui-send-event! event-chan '(agent_settled #f))
+              ) ;begin
+            ) ;if
+          ) ;let
          ) ;
          (else (pi-abort-arm-chan! abort-chan)
            (let* ((job-cfg (%worker-job-cfg cfg job parsed))

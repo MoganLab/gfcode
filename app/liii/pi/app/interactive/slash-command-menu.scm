@@ -31,6 +31,7 @@
           (cons 'description "Configure provider authentication")
         ) ;list
         (list (cons 'name "exit") (cons 'description "Exit gf"))
+        (list (cons 'name "review") (cons 'description "Review changed files"))
       ) ;list
     ) ;define
 

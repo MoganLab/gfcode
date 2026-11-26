@@ -10,6 +10,7 @@
     (liii pi code core extensions)
     (liii pi code cli args query)
     (gfcode code-review auto)
+    (gfcode code-review interactive)
     (gfcode code-review modes)
   ) ;import
   (export extension)
@@ -35,16 +36,15 @@
       ) ;register-flag!
 
       ;; 2. 注册 commands
-      (for-each
-        (lambda (n)
-          (register-command! api
-            (make-extension-command-def n
-              "Run code review on changes"
-              (lambda (args ctx) "code-review command executed")
-              :params '()
-            ) ;make-extension-command-def
-          ) ;register-command!
-        ) ;lambda
+      (for-each (lambda (n)
+                  (register-command! api
+                    (make-extension-command-def n
+                      "Run code review on changes"
+                      pi-code-review-command
+                      :params '()
+                    ) ;make-extension-command-def
+                  ) ;register-command!
+                ) ;lambda
         '("/review" "review" "/code-review" "code-review")
       ) ;for-each
 

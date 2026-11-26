@@ -38,11 +38,13 @@
 (let ((api (make-extension-api)))
   (pi-load-extension (source-path) api)
   ;; 后续 ST3/ST4/ST5 的行为规格；当前提交用于固定目标。
-  (check ((extension-command-def-handler (find-extension-command api "/review")) "" '())
+  (check (cdr (assoc 'status
+               ((extension-command-def-handler (find-extension-command api "/review")) "--bad" '())
+             ) ;assoc
+         ) ;cdr
     =>
-    "code-review command executed"
+    'error
   ) ;check
-  ;; ST3 完成后，上述断言应替换为真实命令分发结果，不允许继续返回占位文本。
   (check-true (pair? (extension-registry-get-listeners api 'tool_execution_end)))
   (check-true (pair? (extension-registry-get-listeners api 'turn_end)))
 ) ;let
