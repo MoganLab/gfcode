@@ -156,6 +156,43 @@
   (rmtree (path->string root) #t)
 ) ;let*
 
+;; 4b. 项目仓库根目录（名为 gfcode 且含 gfproject.json）不得被当作扩展目录。
+;;     复现：load-path 含项目仓库的父目录（如 "." 解析到 ~/git）时，
+;;     会发现 ~/git/gfcode 这类包源码树；其下 .scm 声明为 (liii pi ...)
+;;     而非 (gfcode ...)，被误扫会导致大量 "failed to load extension" 警告。
+(let* ((parent (path-join (path-temp-dir) "pi-discover-project-root-parent"))
+       (repo (path-join parent "gfcode"))
+       (marker (path-join repo "gfproject.json"))
+       (src-file (path-join repo "agent" "liii" "pi" "agent" "budget.scm"))
+       (saved-load-path *load-path*)
+      ) ;
+  (path-mkdir (path-parent src-file) :parents #t :exist-ok #t)
+  (path-write-text marker "{\"package\":{\"name\":\"fake\"}}")
+  (path-write-text src-file
+    (string-append "(define-library (liii pi agent budget)\n"
+      "  (import (scheme base)) (export extension)\n"
+      "  (begin (define (extension api) \"should-not-load\"))))\n"
+    ) ;string-append
+  ) ;path-write-text
+  (set! *load-path* (cons (path->string parent) *load-path*))
+  (let ((entries (pi-discover-extensions :cwd (path->string (path-temp-dir)) :builtin-dir %FIX)
+        ) ;entries
+       ) ;
+    (check-false
+      (and
+        (find (lambda (entry)
+                (equal? (%entry-name entry) '(gfcode agent liii pi agent budget))
+              ) ;lambda
+          entries
+        ) ;find
+        #t
+      ) ;and
+    ) ;check-false
+  ) ;let
+  (set! *load-path* saved-load-path)
+  (rmtree (path->string parent) #t)
+) ;let*
+
 ;; 5. 多文件扩展包只收录 index.scm 入口，同目录内部子库不作为扩展。
 (let* ((root (path-join (path-temp-dir) "pi-discover-package-siblings"))
        (ext-dir (path-join root "gfcode" "pkg-ext"))
