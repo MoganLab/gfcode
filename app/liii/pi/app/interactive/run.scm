@@ -323,6 +323,7 @@
             ;; 退出清理（顺序重要）：
             ;; 1. 先中止在途 agent 任务：worker 线程阻塞在 LLM HTTP 请求上，
             ;;    进程退出会 join go 线程池，不中止就会等到 provider 超时才退出
+            (chan-close! (%pi-app-display-jobs app))
             (let ((settled (pi-app-abort-inflight! app)))
               ;; 2. 关闭鼠标事件上报（与进入时对称），
               ;;    再离开备用屏（主屏内容自动恢复），

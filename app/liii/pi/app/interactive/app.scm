@@ -45,6 +45,7 @@
     (liii pi app interactive thinking)
     (liii pi app interactive working)
     (liii pi app interactive worker)
+    (liii pi app interactive diff-worker)
     (liii pi app interactive bash)
     (liii pi app interactive app-bash)
     (liii pi app interactive app-tool-timer)
@@ -301,6 +302,7 @@
              (event-chan (make-chan 32))
              (abort-chan (make-chan 1))
              (bash-jobs-chan (make-chan 16))
+             (display-jobs (make-chan 16))
              (bash-abort-chan (make-chan 1))
              (steering-chan (make-chan 16))
              (follow-up-chan (make-chan 16))
@@ -369,6 +371,8 @@
                     #f
                     request-selection-chan
                     #f
+                    display-jobs
+                    #f
                   ) ;%make-pi-app
              ) ;app
              (ed (%make-pi-editor app tl))
@@ -388,8 +392,9 @@
         (pi-app-rebuild-history! app session-file)
         ;; 无自定义 handler 时启动后台 agent worker
         (unless handler
+          (go (%pi-display-worker display-jobs event-chan))
           (go (pi-tui-agent-worker jobs-chan event-chan abort-chan session-file
-                steering-chan follow-up-chan request-selection-chan
+                steering-chan follow-up-chan request-selection-chan display-jobs
               ) ;pi-tui-agent-worker
           ) ;go
         ) ;unless

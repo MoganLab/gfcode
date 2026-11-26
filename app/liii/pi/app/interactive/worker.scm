@@ -9,6 +9,7 @@
     pi-cfg-with-thinking pi-cfg-with-model %worker-job-cfg %cfg-override
     pi-worker-ensure-session-file! pi-worker-handle-job %assistant-error-text
     %poll-one-injected %pi-worker-poll-cfg %worker-cfg-with-session-id
+    %job-explicit
   ) ;export
   (import (scheme base)
     (scheme write)
@@ -33,6 +34,7 @@
     (liii pi ai retry)
     (liii pi code core extension-notify)
     (liii pi code core extensions)
+    (liii pi app interactive diff-capture)
     (liii pi app interactive worker-emit)
     (liii pi app interactive worker-model)
     (liii pi code modes flow)
@@ -149,35 +151,42 @@
       ) ;let
     ) ;define
 
-    (define* (pi-tui-run-worker parsed cfg user-text event-chan . opts)
-      (let* ((session-file (and (pair? opts) (car opts)))
-             (opt-window-getter
-               (if (and (pair? opts) (pair? (cdr opts))) (cadr opts) #f)
-             ) ;opt-window-getter
-            ) ;
-        (catch #t
-          (lambda ()
-            (%worker-assert-cred! cfg)
-            (run-session-flow parsed
-              (%worker-cfg-with-session-id cfg session-file)
-              user-text
-              (make-tui-emit event-chan (or opt-window-getter (%cfg-context-window cfg)))
-              (lambda (res-msgs) #t)
-              session-file
-              '()
-              #f
-            ) ;run-session-flow
-          ) ;lambda
-          (lambda (tag . err-args)
-            (pi-tui-send-event! event-chan
-              (list 'error
-                (string-append (object->string tag) ": " (object->string err-args))
-              ) ;list
-            ) ;pi-tui-send-event!
-            (pi-tui-send-event! event-chan (list 'agent_settled #f))
-          ) ;lambda
-        ) ;catch
-      ) ;let*
+    (define* (pi-tui-run-worker parsed
+               cfg
+               user-text
+               event-chan
+               (session-file #f)
+               (window #f)
+               (diff #f)
+             ) ;pi-tui-run-worker
+      (%pi-with-turn-diff diff
+        cfg
+        (make-tui-emit event-chan (or window (%cfg-context-window cfg)))
+        (lambda (run-cfg emit)
+          (catch #t
+            (lambda ()
+              (%worker-assert-cred! run-cfg)
+              (run-session-flow parsed
+                (%worker-cfg-with-session-id run-cfg session-file)
+                user-text
+                emit
+                (lambda (res-msgs) #t)
+                session-file
+                '()
+                #f
+              ) ;run-session-flow
+            ) ;lambda
+            (lambda (tag . err-args)
+              (pi-tui-send-event! event-chan
+                (list 'error
+                  (string-append (object->string tag) ": " (object->string err-args))
+                ) ;list
+              ) ;pi-tui-send-event!
+              (pi-tui-send-event! event-chan (list 'agent_settled #f))
+            ) ;lambda
+          ) ;catch
+        ) ;lambda
+      ) ;%pi-with-turn-diff
     ) ;define*
 
     (define (pi-worker-ensure-session-file! parsed cfg sfile-box)
@@ -219,20 +228,20 @@
       ) ;let*
     ) ;define
 
-    (define (pi-worker-handle-job job parsed cfg sfile-box event-chan abort-chan
-             . opt-chans
-            ) ;
-      (let* ((steering-chan (if (pair? opt-chans) (car opt-chans) #f))
-             (follow-up-chan
-               (if (and (pair? opt-chans) (pair? (cdr opt-chans))) (cadr opt-chans) #f)
-             ) ;follow-up-chan
-             (eff-box
-               (if (and (pair? opt-chans) (>= (length opt-chans) 3)) (list-ref opt-chans 2) #f)
-             ) ;eff-box
-             (req-sel-chan
-               (if (and (pair? opt-chans) (>= (length opt-chans) 4)) (list-ref opt-chans 3) #f)
-             ) ;req-sel-chan
-             (cfg (%pi-worker-poll-cfg cfg steering-chan follow-up-chan event-chan))
+    (define* (pi-worker-handle-job job
+               parsed
+               cfg
+               sfile-box
+               event-chan
+               abort-chan
+               (steering-chan #f)
+               (follow-up-chan #f)
+               (eff-box #f)
+               (req-sel-chan #f)
+               (display-jobs #f)
+               (run-id #f)
+             ) ;pi-worker-handle-job
+      (let* ((cfg (%pi-worker-poll-cfg cfg steering-chan follow-up-chan event-chan))
              (effective-cfg cfg)
             ) ;
         (cond
@@ -360,8 +369,7 @@
          ) ;
          (else (pi-abort-arm-chan! abort-chan)
            (let* ((job-cfg (%worker-job-cfg cfg job parsed))
-                  ;; 新消息初始化 effective-cfg 为本任务的初始快照；
-                  ;; 运行中切模由 request-selection-chan 在每次请求前覆盖
+                  ;; /model 或 /thinking 变更由 prepare-request 在请求前读取。
                   (eff-local (or eff-box (pi-make-effective-cfg-box job-cfg)))
                  ) ;
              (when eff-box
@@ -369,14 +377,8 @@
              ) ;when
              (let* ((prepare (pi-worker-make-prepare-request eff-local req-sel-chan parsed))
                     (cfg-with-prepare (pi-cfg-merge job-cfg (list (cons 'prepare-request prepare))))
-                    ;; 事件桥读取本次响应对应的有效窗口：
-                    ;; all-in-one 实际节点窗口优先，否则按 effective-cfg 的模型窗口
-                    (window-getter
-                      (lambda ()
-                        (let* ((cur (pi-effective-cfg-ref eff-local)) (cw (%cfg-context-window cur)))
-                          cw
-                        ) ;let*
-                      ) ;lambda
+                    ;; 优先使用 all-in-one 节点窗口，否则使用 effective-cfg。
+                    (window-getter (lambda () (%cfg-context-window (pi-effective-cfg-ref eff-local)))
                     ) ;window-getter
                    ) ;
                (set! effective-cfg job-cfg)
@@ -386,6 +388,7 @@
                  event-chan
                  (pi-worker-ensure-session-file! parsed cfg sfile-box)
                  window-getter
+                 (and display-jobs (%pi-make-diff-capture run-id display-jobs event-chan))
                ) ;pi-tui-run-worker
              ) ;let*
            ) ;let*
@@ -393,7 +396,7 @@
         ) ;cond
         effective-cfg
       ) ;let*
-    ) ;define
+    ) ;define*
 
     (define* (pi-tui-agent-worker jobs-chan
                event-chan
@@ -402,9 +405,9 @@
                (steering-chan #f)
                (follow-up-chan #f)
                (request-selection-chan #f)
+               (display-jobs #f)
              ) ;pi-tui-agent-worker
-      ;; 扩展加载须早于 parse-pi-args（扩展 flag 才能参与解析）；initializer
-      ;; 已按 discovery 仲裁一次性加载全部层级，不可再补加载用户层致重复挂载。
+      ;; 按 discovery 仲裁加载扩展，再解析扩展 flag，避免重复挂载。
       (default-extension-registry)
       (let* ((parsed (parse-pi-args (cdr (command-line))))
              (cfg (augment-pi-config (resolve-pi-config parsed (get-environment-variables))
@@ -412,7 +415,6 @@
                   ) ;augment-pi-config
              ) ;cfg
              (sfile-box (vector initial-session-file))
-             ;; 贯穿本 worker 生命周期的 effective-cfg：切模后保留最新选择
              (eff-box (pi-make-effective-cfg-box cfg))
             ) ;
         (set-pi-retry-logger! (lambda (msg) (pi-tui-send-event! event-chan (list 'retry msg)))
@@ -422,13 +424,14 @@
         (pi-extension-notify-set! (lambda (msg) (pi-tui-send-event! event-chan (list 'tps_report msg)) #t)
         ) ;pi-extension-notify-set!
         (let loop
-          ((current-cfg cfg))
+          ((current-cfg cfg) (run-id 1))
           (let ((job (chan-recv! jobs-chan)))
             (when (and job (not (eof-object? job)))
               (loop (pi-worker-handle-job job parsed current-cfg sfile-box
                       event-chan abort-chan steering-chan follow-up-chan eff-box
-                      request-selection-chan
+                      request-selection-chan display-jobs run-id
                     ) ;pi-worker-handle-job
+                (+ run-id 1)
               ) ;loop
             ) ;when
           ) ;let

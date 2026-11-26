@@ -24,6 +24,7 @@
     (liii pi app interactive views)
     (liii pi app interactive working)
     (liii pi app interactive app-bash)
+    (liii pi app interactive app-diff)
     (liii pi app interactive bash)
     (liii pi app interactive app-name)
     (liii pi app interactive app-queue)
@@ -150,7 +151,8 @@
               (if (not msg)
                 rendered
                 (begin
-                  ;; 新任务开始：关闭上一轮引用，已显示的 thinking 与正文内容保留
+                  ;; 新任务不接受上一轮迟到的展示事件；历史卡片仍留在聊天区。
+                  (%pi-app-reset-diff! app)
                   (%pi-app-close-thinking-card! app)
                   (%pi-app-close-assistant-card! app)
                   ;; 1. 出队并正式上屏为深蓝用户消息卡片
@@ -256,15 +258,14 @@
                (duration (and (> (length ev) 6) (list-ref ev 6)))
                (card (%pi-app-find-tool-card app id))
               ) ;
-          (if card
-            (tool-card-set-complete! card raw-res is-err? duration)
-            ;; 兼容未收到 start 的恢复/测试路径
-            (let ((new-card (make-tool-card name args 'pending)))
-              (tool-card-set-expanded! new-card (pi-app-tools-expanded? app))
-              (tool-card-set-complete! new-card raw-res is-err? duration)
-              (container-add! (%pi-app-chat app) new-card)
-            ) ;let
-          ) ;if
+          (unless card
+            (set! card (make-tool-card name args 'pending))
+            (tool-card-set-expanded! card (pi-app-tools-expanded? app))
+            (%pi-app-tool-cards-set! app (cons (cons id card) (%pi-app-tool-cards app)))
+            (container-add! (%pi-app-chat app) card)
+          ) ;unless
+          (tool-card-set-complete! card raw-res is-err? duration)
+          (%pi-app-apply-diff! app id card)
         ) ;let*
         ;; 旧自定义 handler：(end name args is-error? result)
         (let ((name (cadr ev))
@@ -315,6 +316,9 @@
             ;; Kimi Code OAuth 设备码登录：device_code 上屏、done 落盘/报错
             ((kimi_oauth_device_code) (pi-app-handle-oauth-device-code! app ev))
             ((kimi_oauth_done) (pi-app-handle-oauth-done! app ev))
+            ((run_started diff_result turn_diff_summary)
+             (%pi-app-handle-diff-event! app ev)
+            ) ;
             ((tool_execution_start)
              (%pi-app-close-assistant-card! app)
              (%pi-app-handle-tool-start! app ev)
@@ -404,6 +408,7 @@
                        (pi-app-add-assistant-text! app "Aborted")
                      ) ;when
                      (pi-queue-finish-task! q)
+                     (%pi-app-settle-diff! app)
                      (settle!)
                     ) ;
                     ((error)

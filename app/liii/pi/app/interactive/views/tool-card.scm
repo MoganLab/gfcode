@@ -8,7 +8,7 @@
   (export make-tool-card tool-card? tool-card-component? tool-card-expanded?
     tool-card-set-expanded! tool-card-set-output! tool-card-set-complete!
     tool-card-set-started-at! tool-card-started-at tool-card-pending-bash?
-    %tool-now-ms
+    %tool-now-ms %tool-card-apply-diff! %tool-diff-counts
   ) ;export
   (import (scheme base)
     (scheme time)
@@ -26,7 +26,8 @@
     ;; 工具调用卡片的可变状态。pending 卡片在 start/update/end 事件间复用。
     (define-record-type <tool-card>
       (%make-tool-card tool-name args status result expanded? started-at
-        ended-at duration-ms render-cache card-render-cache
+        ended-at duration-ms render-cache card-render-cache diff-status
+        diff-text added-lines removed-lines
       ) ;%make-tool-card
       tool-card?
       (tool-name %tool-card-name)
@@ -40,6 +41,10 @@
       ;; 原始 bash 输出缓存与完整卡片渲染缓存分别保存，避免互相覆盖。
       (render-cache %tool-card-render-cache %tool-card-render-cache-set!)
       (card-render-cache %tool-card-card-render-cache)
+      (diff-status %tool-card-diff-status %tool-card-diff-status-set!)
+      (diff-text %tool-card-diff-text %tool-card-diff-text-set!)
+      (added-lines %tool-card-added-lines %tool-card-added-lines-set!)
+      (removed-lines %tool-card-removed-lines %tool-card-removed-lines-set!)
     ) ;define-record-type
 
     (define (%tool-now-ms)
@@ -87,6 +92,33 @@
         (%tool-card-ended-at-set! st (%tool-now-ms))
         (%tool-card-duration-ms-set! st duration-ms)
       ) ;let
+    ) ;define
+
+    ;; #f requests deferred application; terminal failures and duplicate results
+    ;; are ignored rather than replacing the body of an already-finished card.
+    (define (%tool-card-apply-diff! card text added removed)
+      (let ((st (component-data card)))
+        (cond
+         ((or (not (member (%tool-card-name st) '("write" "edit")))
+            (%tool-card-diff-status st)
+          ) ;or
+          'ignored
+         ) ;
+         ((eq? (%tool-card-status st) 'pending) #f)
+         ((not (eq? (%tool-card-status st) 'success)) 'ignored)
+         (added (%tool-card-diff-status-set! st 'ready)
+           (%tool-card-diff-text-set! st text)
+           (%tool-card-added-lines-set! st added)
+           (%tool-card-removed-lines-set! st removed)
+           'changed
+         ) ;added
+         (else (%tool-card-diff-status-set! st 'skipped) 'ignored)
+        ) ;cond
+      ) ;let
+    ) ;define
+
+    (define (%tool-diff-counts added removed)
+      (string-append "+" (number->string added) " -" (number->string removed))
     ) ;define
 
     ;; 与上游每秒刷新一致：Working 动画可更频繁重绘，但时间只按秒推进
@@ -227,11 +259,16 @@
     ;; 上下各一行背景空行；pending/绿/红背景把命令与输出整个包住；
     ;; 标题先分段着色再折行，超宽时保持分段样式（issue #1484）；
     ;; 展开态不受预览行数限制，折叠态按工具取预览行数（Ctrl+O 全局切换）
-    (define (render-tool-card-lines tool-name args status result width . maybe-expanded?)
-      (let* ((expanded? (if (pair? maybe-expanded?) (car maybe-expanded?) #f))
-             (bg (%tool-bg status))
+    (define (render-tool-card-lines tool-name args status result width expanded? counts)
+      (let* ((bg (%tool-bg status))
              (content-width (max 1 (- width 2)))
-             (segs (format-tool-call-segments tool-name args))
+             (base-segs (format-tool-call-segments tool-name args))
+             (segs
+               (if counts
+                 (append base-segs (list (cons 'muted (string-append " " counts))))
+                 base-segs
+               ) ;if
+             ) ;segs
              (title-rows
                (map (lambda (line) (apply-card-bg (string-append " " line) width bg ""))
                  (wrap-text (%style-segments segs) content-width)
@@ -278,6 +315,10 @@
         width
         (%tool-card-expanded? st)
         timer
+        (%tool-card-diff-status st)
+        (%tool-card-diff-text st)
+        (%tool-card-added-lines st)
+        (%tool-card-removed-lines st)
       ) ;list
     ) ;define
 
@@ -294,13 +335,17 @@
             (let ((tool-name (%tool-card-name st)))
               (cond ((<= width 0) '())
                     ((string=? tool-name "bash") (%render-bash-tool-card st width))
-                    (else (render-tool-card-lines tool-name
-                            (%tool-card-args st)
-                            (%tool-card-status st)
-                            (%tool-card-result st)
-                            width
-                            (%tool-card-expanded? st)
-                          ) ;render-tool-card-lines
+                    (else
+                      (render-tool-card-lines tool-name
+                        (%tool-card-args st)
+                        (%tool-card-status st)
+                        (or (%tool-card-diff-text st) (%tool-card-result st))
+                        width
+                        (%tool-card-expanded? st)
+                        (and (eq? (%tool-card-diff-status st) 'ready)
+                          (%tool-diff-counts (%tool-card-added-lines st) (%tool-card-removed-lines st))
+                        ) ;and
+                      ) ;render-tool-card-lines
                     ) ;else
               ) ;cond
             ) ;let
@@ -333,6 +378,10 @@
                    duration
                    #f
                    (%make-render-cache #f '())
+                   #f
+                   #f
+                   #f
+                   #f
                  ) ;%make-tool-card
              ) ;st
              (card

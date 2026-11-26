@@ -7,7 +7,7 @@
 (define-library (liii pi app interactive renderers)
   (export format-tool-call format-tool-call-segments format-tool-result-lines
     extract-result-text format-bash-tool-result-lines format-tool-duration
-    get-tool-arg
+    get-tool-arg %clean-tool-display-text
   ) ;export
   (import (scheme base)
     (liii string)
