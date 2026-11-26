@@ -9,7 +9,8 @@
     pi-cfg-with-thinking pi-cfg-with-model %worker-job-cfg %cfg-override
     pi-worker-ensure-session-file! pi-worker-handle-job %assistant-error-text
     %poll-one-injected %pi-worker-poll-cfg %worker-cfg-with-session-id
-    %job-explicit
+    %job-explicit pi-tui-run-extension-command!
+    pi-worker-run-extension-command-job!
   ) ;export
   (import (scheme base)
     (scheme write)
@@ -36,6 +37,7 @@
     (liii pi code core extensions)
     (liii pi app interactive diff-capture)
     (liii pi app interactive worker-emit)
+    (liii pi app interactive worker-extension-command)
     (liii pi app interactive worker-model)
     (liii pi code modes flow)
     (liii pi code modes output)
@@ -210,11 +212,7 @@
              ;; 重建成功后投递 models_updated，触发 app-events 重建 models/default-model
              (models-store (pi-build-user-catalog dir-str))
             ) ;
-        ;; worker reload_models 成功后回灌主 app：按新白名单重建
-        ;; pi-app-models/default-model 并重渲，使 /model 即时可见新登录 provider
         (pi-tui-send-event! event-chan (list 'models_updated dir-str))
-        ;; 1404：/login 或刷新凭据后 reload 须重同步 oauth 401 刷新钩子，
-        ;; 否则启动时无 oauth 凭据的会话登录后仍按现状 401 失败
         (pi-sync-oauth-refresh-hook
           (%cfg-override
             ;; /login 已更新 auth.json；丢弃旧内存快照后重新初始化。
@@ -366,6 +364,15 @@
           (when eff-box
             (pi-effective-cfg-set! eff-box effective-cfg)
           ) ;when
+         ) ;
+         ((and (pair? job) (eq? (car job) 'extension_command))
+          (pi-worker-run-extension-command-job! job
+            parsed
+            cfg
+            sfile-box
+            event-chan
+            (lambda () (pi-worker-ensure-session-file! parsed cfg sfile-box))
+          ) ;pi-worker-run-extension-command-job!
          ) ;
          (else (pi-abort-arm-chan! abort-chan)
            (let* ((job-cfg (%worker-job-cfg cfg job parsed))
