@@ -125,12 +125,13 @@
 
     ;; 默认技能目录：gf 配置目录（GF_CONFIG_DIR → ~/.gf/agent）优先，
     ;; pi agent 目录（PI_CODING_AGENT_DIR → ~/.gf/agent）作为可覆盖层，
-    ;; 项目级仅查当前目录 .pi/skills（对齐上游）
+    ;; 项目级 .gf/skills 优先，同时兼容上游 .pi/skills
     (define (%collect-default-dirs cwd)
       (filter string?
         (map (lambda (p) (and (path-exists? p) (path-dir? p) (path->string p)))
           (list (path-join (gf-get-config-dir) "skills")
             (path-join (pi-get-agent-dir) "skills")
+            (path-join (path cwd) ".gf" "skills")
             (path-join (path cwd) ".pi" "skills")
           ) ;list
         ) ;map
