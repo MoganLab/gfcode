@@ -114,7 +114,7 @@
 (emit '(turn_diff_summary 3 (("late-summary.txt" 1 0))))
 (check-true (shows? "late-summary.txt +1 -0"))
 (let ((screen (string-join (pi-app-transcript-lines app) "\n"))
-      (counts "\x1b;[38;2;190;242;200m+1\x1b;[39m \x1b;[38;2;255;190;190m-0\x1b;[39m")
+      (counts "\x1b;[38;2;104;183;141m+1\x1b;[39m \x1b;[38;2;234;127;129m-0\x1b;[39m")
      ) ;
   (check-true (string-contains? screen (string-append "sample.txt\x1b;[39m " counts))
   ) ;check-true

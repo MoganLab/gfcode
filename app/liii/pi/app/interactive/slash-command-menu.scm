@@ -7,11 +7,17 @@
 ;; 斜杠命令菜单：识别输入行首的命令上下文，过滤命令并构建选择列表
 (define-library (liii pi app interactive slash-command-menu)
   (export pi-slash-command-matches make-pi-slash-command-menu)
-  (import (scheme base) (liii string) (liii tui) (liii pi code core skills types))
+  (import (scheme base)
+    (rename (only (liii pi app interactive views theme) %fg-accent %fg-output)
+      (%fg-accent %accent)
+      (%fg-output %muted)
+    ) ;rename
+    (liii string)
+    (liii tui)
+    (liii pi code core skills types)
+  ) ;import
   (begin
 
-    (define %accent "\x1b;[35m")
-    (define %muted "\x1b;[38;2;157;165;169m")
     (define %reset "\x1b;[0m")
 
     (define %commands

@@ -23,6 +23,7 @@
     (liii pi code core session-projection)
     (liii pi code core compaction session)
     (liii pi app interactive state)
+    (liii pi app interactive app-markdown)
     (liii pi app interactive render)
     (liii pi app interactive views)
     (liii pi app interactive bash)
@@ -321,6 +322,7 @@
                              ) ;
                             ) ;
                   ;; 全部转换成功后再替换界面
+                  (%markdown-reset! app (reverse cards))
                   (%pi-app-diff-run-set! app #f)
                   (container-clear! (%pi-app-chat app))
                   (for-each (lambda (card) (container-add! (%pi-app-chat app) card)) cards)

@@ -7,6 +7,10 @@
 ;; --resume 启动选择器：当前/全部会话、模糊搜索、命名过滤与路径显示。
 (define-library (liii pi app interactive session-selector)
   (import (scheme base)
+    (rename (only (liii pi app interactive views theme) %fg-accent %fg-output)
+      (%fg-accent %accent)
+      (%fg-output %muted)
+    ) ;rename
     (liii string)
     (liii list)
     (liii sort)
@@ -28,9 +32,7 @@
   ) ;export
   (begin
 
-    (define %accent "\x1b;[35m")
-    (define %muted "\x1b;[38;2;157;165;169m")
-    (define %border "\x1b;[38;2;91;127;200m")
+    (define %border %accent)
     (define %reset "\x1b;[0m")
     (define (%colored color text)
       (string-append color text %reset)

@@ -10,6 +10,11 @@
     thinking-selector-search thinking-selector-cursor-position
   ) ;export
   (import (scheme base)
+    (rename (only (liii pi app interactive views theme) %fg-accent %fg-output %fg-border)
+      (%fg-accent %accent)
+      (%fg-output %muted)
+      (%fg-border %border)
+    ) ;rename
     (liii string)
     (liii list)
     (liii unicode)
@@ -18,9 +23,6 @@
   ) ;import
   (begin
 
-    (define %accent "\x1b;[35m")
-    (define %muted "\x1b;[38;2;157;165;169m")
-    (define %border "\x1b;[38;2;91;127;200m")
     (define %reset "\x1b;[0m")
 
     (define (%colored color text)

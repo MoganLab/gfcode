@@ -34,7 +34,7 @@
     ) ;define
 
     ;; 页脚配色（24-bit RGB）
-    (define %c-dim '(102 102 102))
+    (define %c-dim '(126 136 142))
 
     ;; 上色
     (define (c-dim s)
@@ -50,10 +50,10 @@
       (cond
        ((or (not (string? info)) (string-null? info)) "")
        ((and (number? percent) (> percent %ctx-error-threshold))
-        (show #f (as-red info))
+        (show #f (as-true-color '(234 127 129) info))
        ) ;
        ((and (number? percent) (> percent %ctx-warn-threshold))
-        (show #f (as-yellow info))
+        (show #f (as-true-color '(205 154 34) info))
        ) ;
        (else (c-dim info))
       ) ;cond

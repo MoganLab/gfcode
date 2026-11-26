@@ -89,7 +89,16 @@
                "bash"
               ) ;
               ((string-null? lower) #f)
-              (else lower)
+              ;; Fence info is untrusted. Only installed language identifiers
+              ;; may enter the loader and its long-lived definition cache.
+              ((member lower
+                 '("bibtex" "cmake" "css" "diff" "go" "haskell" "html" "java"
+                   "kotlin" "latex" "nix" "php" "python" "ruby" "rust" "scala"
+                   "sql" "swift" "toml" "typescript" "vue" "yaml")
+               ) ;member
+               lower
+              ) ;
+              (else #f)
         ) ;cond
       ) ;let*
     ) ;define

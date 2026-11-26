@@ -12,6 +12,7 @@
   ) ;export
   (import (scheme base)
     (liii go)
+    (liii pi app interactive views markdown)
     (liii pi app interactive views syntax)
     (liii pi app interactive tool-diff)
     (only (liii unicode) utf8-replace-invalid)
@@ -148,10 +149,10 @@
     ) ;define
 
     (define (%pi-display-worker jobs events)
-      (%display-loop jobs events (%worker-parser))
+      (%display-loop jobs events (%worker-parser) (%worker-markdown-parser))
     ) ;define
 
-    (define (%display-loop jobs events parse)
+    (define (%display-loop jobs events parse markdown)
       (let loop
         ((turn #f))
         (unless (chan-closed? jobs)
@@ -188,6 +189,14 @@
                      (%diff-job! active job events jobs)
                      (loop active)
                    ) ;let
+                  ) ;
+                  ((and (eq? (car job) 'markdown_job) (= (length job) 5))
+                   (unless (chan-closed? (list-ref job 4))
+                     (%diff-publish! (list-ref job 4)
+                       (list (cadr job) (caddr job) (markdown (cadddr job)))
+                     ) ;%diff-publish!
+                   ) ;unless
+                   (loop current)
                   ) ;
                   ((and (eq? (car job) 'diff_highlight_job) (= (length job) 5))
                    (let ((lines (parse (list-ref job 4))))

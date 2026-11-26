@@ -28,13 +28,13 @@
     ;; 各级别的边框/ spinner 颜色（24-bit RGB 前缀，dark 主题实测）：
     ;; off 灰 → minimal 灰蓝 → low 蓝 → medium 长春花蓝 → high 紫 → xhigh 品红 → max 红
     (define %thinking-colors
-      '(("off" . "\x1b;[38;2;102;111;116m")
-        ("minimal" . "\x1b;[38;2;97;120;133m")
-        ("low" . "\x1b;[38;2;78;130;156m")
-        ("medium" . "\x1b;[38;2;91;127;200m")
+      '(("off" . "\x1b;[38;2;108;118;123m")
+        ("minimal" . "\x1b;[38;2;104;128;141m")
+        ("low" . "\x1b;[38;2;84;137;164m")
+        ("medium" . "\x1b;[38;2;97;133;204m")
         ("high" . "\x1b;[38;2;151;118;229m")
-        ("xhigh" . "\x1b;[38;2;219;72;187m")
-        ("max" . "\x1b;[38;2;254;65;87m"))
+        ("xhigh" . "\x1b;[38;2;222;84;193m")
+        ("max" . "\x1b;[38;2;254;84;98m"))
     ) ;define
 
     (define (pi-thinking-border-color level)

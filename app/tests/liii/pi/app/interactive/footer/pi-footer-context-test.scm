@@ -39,11 +39,11 @@
 ;; srfi-166 的着色返回惰性串，需经 show 展开为普通字符串
 
 (define (red s)
-  (show #f (as-red s))
+  (show #f (as-true-color '(234 127 129) s))
 ) ;define
 
 (define (yellow s)
-  (show #f (as-yellow s))
+  (show #f (as-true-color '(205 154 34) s))
 ) ;define
 
 ;; 1. 上下文 record 与 token 统计合并为左下角统计串

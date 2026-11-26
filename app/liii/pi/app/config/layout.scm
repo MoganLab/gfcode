@@ -21,15 +21,14 @@
   (export pi-config-column-widths pi-config-cursor pi-config-render)
   (begin
 
-    (define %accent "\x1b;[35m")
-    (define %muted "\x1b;[38;2;120;130;140m")
+    (define %accent "\x1b;[38;2;167;152;215m")
+    (define %muted "\x1b;[38;2;157;165;169m")
     (define %reset "\x1b;[0m")
-    ;; 选中行：紫色底 + 近白前景（ranger 风格整行高亮）。
-    ;; 焦点列用浓紫，非焦点列用浅紫，保持"选中但未聚焦"的层次。
-    (define %selected-style "\x1b;[48;2;74;44;122m\x1b;[38;2;244;240;255m")
+    ;; 焦点列使用 pi dark 的选中底色，未聚焦列保留独立的弱化样式。
+    (define %selected-style "\x1b;[48;2;33;59;73m\x1b;[38;2;222;224;225m")
     (define %selected-style-idle "\x1b;[48;2;56;46;78m\x1b;[38;2;205;198;220m")
     (define %dim "\x1b;[2m")
-    (define %on "\x1b;[32m")
+    (define %on "\x1b;[38;2;104;183;141m")
 
     ;; ---------- 光标 ----------
 
