@@ -1,0 +1,410 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: LaTeX syntax derived from latex.xml by Jeroen Wijnhout, Holger Danielsson, Michel Ludwig and Thomas Braun (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: LGPL-2.0-or-later",
+    "name": "LaTeX"
+  },
+  "name": "LaTeX",
+  "extensions": [
+    "*.tex",
+    "*.ltx",
+    "*.dtx",
+    "*.sty",
+    "*.cls",
+    "*.bbx",
+    "*.cbx",
+    "*.lbx",
+    "*.tikz",
+    "*.pgf"
+  ],
+  "initial-context": "Normal Text",
+  "lists": {
+    "sectioning": [
+      "\\part", "\\chapter", "\\section", "\\subsection",
+      "\\subsubsection", "\\paragraph", "\\subparagraph"
+    ],
+    "labels": [
+      "\\Autocite", "\\autocite", "\\autoref", "\\Cite", "\\cite",
+      "\\Citeauthor", "\\citeauthor", "\\citep", "\\citet",
+      "\\citetitle", "\\citeurl", "\\citeyear", "\\cref", "\\Cref",
+      "\\eqref", "\\Footcite", "\\footcite", "\\footfullcite",
+      "\\fullcite", "\\label", "\\nocite", "\\pagecite", "\\pageref",
+      "\\Parencite", "\\parencite", "\\ref", "\\subref", "\\supercite",
+      "\\Textcite", "\\textcite", "\\vpageref", "\\vref"
+    ],
+    "fancylabels": [
+      "\\documentclass", "\\includegraphics", "\\include",
+      "\\usepackage", "\\bibliography", "\\bibliographystyle"
+    ],
+    "mathcmd": [
+      "\\text", "\\textit", "\\textbf", "\\textmd", "\\textsl",
+      "\\textsc", "\\textrm", "\\textsf", "\\texttt", "\\textup",
+      "\\textnormal", "\\mbox", "\\emph"
+    ]
+  },
+  "item-datas": {
+    "Normal Text": "Normal",
+    "Option Text": "Normal",
+    "Macro": "Function",
+    "Comment": "Comment",
+    "Error": "Error",
+    "Math": "SpecialString",
+    "Structure": "Keyword",
+    "Builtin Macro": "BuiltIn",
+    "Macro Mathmode": "SpecialChar",
+    "Environment": "Extension",
+    "Reference": "Extension",
+    "Verbatim": "VerbatimString",
+    "Region Marker": "RegionMarker",
+    "Sectioning Text": "Normal",
+    "Sectioning Macro": "Function",
+    "Sectioning Math": "SpecialString"
+  },
+  "contexts": {
+    "Normal Text": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "LatexMacro", "char": "\\", "look-ahead": true },
+        { "type": "DetectChar", "attribute": "Math", "context": "MathMode", "char": "$" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "%" }
+      ]
+    },
+    "LatexMacro": {
+      "attribute": "Normal Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Structure", "context": "#pop!FindBeginEnvironment", "String": "\\begin" },
+        { "type": "StringDetect", "attribute": "Structure", "context": "#pop!FindEndEnvironment", "String": "\\end" },
+        { "type": "keyword", "attribute": "Structure", "context": "#pop!Label", "String": "labels", "delimiters": " \t\r\n{}[],;" },
+        { "type": "keyword", "attribute": "Builtin Macro", "context": "#pop!FancyLabel", "String": "fancylabels", "delimiters": " \t\r\n{}[],;" },
+        { "type": "keyword", "attribute": "Structure", "context": "#pop!Sectioning", "String": "sectioning", "delimiters": " \t\r\n{}[],;*" },
+        { "type": "keyword", "attribute": "Macro Mathmode", "context": "#pop!MathModeText", "String": "mathcmd", "delimiters": " \t\r\n{}[],;" },
+        { "type": "StringDetect", "attribute": "Comment", "context": "#pop!MultilineComment", "String": "\\iffalse" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop!MathModeLatex", "char": "(" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop!MathModeLatexEquation", "char": "[" },
+        { "type": "DetectChar", "attribute": "Macro", "context": "#pop!ContrSeq", "char": "\\" }
+      ]
+    },
+    "ContrSeq": {
+      "attribute": "Macro",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Macro", "context": "#pop" },
+        { "type": "DetectChar", "attribute": "Macro", "context": "#stay", "char": "*" },
+        { "type": "AnyChar", "attribute": "Macro", "context": "#pop", "String": "()[]!.,;:?#$&%_^~ " }
+      ]
+    },
+    "Comment": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "MultilineComment": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Comment", "context": "BackslashMLComment", "char": "\\", "look-ahead": true }
+      ]
+    },
+    "BackslashMLComment": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Comment", "context": "#pop#pop", "String": "\\fi" },
+        { "type": "StringDetect", "attribute": "Comment", "context": "#pop#pop", "String": "\\else" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "#pop", "char": "\\" }
+      ]
+    },
+    "FindBeginEnvironment": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "BeginEnvironment", "char": "{" }
+      ]
+    },
+    "BeginEnvironment": {
+      "attribute": "Environment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Environment", "context": "#pop!VerbatimEnv", "String": "verbatim" },
+        { "type": "StringDetect", "attribute": "Environment", "context": "#pop!VerbatimEnv", "String": "Verbatim" },
+        { "type": "StringDetect", "attribute": "Environment", "context": "#pop!CommentEnv", "String": "comment" },
+        { "type": "StringDetect", "attribute": "Environment", "context": "#pop!MathEnv", "String": "equation" },
+        { "type": "StringDetect", "attribute": "Environment", "context": "#pop!MathEnv", "String": "align" },
+        { "type": "StringDetect", "attribute": "Environment", "context": "#pop!MathEnv", "String": "gather" },
+        { "type": "StringDetect", "attribute": "Environment", "context": "#pop!MathEnv", "String": "displaymath" },
+        { "type": "StringDetect", "attribute": "Environment", "context": "#pop!MathEnv", "String": "math" },
+        { "type": "DetectIdentifier", "attribute": "Environment", "context": "#pop!LatexEnv" }
+      ]
+    },
+    "LatexEnv": {
+      "attribute": "Environment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Environment", "context": "#pop#pop#pop", "char": "}" },
+        { "type": "DetectChar", "attribute": "Environment", "context": "#stay", "char": "*" }
+      ]
+    },
+    "FindEndEnvironment": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "EndEnvironment", "char": "{" }
+      ]
+    },
+    "EndEnvironment": {
+      "attribute": "Environment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Environment", "context": "LatexEnvEnd" },
+        { "type": "DetectChar", "attribute": "Environment", "context": "LatexEnvEnd", "char": "*" }
+      ]
+    },
+    "LatexEnvEnd": {
+      "attribute": "Environment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop#pop", "char": "}" }
+      ]
+    },
+    "VerbatimEnv": {
+      "attribute": "Environment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Environment", "context": "#stay", "char": "*" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop#pop!Verbatim", "char": "}" }
+      ]
+    },
+    "Verbatim": {
+      "attribute": "Verbatim",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Structure", "context": "VerbFindEnd", "String": "\\end" }
+      ]
+    },
+    "VerbFindEnd": {
+      "attribute": "Normal Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#stay", "char": "{" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop#pop#pop#pop#pop", "char": "}" }
+      ]
+    },
+    "CommentEnv": {
+      "attribute": "Environment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Environment", "context": "#stay", "char": "*" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop#pop!BlockComment", "char": "}" }
+      ]
+    },
+    "BlockComment": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Structure", "context": "CommFindEnd", "String": "\\end" }
+      ]
+    },
+    "CommFindEnd": {
+      "attribute": "Normal Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#stay", "char": "{" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop#pop#pop#pop#pop", "char": "}" }
+      ]
+    },
+    "MathEnv": {
+      "attribute": "Environment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Environment", "context": "#stay", "char": "*" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop#pop!MathModeEnv", "char": "}" }
+      ]
+    },
+    "MathModeEnv": {
+      "attribute": "Math",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Structure", "context": "MathEnvFindEnd", "String": "\\end" }
+      ]
+    },
+    "MathEnvFindEnd": {
+      "attribute": "Normal Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#stay", "char": "{" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop#pop#pop#pop#pop", "char": "}" }
+      ]
+    },
+    "MathMode": {
+      "attribute": "Math",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Math", "context": "#pop#pop!MathModeDisplay", "char": "$", "char1": "$" },
+        { "type": "DetectChar", "attribute": "Math", "context": "#pop", "char": "$" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "%" },
+        { "type": "DetectChar", "attribute": "Math", "context": "MathBackslash", "char": "\\", "look-ahead": true },
+        { "type": "DetectIdentifier", "attribute": "Math", "context": "#stay" }
+      ]
+    },
+    "MathModeDisplay": {
+      "attribute": "Math",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Math", "context": "#pop#pop", "char": "$", "char1": "$" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "%" },
+        { "type": "DetectChar", "attribute": "Math", "context": "MathBackslash", "char": "\\", "look-ahead": true },
+        { "type": "DetectIdentifier", "attribute": "Math", "context": "#stay" }
+      ]
+    },
+    "MathModeLatex": {
+      "attribute": "Math",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Math", "context": "#pop", "String": "\\)" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "%" },
+        { "type": "DetectChar", "attribute": "Math", "context": "MathBackslash", "char": "\\", "look-ahead": true },
+        { "type": "DetectIdentifier", "attribute": "Math", "context": "#stay" }
+      ]
+    },
+    "MathModeLatexEquation": {
+      "attribute": "Math",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Math", "context": "#pop", "String": "\\]" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "%" },
+        { "type": "DetectChar", "attribute": "Math", "context": "MathBackslash", "char": "\\", "look-ahead": true },
+        { "type": "DetectIdentifier", "attribute": "Math", "context": "#stay" }
+      ]
+    },
+    "MathBackslash": {
+      "attribute": "Math",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "keyword", "attribute": "Macro Mathmode", "context": "#pop!MathModeText", "String": "mathcmd", "delimiters": " \t\r\n{}[],;" },
+        { "type": "DetectChar", "attribute": "Macro Mathmode", "context": "#pop!MathContrSeq", "char": "\\" }
+      ]
+    },
+    "MathContrSeq": {
+      "attribute": "Macro Mathmode",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Macro Mathmode", "context": "#pop" },
+        { "type": "AnyChar", "attribute": "Macro Mathmode", "context": "#pop", "String": "()[]!.,;:?#$&%_^~ " }
+      ]
+    },
+    "MathModeText": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "MathModeTextInside", "char": "{" }
+      ]
+    },
+    "MathModeTextInside": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "MathModeTextInside", "char": "{" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop", "char": "}" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop!ContrSeq", "char": "\\" },
+        { "type": "DetectIdentifier", "attribute": "Normal Text", "context": "#stay" }
+      ]
+    },
+    "Sectioning": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Sectioning Macro", "context": "#stay", "char": "*" },
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop!SectioningInside", "char": "{" }
+      ]
+    },
+    "SectioningInside": {
+      "attribute": "Sectioning Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "SectioningInside", "char": "{" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop", "char": "}" },
+        { "type": "DetectChar", "attribute": "Sectioning Math", "context": "SectioningMathMode", "char": "$" },
+        { "type": "DetectChar", "attribute": "Sectioning Macro", "context": "#pop!SectioningContrSeq", "char": "\\" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "%" },
+        { "type": "DetectIdentifier", "attribute": "Sectioning Text", "context": "#stay" }
+      ]
+    },
+    "SectioningContrSeq": {
+      "attribute": "Sectioning Macro",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Sectioning Macro", "context": "#pop" }
+      ]
+    },
+    "SectioningMathMode": {
+      "attribute": "Sectioning Math",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Sectioning Math", "context": "#pop", "char": "$" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "%" },
+        { "type": "DetectIdentifier", "attribute": "Sectioning Math", "context": "#stay" }
+      ]
+    },
+    "Label": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "LabelParameter", "char": "{" }
+      ]
+    },
+    "LabelParameter": {
+      "attribute": "Reference",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Reference", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Reference", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop", "char": "}" }
+      ]
+    },
+    "FancyLabel": {
+      "attribute": "Normal Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "FancyLabelParameter", "char": "{" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "FancyLabelOption", "char": "[" }
+      ]
+    },
+    "FancyLabelParameter": {
+      "attribute": "Environment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Environment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Environment", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop#pop", "char": "}" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "FancyLabelParameter", "char": "{" }
+      ]
+    },
+    "FancyLabelOption": {
+      "attribute": "Option Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop", "char": "]" },
+        { "type": "DetectIdentifier", "attribute": "Option Text", "context": "#stay" }
+      ]
+    }
+  }
+}

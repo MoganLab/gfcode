@@ -1,0 +1,878 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Haskell syntax derived from haskell.xml by Nicolas Wu (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: LGPL-2.0-or-later",
+    "name": "Haskell"
+  },
+  "name": "Haskell",
+  "extensions": [
+    "*.hs",
+    "*.hs-boot",
+    "*.lhs"
+  ],
+  "initial-context": "code",
+  "lists": {
+    "keywords": [
+      "case",
+      "class",
+      "data",
+      "deriving",
+      "do",
+      "else",
+      "family",
+      "forall",
+      "if",
+      "in",
+      "infixl",
+      "infixr",
+      "instance",
+      "let",
+      "module",
+      "newtype",
+      "of",
+      "pattern",
+      "primitive",
+      "then",
+      "type",
+      "where"
+    ],
+    "prelude function": [
+      "abs",
+      "acos",
+      "acosh",
+      "all",
+      "and",
+      "any",
+      "appendFile",
+      "approxRational",
+      "asTypeOf",
+      "asin",
+      "asinh",
+      "atan",
+      "atan2",
+      "atanh",
+      "basicIORun",
+      "break",
+      "catch",
+      "ceiling",
+      "chr",
+      "compare",
+      "concat",
+      "concatMap",
+      "const",
+      "cos",
+      "cosh",
+      "curry",
+      "cycle",
+      "decodeFloat",
+      "denominator",
+      "digitToInt",
+      "div",
+      "divMod",
+      "drop",
+      "dropWhile",
+      "either",
+      "elem",
+      "encodeFloat",
+      "enumFrom",
+      "enumFromThen",
+      "enumFromThenTo",
+      "enumFromTo",
+      "error",
+      "even",
+      "exp",
+      "exponent",
+      "fail",
+      "filter",
+      "flip",
+      "floatDigits",
+      "floatRadix",
+      "floatRange",
+      "floor",
+      "fmap",
+      "foldl",
+      "foldl1",
+      "foldMap",
+      "foldr",
+      "foldr1",
+      "fromDouble",
+      "fromEnum",
+      "fromInt",
+      "fromInteger",
+      "fromIntegral",
+      "fromRational",
+      "fst",
+      "gcd",
+      "getChar",
+      "getContents",
+      "getLine",
+      "group",
+      "head",
+      "id",
+      "inRange",
+      "index",
+      "init",
+      "intToDigit",
+      "interact",
+      "ioError",
+      "isAlpha",
+      "isAlphaNum",
+      "isAscii",
+      "isControl",
+      "isDenormalized",
+      "isDigit",
+      "isHexDigit",
+      "isIEEE",
+      "isInfinite",
+      "isLower",
+      "isNaN",
+      "isNegativeZero",
+      "isOctDigit",
+      "isPrint",
+      "isSpace",
+      "isUpper",
+      "iterate",
+      "last",
+      "lcm",
+      "length",
+      "lex",
+      "lexDigits",
+      "lexLitChar",
+      "lines",
+      "log",
+      "logBase",
+      "lookup",
+      "map",
+      "mappend",
+      "mapM",
+      "mapM_",
+      "max",
+      "maxBound",
+      "maximum",
+      "maybe",
+      "mconcat",
+      "mempty",
+      "min",
+      "minBound",
+      "minimum",
+      "mod",
+      "negate",
+      "not",
+      "notElem",
+      "null",
+      "numerator",
+      "odd",
+      "or",
+      "ord",
+      "otherwise",
+      "pack",
+      "pi",
+      "pred",
+      "primExitWith",
+      "print",
+      "product",
+      "properFraction",
+      "pure",
+      "putChar",
+      "putStr",
+      "putStrLn",
+      "quot",
+      "quotRem",
+      "range",
+      "rangeSize",
+      "read",
+      "readDec",
+      "readFile",
+      "readFloat",
+      "readHex",
+      "readIO",
+      "readInt",
+      "readList",
+      "readLitChar",
+      "readLn",
+      "readOct",
+      "readParen",
+      "readSigned",
+      "reads",
+      "readsPrec",
+      "realToFrac",
+      "recip",
+      "rem",
+      "repeat",
+      "replicate",
+      "return",
+      "reverse",
+      "round",
+      "scaleFloat",
+      "scanl",
+      "scanl1",
+      "scanr",
+      "scanr1",
+      "seq",
+      "sequence",
+      "sequenceA",
+      "sequence_",
+      "show",
+      "showChar",
+      "showInt",
+      "showList",
+      "showLitChar",
+      "showParen",
+      "showSigned",
+      "showString",
+      "shows",
+      "showsPrec",
+      "significand",
+      "signum",
+      "sin",
+      "sinh",
+      "snd",
+      "sort",
+      "span",
+      "splitAt",
+      "sqrt",
+      "subtract",
+      "succ",
+      "sum",
+      "tail",
+      "take",
+      "takeWhile",
+      "tan",
+      "tanh",
+      "threadToIOResult",
+      "toEnum",
+      "toInt",
+      "toInteger",
+      "toLower",
+      "toRational",
+      "toUpper",
+      "traverse",
+      "truncate",
+      "uncurry",
+      "undefined",
+      "unlines",
+      "until",
+      "unwords",
+      "unzip",
+      "unzip3",
+      "userError",
+      "words",
+      "writeFile",
+      "zip",
+      "zip3",
+      "zipWith",
+      "zipWith3"
+    ],
+    "prelude type": [
+      "Bool",
+      "ByteString",
+      "Char",
+      "Double",
+      "Either",
+      "FilePath",
+      "Float",
+      "Int",
+      "Integer",
+      "IO",
+      "IOError",
+      "Maybe",
+      "Ordering",
+      "Ratio",
+      "Rational",
+      "ReadS",
+      "ShowS",
+      "String",
+      "Word"
+    ],
+    "prelude data": [
+      "False",
+      "True",
+      "Left",
+      "Right",
+      "Just",
+      "Nothing",
+      "EQ",
+      "LT",
+      "GT"
+    ],
+    "prelude class": [
+      "Applicative",
+      "Bounded",
+      "Enum",
+      "Eq",
+      "Floating",
+      "Foldable",
+      "Fractional",
+      "Functor",
+      "Integral",
+      "Ix",
+      "Monad",
+      "Monoid",
+      "Num",
+      "Ord",
+      "Read",
+      "Real",
+      "RealFloat",
+      "RealFrac",
+      "Show",
+      "Traversable"
+    ],
+    "import_keywords": [
+      "as",
+      "qualified",
+      "hiding"
+    ],
+    "language_pragmas": [
+      "AllowAmbiguousTypes",
+      "ApplicativeDo",
+      "Arrows",
+      "AutoDeriveTypeable",
+      "BangPatterns",
+      "BinaryLiterals",
+      "CApiFFI",
+      "CPP",
+      "ConstrainedClassMethods",
+      "ConstraintKinds",
+      "DataKinds",
+      "DatatypeContexts",
+      "DefaultSignatures",
+      "DeriveAnyClass",
+      "DeriveDataTypeable",
+      "DeriveFoldable",
+      "DeriveFunctor",
+      "DeriveGeneric",
+      "DeriveLift",
+      "DeriveTraversable",
+      "DisambiguateRecordFields",
+      "DoAndIfThenElse",
+      "DoRec",
+      "DuplicateRecordFields",
+      "EmptyCase",
+      "EmptyDataDecls",
+      "ExistentialQuantification",
+      "ExplicitForAll",
+      "ExplicitNamespaces",
+      "ExtendedDefaultRules",
+      "ExtensibleRecords",
+      "FlexibleContexts",
+      "FlexibleInstances",
+      "ForeignFunctionInterface",
+      "FunctionalDependencies",
+      "GADTSyntax",
+      "GADTs",
+      "GHCForeignImportPrim",
+      "GeneralizedNewtypeDeriving",
+      "Generics",
+      "HereDocuments",
+      "ImplicitParams",
+      "ImplicitPrelude",
+      "ImpredicativeTypes",
+      "IncoherentInstances",
+      "InstanceSigs",
+      "InterruptibleFFI",
+      "JavaScriptFFI",
+      "KindSignatures",
+      "LambdaCase",
+      "LiberalTypeSynonyms",
+      "MagicHash",
+      "MonadComprehensions",
+      "MonadFailDesugaring",
+      "MonoLocalBinds",
+      "MonoPatBinds",
+      "MonomorphismRestriction",
+      "MultiParamTypeClasses",
+      "MultiWayIf",
+      "NPlusKPatterns",
+      "NamedFieldPuns",
+      "NamedWildCards",
+      "NegativeLiterals",
+      "NewQualifiedOperators",
+      "NondecreasingIndentation",
+      "NullaryTypeClasses",
+      "NumDecimals",
+      "OverlappingInstances",
+      "OverloadedLabels",
+      "OverloadedLists",
+      "OverloadedStrings",
+      "PackageImports",
+      "ParallelArrays",
+      "ParallelListComp",
+      "PartialTypeSignatures",
+      "PatternGuards",
+      "PatternSignatures",
+      "PatternSynonyms",
+      "PolyKinds",
+      "PolymorphicComponents",
+      "PostfixOperators",
+      "QuasiQuotes",
+      "Rank2Types",
+      "RankNTypes",
+      "RebindableSyntax",
+      "RecordPuns",
+      "RecordWildCards",
+      "RecursiveDo",
+      "RegularPatterns",
+      "RelaxedPolyRec",
+      "RestrictedTypeSynonyms",
+      "RoleAnnotations",
+      "Safe",
+      "SafeImports",
+      "ScopedTypeVariables",
+      "StandaloneDeriving",
+      "StaticPointers",
+      "Strict",
+      "StrictData",
+      "TemplateHaskell",
+      "TemplateHaskellQuotes",
+      "TraditionalRecordSyntax",
+      "TransformListComp",
+      "Trustworthy",
+      "TupleSections",
+      "TypeApplications",
+      "TypeFamilies",
+      "TypeInType",
+      "TypeOperators",
+      "TypeSynonymInstances",
+      "UnboxedTuples",
+      "UndecidableInstances",
+      "UndecidableSuperClasses",
+      "UnicodeSyntax",
+      "UnliftedFFITypes",
+      "Unsafe",
+      "ViewPatterns",
+      "XmlSyntax"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Comment": "Comment",
+    "Pragma": "Others",
+    "Keyword": "Keyword",
+    "Type Prelude": "DataType",
+    "Function Prelude": "Function",
+    "Data Prelude": "DataType",
+    "Class Prelude": "DataType",
+    "Signature": "Others",
+    "Function": "Normal",
+    "Operator": "Operator",
+    "Type": "DataType",
+    "Special": "Others",
+    "Octal": "BaseN",
+    "Hex": "BaseN",
+    "Decimal": "DecVal",
+    "Float": "Float",
+    "Char": "Char",
+    "String": "String",
+    "Function Infix": "Others",
+    "EnumFromTo": "Others",
+    "Error": "Error"
+  },
+  "contexts": {
+    "code": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        {
+          "type": "StringDetect",
+          "attribute": "Pragma",
+          "context": "pragma",
+          "String": "{-#"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "Comment",
+          "context": "block-comment",
+          "char": "{",
+          "char1": "-"
+        },
+        {
+          "type": "StringDetect",
+          "attribute": "Comment",
+          "context": "line-comment",
+          "String": "--"
+        },
+        {
+          "type": "WordDetect",
+          "attribute": "Keyword",
+          "context": "import-ctx",
+          "String": "import",
+          "delimiters": " \t\r\n()[]{}\"'`;,."
+        },
+        {
+          "type": "keyword",
+          "attribute": "Keyword",
+          "context": "#stay",
+          "String": "keywords",
+          "delimiters": " \t\r\n()[]{}\"'`;,."
+        },
+        {
+          "type": "keyword",
+          "attribute": "Function Prelude",
+          "context": "#stay",
+          "String": "prelude function",
+          "delimiters": " \t\r\n()[]{}\"'`;,."
+        },
+        {
+          "type": "keyword",
+          "attribute": "Type Prelude",
+          "context": "#stay",
+          "String": "prelude type",
+          "delimiters": " \t\r\n()[]{}\"'`;,."
+        },
+        {
+          "type": "keyword",
+          "attribute": "Data Prelude",
+          "context": "#stay",
+          "String": "prelude data",
+          "delimiters": " \t\r\n()[]{}\"'`;,."
+        },
+        {
+          "type": "keyword",
+          "attribute": "Class Prelude",
+          "context": "#stay",
+          "String": "prelude class",
+          "delimiters": " \t\r\n()[]{}\"'`;,."
+        },
+        {
+          "type": "DetectChar",
+          "attribute": "Char",
+          "context": "char",
+          "char": "'"
+        },
+        {
+          "type": "DetectChar",
+          "attribute": "String",
+          "context": "string",
+          "char": "\""
+        },
+        {
+          "type": "DetectChar",
+          "attribute": "Function Infix",
+          "context": "infix",
+          "char": "`"
+        },
+        {
+          "type": "Hex",
+          "attribute": "Hex",
+          "context": "#stay"
+        },
+        {
+          "type": "Float",
+          "attribute": "Float",
+          "context": "#stay"
+        },
+        {
+          "type": "Int",
+          "attribute": "Decimal",
+          "context": "#stay"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "EnumFromTo",
+          "context": "#stay",
+          "char": ".",
+          "char1": "."
+        },
+        {
+          "type": "AnyChar",
+          "attribute": "Operator",
+          "context": "#stay",
+          "String": "!#$%&*+/<=>?@^|~.:;-\\"
+        },
+        {
+          "type": "AnyChar",
+          "attribute": "Normal",
+          "context": "#stay",
+          "String": "()[]{},_"
+        },
+        {
+          "type": "DetectIdentifier",
+          "attribute": "Normal",
+          "context": "#stay"
+        }
+      ]
+    },
+    "pragma": {
+      "attribute": "Pragma",
+      "line-end-context": "#stay",
+      "rules": [
+        {
+          "type": "DetectSpaces",
+          "attribute": "Pragma",
+          "context": "#stay"
+        },
+        {
+          "type": "keyword",
+          "attribute": "Pragma",
+          "context": "#stay",
+          "String": "language_pragmas",
+          "delimiters": " \t\r\n()[]{}\"'`;,."
+        },
+        {
+          "type": "DetectIdentifier",
+          "attribute": "Pragma",
+          "context": "#stay"
+        },
+        {
+          "type": "StringDetect",
+          "attribute": "Pragma",
+          "context": "#pop",
+          "String": "#-}"
+        },
+        {
+          "type": "AnyChar",
+          "attribute": "Pragma",
+          "context": "#stay",
+          "String": ",()[]"
+        }
+      ]
+    },
+    "line-comment": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        {
+          "type": "DetectSpaces",
+          "attribute": "Comment",
+          "context": "#stay"
+        },
+        {
+          "type": "DetectIdentifier",
+          "attribute": "Comment",
+          "context": "#stay"
+        },
+        {
+          "type": "AnyChar",
+          "attribute": "Comment",
+          "context": "#stay",
+          "String": "+-*/%=<>!&|^~?:;.,()[]{}#@$'\"`"
+        }
+      ]
+    },
+    "block-comment": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        {
+          "type": "Detect2Chars",
+          "attribute": "Comment",
+          "context": "block-comment",
+          "char": "{",
+          "char1": "-"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "Comment",
+          "context": "#pop",
+          "char": "-",
+          "char1": "}"
+        },
+        {
+          "type": "DetectSpaces",
+          "attribute": "Comment",
+          "context": "#stay"
+        },
+        {
+          "type": "DetectIdentifier",
+          "attribute": "Comment",
+          "context": "#stay"
+        },
+        {
+          "type": "AnyChar",
+          "attribute": "Comment",
+          "context": "#stay",
+          "String": "+-*/%=<>!&|^~?:;.,()[]{}#@$'\"`"
+        }
+      ]
+    },
+    "char": {
+      "attribute": "Char",
+      "line-end-context": "#pop",
+      "rules": [
+        {
+          "type": "DetectChar",
+          "attribute": "Char",
+          "context": "#pop",
+          "char": "'"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "Char",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "\\"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "Char",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "'"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "Char",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "n"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "Char",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "t"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "Char",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "r"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "Char",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "0"
+        },
+        {
+          "type": "DetectChar",
+          "attribute": "Char",
+          "context": "#stay",
+          "char": "\\"
+        }
+      ]
+    },
+    "string": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        {
+          "type": "DetectChar",
+          "attribute": "String",
+          "context": "#pop",
+          "char": "\""
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "String",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "\\"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "String",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "\""
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "String",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "n"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "String",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "t"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "String",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "r"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "String",
+          "context": "#stay",
+          "char": "\\",
+          "char1": "0"
+        }
+      ]
+    },
+    "infix": {
+      "attribute": "Function Infix",
+      "line-end-context": "#stay",
+      "rules": [
+        {
+          "type": "DetectChar",
+          "attribute": "Function Infix",
+          "context": "#pop",
+          "char": "`"
+        },
+        {
+          "type": "keyword",
+          "attribute": "Function Prelude",
+          "context": "#stay",
+          "String": "prelude function",
+          "delimiters": " \t\r\n()[]{}\"'`;,."
+        },
+        {
+          "type": "DetectIdentifier",
+          "attribute": "Function Infix",
+          "context": "#stay"
+        }
+      ]
+    },
+    "import-ctx": {
+      "attribute": "Normal",
+      "line-end-context": "#pop",
+      "rules": [
+        {
+          "type": "DetectSpaces",
+          "attribute": "Normal",
+          "context": "#stay"
+        },
+        {
+          "type": "keyword",
+          "attribute": "Keyword",
+          "context": "#stay",
+          "String": "import_keywords",
+          "delimiters": " \t\r\n()[]{}\"'`;,."
+        },
+        {
+          "type": "StringDetect",
+          "attribute": "Comment",
+          "context": "line-comment",
+          "String": "--"
+        },
+        {
+          "type": "Detect2Chars",
+          "attribute": "Comment",
+          "context": "block-comment",
+          "char": "{",
+          "char1": "-"
+        },
+        {
+          "type": "DetectIdentifier",
+          "attribute": "Type",
+          "context": "#stay"
+        },
+        {
+          "type": "DetectChar",
+          "attribute": "Operator",
+          "context": "#stay",
+          "char": "("
+        },
+        {
+          "type": "DetectChar",
+          "attribute": "Operator",
+          "context": "#stay",
+          "char": ")"
+        }
+      ]
+    }
+  }
+}

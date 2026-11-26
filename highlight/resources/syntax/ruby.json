@@ -1,0 +1,240 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Ruby syntax derived from ruby.xml by Sebastian Pipping and the KDE syntax-highlighting authors"
+    ],
+    "license": "SPDX-License-Identifier: LGPL-2.0-or-later",
+    "name": "Ruby"
+  },
+  "name": "Ruby",
+  "extensions": [
+    "*.rb",
+    "*.gemspec",
+    "*.rake",
+    "Gemfile",
+    "Rakefile",
+    "*.ru",
+    "*.jruby",
+    "*.rbx"
+  ],
+  "initial-context": "Ruby",
+  "lists": {
+    "keyword": [
+      "class", "def", "end", "ensure", "when", "begin", "do", "case",
+      "module", "if", "unless", "else", "elsif", "rescue", "for",
+      "until", "while", "break", "defined?", "in", "next", "redo",
+      "retry", "return", "yield", "and", "not", "or", "then", "BEGIN",
+      "END"
+    ],
+    "definitions": [
+      "alias", "module", "class", "def", "undef"
+    ],
+    "access-control": [
+      "private_class_method", "private", "protected",
+      "public_class_method", "public"
+    ],
+    "attribute-definitions": [
+      "attr_reader", "attr_writer", "attr_accessor"
+    ],
+    "pseudo-variables": [
+      "self", "super", "nil", "false", "true", "caller", "__FILE__",
+      "__LINE__"
+    ],
+    "default-globals": [
+      "$stdout", "$stderr", "$stdin"
+    ],
+    "kernel-methods": [
+      "abort", "at_exit", "autoload", "autoload?", "binding",
+      "block_given?", "callcc", "caller", "catch", "chomp", "chomp!",
+      "chop", "chop!", "eval", "exec", "exit", "exit!", "fail", "fork",
+      "format", "getc", "gets", "global_variables", "gsub", "gsub!",
+      "iterator?", "lambda", "load", "local_variables", "loop",
+      "method_missing", "open", "p", "print", "printf", "proc", "putc",
+      "puts", "raise", "rand", "readline", "readlines", "require",
+      "require_relative", "scan", "select", "set_trace_func", "sleep",
+      "split", "sprintf", "srand", "sub", "sub!", "syscall", "system",
+      "test", "throw", "trace_var", "trap", "untrace_var", "warn"
+    ],
+    "mixin-methods": [
+      "extend", "include", "prepend", "refine", "using"
+    ]
+  },
+  "item-datas": {
+    "Normal Text": "Normal",
+    "Keyword": "ControlFlow",
+    "Attribute Definition": "Others",
+    "Access Control": "Attribute",
+    "Definition": "Keyword",
+    "Pseudo variable": "DecVal",
+    "Dec": "DecVal",
+    "Float": "Float",
+    "Octal": "BaseN",
+    "Hex": "BaseN",
+    "Bin": "BaseN",
+    "Symbol": "Warning",
+    "String": "String",
+    "String Char": "SpecialChar",
+    "Raw String": "VerbatimString",
+    "Char": "Char",
+    "Command": "Information",
+    "Regular Expression": "SpecialString",
+    "Substitution": "SpecialChar",
+    "Default globals": "Variable",
+    "Global Variable": "Variable",
+    "Global Constant": "Constant",
+    "Constant": "DataType",
+    "Kernel methods": "Function",
+    "Module mixin methods": "Function",
+    "Member": "Attribute",
+    "Instance Variable": "Others",
+    "Class Variable": "Others",
+    "Comment": "Comment",
+    "Blockcomment": "Comment",
+    "Delimiter": "Keyword",
+    "Operator": "Operator",
+    "Error": "Error"
+  },
+  "contexts": {
+    "shebang": {
+      "attribute": "Keyword",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Keyword", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Keyword", "context": "#stay", "String": "/._-:" }
+      ]
+    },
+    "Ruby": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Keyword", "context": "shebang", "String": "#!/", "column": 0 },
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": "#" },
+        { "type": "WordDetect", "attribute": "Blockcomment", "context": "embedded-doc", "String": "=begin", "column": 0 },
+        { "type": "DetectChar", "attribute": "Operator", "context": "#stay", "char": "{" },
+        { "type": "DetectChar", "attribute": "Operator", "context": "#stay", "char": "}" },
+        { "type": "DetectChar", "attribute": "Delimiter", "context": "#stay", "char": "[" },
+        { "type": "DetectChar", "attribute": "Delimiter", "context": "#stay", "char": "]" },
+        { "type": "AnyChar", "attribute": "Normal Text", "context": "#stay", "String": ";()" },
+        { "type": "DetectChar", "attribute": "Member", "context": "member", "char": "." },
+        { "type": "StringDetect", "attribute": "Operator", "context": "member", "String": "::" },
+        { "type": "Detect2Chars", "attribute": "Raw String", "context": "squote", "char": "'", "char1": "'" },
+        { "type": "DetectChar", "attribute": "Raw String", "context": "squote", "char": "'" },
+        { "type": "DetectChar", "attribute": "String", "context": "dquote", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Command", "context": "command", "char": "`" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "symbol", "char": ":" },
+        { "type": "Hex", "attribute": "Hex", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "Dec", "context": "#stay" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keyword", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?:" },
+        { "type": "keyword", "attribute": "Definition", "context": "#stay", "String": "definitions", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?:" },
+        { "type": "keyword", "attribute": "Access Control", "context": "#stay", "String": "access-control", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?:" },
+        { "type": "keyword", "attribute": "Attribute Definition", "context": "#stay", "String": "attribute-definitions", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?:" },
+        { "type": "keyword", "attribute": "Pseudo variable", "context": "#stay", "String": "pseudo-variables", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?:" },
+        { "type": "keyword", "attribute": "Kernel methods", "context": "#stay", "String": "kernel-methods", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?:" },
+        { "type": "keyword", "attribute": "Module mixin methods", "context": "#stay", "String": "mixin-methods", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?:" },
+        { "type": "keyword", "attribute": "Default globals", "context": "#stay", "String": "default-globals", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?:" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "<" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "=", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "!", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "*", "char1": "*" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "&", "char1": "&" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "|", "char1": "|" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=<>!&|^~?:" },
+        { "type": "DetectIdentifier", "attribute": "Normal Text", "context": "#stay" }
+      ]
+    },
+    "comment": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@'\"\\`" }
+      ]
+    },
+    "embedded-doc": {
+      "attribute": "Blockcomment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "WordDetect", "attribute": "Comment", "context": "#pop", "String": "=end", "column": 0 },
+        { "type": "DetectSpaces", "attribute": "Blockcomment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Blockcomment", "context": "#stay" }
+      ]
+    },
+    "dquote": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "Substitution", "context": "subst", "char": "#", "char1": "{" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "u" }
+      ]
+    },
+    "squote": {
+      "attribute": "Raw String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Raw String", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "Raw String", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "Raw String", "context": "#stay", "char": "\\", "char1": "'" }
+      ]
+    },
+    "command": {
+      "attribute": "Command",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Command", "context": "#pop", "char": "`" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "`" }
+      ]
+    },
+    "symbol": {
+      "attribute": "Symbol",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Symbol", "context": "#pop" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "symbol-quoted", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "symbol-quoted", "char": "'" },
+        { "type": "AnyChar", "attribute": "Symbol", "context": "#pop", "String": "+-*/%=<>!&|^~?:" }
+      ]
+    },
+    "symbol-quoted": {
+      "attribute": "Symbol",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop", "char": "'" },
+        { "type": "DetectIdentifier", "attribute": "Symbol", "context": "#stay" }
+      ]
+    },
+    "subst": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Substitution", "context": "#pop", "char": "}" },
+        { "type": "DetectIdentifier", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]" }
+      ]
+    },
+    "member": {
+      "attribute": "Normal Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Member", "context": "#stay", "char": "." },
+        { "type": "DetectIdentifier", "attribute": "Member", "context": "#pop" },
+        { "type": "AnyChar", "attribute": "Member", "context": "#pop", "String": "!?=" }
+      ]
+    }
+  }
+}

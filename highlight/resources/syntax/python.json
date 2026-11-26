@@ -1,0 +1,415 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Python syntax derived from python.xml by Michael Bueker, Paul Giannaros and others (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Python"
+  },
+  "name": "Python",
+  "extensions": [
+    "*.py",
+    "*.pyw",
+    "*.pyi",
+    "SConstruct",
+    "SConscript",
+    "*.FCMacro",
+    "*.sage"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "import": [
+      "import", "from", "as"
+    ],
+    "defs": [
+      "class", "def", "del", "global", "lambda", "nonlocal"
+    ],
+    "operators": [
+      "and", "in", "is", "not", "or"
+    ],
+    "flow": [
+      "assert", "break", "continue", "elif", "else", "except", "finally",
+      "for", "if", "pass", "raise", "return", "try", "while", "with",
+      "async", "await"
+    ],
+    "flow_yield": [
+      "yield"
+    ],
+    "patternmatching": [
+      "match", "case"
+    ],
+    "builtinfuncs": [
+      "__import__", "abs", "aiter", "all", "anext", "any", "apply", "ascii",
+      "basestring", "bin", "breakpoint", "bool", "buffer", "bytearray",
+      "bytes", "callable", "chr", "classmethod", "cmp", "coerce", "compile",
+      "complex", "delattr", "dict", "dir", "divmod", "enumerate", "eval",
+      "exec", "execfile", "file", "filter", "float", "format", "frozendict",
+      "frozenset", "getattr", "globals", "hasattr", "hash", "help", "hex",
+      "id", "input", "int", "intern", "isinstance", "issubclass", "iter",
+      "len", "list", "locals", "long", "map", "max", "memoryview", "min",
+      "next", "object", "oct", "open", "ord", "pow", "print", "property",
+      "range", "raw_input", "reduce", "reload", "repr", "reversed", "round",
+      "set", "setattr", "slice", "sorted", "staticmethod", "str", "sum",
+      "super", "tuple", "type", "unichr", "unicode", "vars", "xrange", "zip"
+    ],
+    "specialvars": [
+      "None", "self", "True", "False", "NotImplemented", "Ellipsis",
+      "__all__", "__class__", "__debug__", "__file__", "__name__",
+      "__qualname__", "__slots__"
+    ],
+    "overloaders": [
+      "__new__", "__init__", "__del__", "__repr__", "__str__", "__lt__",
+      "__le__", "__eq__", "__ne__", "__gt__", "__ge__", "__cmp__", "__rcmp__",
+      "__hash__", "__bool__", "__nonzero__", "__unicode__", "__getattr__",
+      "__setattr__", "__delattr__", "__getattribute__", "__get__", "__set__",
+      "__delete__", "__call__", "__len__", "__length_hint__", "__getitem__",
+      "__setitem__", "__delitem__", "__missing__", "__iter__", "__reversed__",
+      "__contains__", "__getslice__", "__setslice__", "__delslice__",
+      "__add__", "__sub__", "__mul__", "__matmul__", "__floordiv__", "__mod__",
+      "__divmod__", "__pow__", "__lshift__", "__rshift__", "__and__",
+      "__xor__", "__or__", "__div__", "__truediv__", "__radd__", "__rsub__",
+      "__rmul__", "__rmatmul__", "__rdiv__", "__rtruediv__", "__rfloordiv__",
+      "__rmod__", "__rdivmod__", "__rpow__", "__rlshift__", "__rrshift__",
+      "__rand__", "__rxor__", "__ror__", "__iadd__", "__isub__", "__imul__",
+      "__imatmul__", "__idiv__", "__itruediv__", "__ifloordiv__", "__imod__",
+      "__ipow__", "__ilshift__", "__irshift__", "__iand__", "__ixor__",
+      "__ior__", "__neg__", "__pos__", "__abs__", "__invert__", "__complex__",
+      "__int__", "__long__", "__float__", "__oct__", "__hex__", "__index__",
+      "__round__", "__trunc__", "__floor__", "__ceil__", "__coerce__",
+      "__enter__", "__exit__", "__match_args__", "__buffer__",
+      "__release_buffer__", "__bytes__", "__format__", "__next__", "__dir__",
+      "__await__", "__aiter__", "__anext__", "__aenter__", "__aexit__",
+      "__init_subclass__", "__set_name__", "__prepare__", "__instancecheck__",
+      "__subclasscheck__", "__class_getitem__"
+    ],
+    "exceptions": [
+      "ArithmeticError", "AssertionError", "AttributeError", "BaseException",
+      "BlockingIOError", "BrokenPipeError", "BufferError", "BytesWarning",
+      "ChildProcessError", "ConnectionAbortedError", "ConnectionError",
+      "ConnectionRefusedError", "ConnectionResetError", "DeprecationWarning",
+      "EnvironmentError", "EOFError", "EncodingWarning", "Exception",
+      "FileExistsError", "FileNotFoundError", "FloatingPointError",
+      "FutureWarning", "GeneratorExit", "ImportError", "ImportWarning",
+      "IndentationError", "IndexError", "InterruptedError", "IOError",
+      "IsADirectoryError", "KeyboardInterrupt", "KeyError", "LookupError",
+      "MemoryError", "ModuleNotFoundError", "NameError", "NotADirectoryError",
+      "NotImplementedError", "OSError", "OverflowError",
+      "PendingDeprecationWarning", "PermissionError", "ProcessLookupError",
+      "RecursionError", "ReferenceError", "ResourceWarning", "RuntimeError",
+      "RuntimeWarning", "StandardError", "StopAsyncIteration",
+      "StopIteration", "SyntaxError", "SyntaxWarning", "SystemError",
+      "SystemExit", "TabError", "TimeoutError", "TypeError",
+      "UnboundLocalError", "UnicodeDecodeError", "UnicodeEncodeError",
+      "UnicodeError", "UnicodeTranslateError", "UnicodeWarning",
+      "UserWarning", "ValueError", "Warning", "WindowsError",
+      "ZeroDivisionError"
+    ]
+  },
+  "item-datas": {
+    "Normal Text": "Normal",
+    "Flow Control Keyword": "ControlFlow",
+    "Operator Keyword": "Keyword",
+    "Builtin Function": "BuiltIn",
+    "Definition Keyword": "Keyword",
+    "Import": "Import",
+    "Exceptions": "BuiltIn",
+    "Overloaders": "Function",
+    "Special Variable": "Constant",
+    "Decorator": "Attribute",
+    "String": "String",
+    "Raw String": "VerbatimString",
+    "F-String": "SpecialString",
+    "String Char": "SpecialChar",
+    "String Substitution": "SpecialChar",
+    "Comment": "Comment",
+    "Float": "Float",
+    "Int": "DecVal",
+    "Hex": "BaseN",
+    "Operator": "Operator",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "hash-comment", "char": "#" },
+        { "type": "DetectChar", "attribute": "Decorator", "context": "decorator", "char": "@", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "String", "context": "triple-d", "String": "\"\"\"" },
+        { "type": "StringDetect", "attribute": "String", "context": "triple-s", "String": "'''" },
+        { "type": "StringDetect", "attribute": "Raw String", "context": "raw-triple-d", "String": "r\"\"\"" },
+        { "type": "StringDetect", "attribute": "Raw String", "context": "raw-triple-d", "String": "R\"\"\"" },
+        { "type": "StringDetect", "attribute": "Raw String", "context": "raw-triple-s", "String": "r'''" },
+        { "type": "StringDetect", "attribute": "Raw String", "context": "raw-triple-s", "String": "R'''" },
+        { "type": "StringDetect", "attribute": "F-String", "context": "f-triple-d", "String": "f\"\"\"" },
+        { "type": "StringDetect", "attribute": "F-String", "context": "f-triple-d", "String": "F\"\"\"" },
+        { "type": "StringDetect", "attribute": "F-String", "context": "f-triple-s", "String": "f'''" },
+        { "type": "StringDetect", "attribute": "F-String", "context": "f-triple-s", "String": "F'''" },
+        { "type": "StringDetect", "attribute": "Raw String", "context": "raw-string-d", "String": "r\"" },
+        { "type": "StringDetect", "attribute": "Raw String", "context": "raw-string-d", "String": "R\"" },
+        { "type": "StringDetect", "attribute": "Raw String", "context": "raw-string-s", "String": "r'" },
+        { "type": "StringDetect", "attribute": "Raw String", "context": "raw-string-s", "String": "R'" },
+        { "type": "StringDetect", "attribute": "F-String", "context": "f-string-d", "String": "f\"" },
+        { "type": "StringDetect", "attribute": "F-String", "context": "f-string-d", "String": "F\"" },
+        { "type": "StringDetect", "attribute": "F-String", "context": "f-string-s", "String": "f'" },
+        { "type": "StringDetect", "attribute": "F-String", "context": "f-string-s", "String": "F'" },
+        { "type": "StringDetect", "attribute": "String", "context": "bytes-string-d", "String": "b\"" },
+        { "type": "StringDetect", "attribute": "String", "context": "bytes-string-d", "String": "B\"" },
+        { "type": "StringDetect", "attribute": "String", "context": "bytes-string-s", "String": "b'" },
+        { "type": "StringDetect", "attribute": "String", "context": "bytes-string-s", "String": "B'" },
+        { "type": "StringDetect", "attribute": "String", "context": "string-d", "String": "u\"" },
+        { "type": "StringDetect", "attribute": "String", "context": "string-s", "String": "u'" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-d", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-s", "char": "'" },
+        { "type": "Hex", "attribute": "Hex", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "Int", "context": "#stay" },
+        { "type": "keyword", "attribute": "Special Variable", "context": "#stay", "String": "specialvars" },
+        { "type": "keyword", "attribute": "Flow Control Keyword", "context": "#stay", "String": "flow" },
+        { "type": "keyword", "attribute": "Operator Keyword", "context": "#stay", "String": "operators" },
+        { "type": "keyword", "attribute": "Builtin Function", "context": "#stay", "String": "builtinfuncs" },
+        { "type": "keyword", "attribute": "Definition Keyword", "context": "#stay", "String": "defs" },
+        { "type": "keyword", "attribute": "Flow Control Keyword", "context": "#stay", "String": "flow_yield" },
+        { "type": "keyword", "attribute": "Flow Control Keyword", "context": "#stay", "String": "patternmatching" },
+        { "type": "keyword", "attribute": "Import", "context": "#stay", "String": "import" },
+        { "type": "keyword", "attribute": "Exceptions", "context": "#stay", "String": "exceptions" },
+        { "type": "keyword", "attribute": "Overloaders", "context": "#stay", "String": "overloaders" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "*", "char1": "*" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "/", "char1": "/" },
+        { "type": "StringDetect", "attribute": "Operator", "context": "#stay", "String": "//" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "=", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "!", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "<" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "&", "char1": "&" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "|", "char1": "|" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ":", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "-", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "@", "char1": "=" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+*/%=<>!^&~-@:,.()[]{};" }
+      ]
+    },
+    "hash-comment": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#'\"\\@" }
+      ]
+    },
+    "decorator": {
+      "attribute": "Decorator",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Decorator", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Decorator", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Decorator", "context": "decorator-arg", "char": "(" },
+        { "type": "DetectChar", "attribute": "Decorator", "context": "#stay", "char": "." }
+      ]
+    },
+    "decorator-arg": {
+      "attribute": "Decorator",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Decorator", "context": "#pop#pop", "char": ")" },
+        { "type": "DetectSpaces", "attribute": "Decorator", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Decorator", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Decorator", "context": "#stay", "String": ",.+-*/%=<>!&|^~?:;[]{}@'\"" }
+      ]
+    },
+    "triple-d": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "String", "context": "#pop", "String": "\"\"\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "x" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "u" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "U" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "N" }
+      ]
+    },
+    "triple-s": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "String", "context": "#pop", "String": "'''" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "x" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "u" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "U" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "N" }
+      ]
+    },
+    "raw-triple-d": {
+      "attribute": "Raw String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Raw String", "context": "#pop", "String": "\"\"\"" }
+      ]
+    },
+    "raw-triple-s": {
+      "attribute": "Raw String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Raw String", "context": "#pop", "String": "'''" }
+      ]
+    },
+    "string-d": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "x" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "u" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "U" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "N" }
+      ]
+    },
+    "string-s": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "x" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "u" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "U" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "N" }
+      ]
+    },
+    "raw-string-d": {
+      "attribute": "Raw String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Raw String", "context": "#pop", "char": "\"" }
+      ]
+    },
+    "raw-string-s": {
+      "attribute": "Raw String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Raw String", "context": "#pop", "char": "'" }
+      ]
+    },
+    "f-string-d": {
+      "attribute": "F-String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "F-String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "F-String", "context": "f-expr", "char": "{", "char1": "{" },
+        { "type": "DetectChar", "attribute": "F-String", "context": "f-expr", "char": "{" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "r" }
+      ]
+    },
+    "f-string-s": {
+      "attribute": "F-String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "F-String", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "F-String", "context": "f-expr", "char": "{", "char1": "{" },
+        { "type": "DetectChar", "attribute": "F-String", "context": "f-expr", "char": "{" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "r" }
+      ]
+    },
+    "f-triple-d": {
+      "attribute": "F-String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "F-String", "context": "#pop", "String": "\"\"\"" },
+        { "type": "Detect2Chars", "attribute": "F-String", "context": "f-expr", "char": "{", "char1": "{" },
+        { "type": "DetectChar", "attribute": "F-String", "context": "f-expr", "char": "{" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" }
+      ]
+    },
+    "f-triple-s": {
+      "attribute": "F-String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "F-String", "context": "#pop", "String": "'''" },
+        { "type": "Detect2Chars", "attribute": "F-String", "context": "f-expr", "char": "{", "char1": "{" },
+        { "type": "DetectChar", "attribute": "F-String", "context": "f-expr", "char": "{" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" }
+      ]
+    },
+    "f-expr": {
+      "attribute": "F-String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "F-String", "context": "#pop", "char": "}" },
+        { "type": "DetectIdentifier", "attribute": "F-String", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "F-String", "context": "#stay", "String": "0123456789.[]!:.,+-*/%<>=&|^~" }
+      ]
+    },
+    "bytes-string-d": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "x" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    },
+    "bytes-string-s": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "x" },
+        { "type": "Detect2Chars", "attribute": "String Char", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    }
+  }
+}

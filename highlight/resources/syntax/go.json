@@ -1,0 +1,153 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Go syntax derived from go.xml by Miquel Sabaté <mikisabate@gmail.com> (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Go"
+  },
+  "name": "Go",
+  "extensions": [
+    "*.go"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "keywords": [
+      "chan", "const", "func", "import", "interface", "map", "package",
+      "range", "struct", "type", "var"
+    ],
+    "controlflow": [
+      "break", "case", "continue", "default", "defer", "else", "fallthrough",
+      "for", "go", "goto", "if", "return", "select", "switch"
+    ],
+    "types": [
+      "bool", "byte", "complex64", "complex128", "error", "float32",
+      "float64", "int", "int8", "int16", "int32", "int64", "rune", "string",
+      "uint", "uintptr", "uint8", "uint16", "uint32", "uint64", "any",
+      "comparable"
+    ],
+    "builtin": [
+      "append", "cap", "close", "complex", "copy", "delete", "imag", "len",
+      "make", "new", "panic", "print", "println", "real", "recover"
+    ],
+    "predeclared": [
+      "false", "nil", "true", "iota"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Keyword": "Keyword",
+    "ControlFlow": "ControlFlow",
+    "Predeclared": "Constant",
+    "Builtin": "BuiltIn",
+    "DataType": "DataType",
+    "String": "String",
+    "RawString": "VerbatimString",
+    "Char": "Char",
+    "SpecialChar": "SpecialChar",
+    "Comment": "Comment",
+    "DecVal": "DecVal",
+    "BaseN": "BaseN",
+    "Float": "Float",
+    "Operator": "Operator",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" },
+        { "type": "DetectChar", "attribute": "RawString", "context": "raw-string", "char": "`" },
+        { "type": "DetectChar", "attribute": "String", "context": "string", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Char", "context": "char", "char": "'" },
+        { "type": "Hex", "attribute": "BaseN", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "DecVal", "context": "#stay" },
+        { "type": "keyword", "attribute": "ControlFlow", "context": "#stay", "String": "controlflow" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords" },
+        { "type": "keyword", "attribute": "DataType", "context": "#stay", "String": "types" },
+        { "type": "keyword", "attribute": "Builtin", "context": "#stay", "String": "builtin" },
+        { "type": "keyword", "attribute": "Predeclared", "context": "#stay", "String": "predeclared" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "-" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ":", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "=", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "!", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "&", "char1": "&" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "|", "char1": "|" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "+", "char1": "+" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "-", "char1": "-" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "<" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": ">" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=<>!&|^~?:.," },
+        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": "()[]{};" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "comment-line": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@$&'\"\\" }
+      ]
+    },
+    "comment-block": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "#pop", "char": "*", "char1": "/" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@$&'\"\\" }
+      ]
+    },
+    "raw-string": {
+      "attribute": "RawString",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "RawString", "context": "#pop", "char": "`" }
+      ]
+    },
+    "string": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "a" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "b" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "f" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "v" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    },
+    "char": {
+      "attribute": "Char",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Char", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "a" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "b" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "f" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "v" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    }
+  }
+}

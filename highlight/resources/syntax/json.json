@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: JSON syntax derived from json.xml by Sebastian Pipping <sebastian@pipping.org> (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "JSON"
+  },
+  "name": "JSON",
+  "extensions": [
+    "*.json",
+    "*.jsonl",
+    "*.ndjson",
+    "*.geojson"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "Constants": [
+      "null",
+      "true",
+      "false"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Function": "Function",
+    "Others": "Others",
+    "DecVal": "DecVal",
+    "Float": "Float",
+    "DataType": "DataType",
+    "String": "String",
+    "Char": "Char",
+    "Keyword": "Keyword",
+    "Error": "Error",
+    "Style_Normal": "Normal",
+    "Style_Seperator_Pair": "Function",
+    "Style_Seperator_Array": "Others",
+    "Style_Decimal": "DecVal",
+    "Style_Float": "Float",
+    "Style_String_Key": "DataType",
+    "Style_String_Value": "String",
+    "Style_String_Key_Char": "Char",
+    "Style_String_Value_Char": "Char",
+    "Style_Keyword": "Keyword",
+    "Style_Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Error",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "String_Value", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Function", "context": "Pair", "char": "{" },
+        { "type": "DetectChar", "attribute": "Others", "context": "Array", "char": "[" },
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "Constants" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Decimal", "attribute": "DecVal", "context": "#stay" }
+      ]
+    },
+    "Pair": {
+      "attribute": "Error",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "DataType", "context": "String_Key", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Function", "context": "Value", "char": ":" },
+        { "type": "DetectChar", "attribute": "Function", "context": "#pop", "char": "}" },
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "String_Key": {
+      "attribute": "DataType",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "DataType", "context": "#pop", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "String_Key_Char", "char": "\\", "look-ahead": true }
+      ]
+    },
+    "String_Key_Char": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "JsonEscapeChar", "attribute": "Char", "context": "#pop" },
+        { "type": "JsonEscapeError", "attribute": "Error", "context": "#pop" }
+      ]
+    },
+    "Value": {
+      "attribute": "Error",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Function", "context": "#pop", "char": "," },
+        { "type": "DetectChar", "attribute": "Function", "context": "#pop#pop", "char": "}" },
+        { "type": "DetectChar", "attribute": "String", "context": "String_Value", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Function", "context": "Pair", "char": "{" },
+        { "type": "DetectChar", "attribute": "Others", "context": "Array", "char": "[" },
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "Constants" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Decimal", "attribute": "DecVal", "context": "#stay" }
+      ]
+    },
+    "String_Value": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "String_Key_Value", "char": "\\", "look-ahead": true }
+      ]
+    },
+    "String_Key_Value": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "JsonEscapeChar", "attribute": "Char", "context": "#pop" },
+        { "type": "JsonEscapeError", "attribute": "Error", "context": "#pop" }
+      ]
+    },
+    "Array": {
+      "attribute": "Error",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Others", "context": "#stay", "char": "," },
+        { "type": "DetectChar", "attribute": "Others", "context": "#pop", "char": "]" },
+        { "type": "DetectChar", "attribute": "String", "context": "String_Value", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Function", "context": "Pair", "char": "{" },
+        { "type": "DetectChar", "attribute": "Others", "context": "Array", "char": "[" },
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "Constants" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Decimal", "attribute": "DecVal", "context": "#stay" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Java syntax derived from java.xml by Alfredo Luiz Foltran Fialho (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Java"
+  },
+  "name": "Java",
+  "extensions": [
+    "*.java"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "keywords": [
+      "abstract", "class", "default", "enum", "extends", "false",
+      "implements", "instanceof", "interface", "native", "new", "null",
+      "private", "protected", "public", "super", "strictfp",
+      "synchronized", "this", "throws", "transient", "true", "volatile",
+      "non-sealed", "permits", "record", "sealed", "var", "final"
+    ],
+    "controlflow": [
+      "assert", "break", "case", "catch", "continue", "do", "else",
+      "finally", "for", "goto", "if", "return", "switch", "throw", "try",
+      "while", "yield"
+    ],
+    "types": [
+      "boolean", "byte", "char", "const", "double", "float", "int",
+      "long", "short", "void"
+    ],
+    "annotations": [
+      "Override", "Deprecated", "SuppressWarnings", "SafeVarargs",
+      "FunctionalInterface", "interface", "Retention", "Documented",
+      "Target", "Inherited", "Repeatable"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Keyword": "Keyword",
+    "ControlFlow": "ControlFlow",
+    "DataType": "DataType",
+    "Annotation": "Attribute",
+    "Function": "Function",
+    "Import": "Import",
+    "String": "String",
+    "TextBlock": "String",
+    "Char": "Char",
+    "SpecialChar": "SpecialChar",
+    "Comment": "Comment",
+    "DecVal": "DecVal",
+    "BaseN": "BaseN",
+    "Float": "Float",
+    "Operator": "Operator",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" },
+        { "type": "StringDetect", "attribute": "TextBlock", "context": "text-block", "String": "\"\"\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Char", "context": "char", "char": "'" },
+        { "type": "DetectChar", "attribute": "Annotation", "context": "annotation", "char": "@" },
+        { "type": "WordDetect", "attribute": "Keyword", "context": "imports", "String": "package" },
+        { "type": "WordDetect", "attribute": "Keyword", "context": "imports-or-static", "String": "import" },
+        { "type": "Hex", "attribute": "BaseN", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "DecVal", "context": "#stay" },
+        { "type": "keyword", "attribute": "ControlFlow", "context": "#stay", "String": "controlflow" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords" },
+        { "type": "keyword", "attribute": "DataType", "context": "#stay", "String": "types" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "-", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ":", "char1": ":" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "=", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "!", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "&", "char1": "&" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "|", "char1": "|" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "+", "char1": "+" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "-", "char1": "-" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=<>!&|^~?:." },
+        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": "()[]{};," },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "comment-line": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@'\"\\" }
+      ]
+    },
+    "comment-block": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "#pop", "char": "*", "char1": "/" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@'\"\\" }
+      ]
+    },
+    "string": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "b" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "f" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    },
+    "text-block": {
+      "attribute": "TextBlock",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "TextBlock", "context": "#pop", "String": "\"\"\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" }
+      ]
+    },
+    "char": {
+      "attribute": "Char",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Char", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    },
+    "annotation": {
+      "attribute": "Annotation",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "keyword", "attribute": "Annotation", "context": "#pop", "String": "annotations", "delimiters": " \t\r\n()[]{}\",'`;\\.:+" },
+        { "type": "DetectIdentifier", "attribute": "Annotation", "context": "#pop" }
+      ]
+    },
+    "imports-or-static": {
+      "attribute": "Normal",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop!imports",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "WordDetect", "attribute": "Keyword", "context": "#pop!imports", "String": "static" }
+      ]
+    },
+    "imports": {
+      "attribute": "Import",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Operator", "context": "#pop", "char": ";" },
+        { "type": "DetectSpaces", "attribute": "Import", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Import", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": ".*$" }
+      ]
+    }
+  }
+}

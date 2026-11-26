@@ -1,0 +1,292 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: CSS syntax derived from css.xml by Dominik Haumann and others (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "CSS"
+  },
+  "name": "CSS",
+  "extensions": [
+    "*.css"
+  ],
+  "initial-context": "Base",
+  "lists": {
+    "properties": [
+      "accent-color", "align-content", "align-items", "align-self",
+      "animation", "animation-delay", "animation-direction",
+      "animation-duration", "animation-fill-mode",
+      "animation-iteration-count", "animation-name",
+      "animation-play-state", "animation-timing-function", "aspect-ratio",
+      "background", "background-attachment", "background-blend-mode",
+      "background-clip", "background-color", "background-image",
+      "background-origin", "background-position", "background-repeat",
+      "background-size", "border", "border-collapse", "border-color",
+      "border-image", "border-radius", "border-spacing", "border-style",
+      "border-width", "bottom", "box-shadow", "box-sizing", "break-inside",
+      "clear", "clip", "clip-path", "color", "columns", "column-count",
+      "column-fill", "column-gap", "column-rule", "column-rule-color",
+      "column-rule-style", "column-rule-width", "column-span",
+      "column-width", "content", "cursor", "direction", "display",
+      "empty-cells", "filter", "flex", "flex-basis", "flex-direction",
+      "flex-flow", "flex-grow", "flex-shrink", "flex-wrap", "float",
+      "font", "font-family", "font-feature-settings", "font-kerning",
+      "font-size", "font-size-adjust", "font-stretch", "font-style",
+      "font-synthesis", "font-variant", "font-variant-caps",
+      "font-variant-position", "font-weight", "gap", "grid",
+      "grid-area", "grid-auto-columns", "grid-auto-flow",
+      "grid-auto-rows", "grid-column", "grid-column-end",
+      "grid-column-start", "grid-row", "grid-row-end",
+      "grid-row-start", "grid-template", "grid-template-areas",
+      "grid-template-columns", "grid-template-rows", "height",
+      "hyphens", "justify-content", "justify-items", "justify-self",
+      "left", "letter-spacing", "line-break", "line-height",
+      "list-style", "list-style-image", "list-style-position",
+      "list-style-type", "margin", "margin-bottom", "margin-left",
+      "margin-right", "margin-top", "max-height", "max-width",
+      "min-height", "min-width", "mix-blend-mode", "object-fit",
+      "object-position", "opacity", "order", "orphans", "outline",
+      "outline-color", "outline-offset", "outline-style",
+      "outline-width", "overflow", "overflow-wrap", "overflow-x",
+      "overflow-y", "padding", "padding-bottom", "padding-left",
+      "padding-right", "padding-top", "page-break-after",
+      "page-break-before", "page-break-inside", "perspective",
+      "perspective-origin", "place-content", "place-items",
+      "place-self", "position", "quotes", "resize", "right",
+      "rotate", "row-gap", "scale", "scroll-behavior",
+      "table-layout", "text-align", "text-align-last",
+      "text-combine-upright", "text-decoration",
+      "text-decoration-color", "text-decoration-line",
+      "text-decoration-skip", "text-decoration-style",
+      "text-emphasis", "text-indent", "text-justify",
+      "text-orientation", "text-overflow", "text-rendering",
+      "text-shadow", "text-transform", "text-underline-position",
+      "top", "transform", "transform-origin", "transform-style",
+      "transition", "transition-delay", "transition-duration",
+      "transition-property", "transition-timing-function",
+      "translate", "unicode-bidi", "vertical-align", "visibility",
+      "white-space", "widows", "width", "will-change", "word-break",
+      "word-spacing", "word-wrap", "writing-mode", "z-index"
+    ],
+    "valuekeywords": [
+      "auto", "inherit", "initial", "revert", "revert-layer", "unset",
+      "none", "normal", "block", "inline", "inline-block", "flex",
+      "grid", "absolute", "relative", "fixed", "sticky", "static",
+      "bold", "italic", "underline", "overline", "line-through",
+      "left", "right", "center", "justify", "top", "bottom", "middle",
+      "hidden", "visible", "scroll", "auto", "wrap", "nowrap",
+      "row", "column", "row-reverse", "column-reverse", "stretch",
+      "baseline", "space-between", "space-around", "space-evenly"
+    ],
+    "colors": [
+      "aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige",
+      "bisque", "black", "blanchedalmond", "blue", "blueviolet", "brown",
+      "burlywood", "cadetblue", "chartreuse", "chocolate", "coral",
+      "cornflowerblue", "cornsilk", "crimson", "cyan", "darkblue",
+      "darkcyan", "darkgoldenrod", "darkgray", "darkgreen", "darkgrey",
+      "darkkhaki", "darkmagenta", "darkolivegreen", "darkorange",
+      "darkorchid", "darkred", "darksalmon", "darkseagreen",
+      "darkslateblue", "darkslategray", "darkslategrey", "darkturquoise",
+      "darkviolet", "deeppink", "deepskyblue", "dimgray", "dimgrey",
+      "dodgerblue", "firebrick", "floralwhite", "forestgreen", "fuchsia",
+      "gainsboro", "ghostwhite", "gold", "goldenrod", "gray", "green",
+      "greenyellow", "grey", "honeydew", "hotpink", "indianred",
+      "indigo", "ivory", "khaki", "lavender", "lavenderblush",
+      "lawngreen", "lemonchiffon", "lightblue", "lightcoral",
+      "lightcyan", "lightgoldenrodyellow", "lightgray", "lightgreen",
+      "lightgrey", "lightpink", "lightsalmon", "lightseagreen",
+      "lightskyblue", "lightslategray", "lightslategrey",
+      "lightsteelblue", "lightyellow", "lime", "limegreen", "linen",
+      "magenta", "maroon", "mediumaquamarine", "mediumblue",
+      "mediumorchid", "mediumpurple", "mediumseagreen",
+      "mediumslateblue", "mediumspringgreen", "mediumturquoise",
+      "mediumvioletred", "midnightblue", "mintcream", "mistyrose",
+      "moccasin", "navajowhite", "navy", "oldlace", "olive",
+      "olivedrab", "orange", "orangered", "orchid", "palegoldenrod",
+      "palegreen", "paleturquoise", "palevioletred", "papayawhip",
+      "peachpuff", "peru", "pink", "plum", "powderblue", "purple",
+      "rebeccapurple", "red", "rosybrown", "royalblue", "saddlebrown",
+      "salmon", "sandybrown", "seagreen", "seashell", "sienna",
+      "silver", "skyblue", "slateblue", "slategray", "slategrey",
+      "snow", "springgreen", "steelblue", "tan", "teal", "thistle",
+      "tomato", "turquoise", "violet", "wheat", "white", "whitesmoke",
+      "yellow", "yellowgreen", "transparent", "currentColor"
+    ],
+    "units": [
+      "px", "em", "rem", "ex", "ch", "vw", "vh", "vmin", "vmax",
+      "cm", "mm", "in", "pt", "pc", "q", "fr", "%",
+      "deg", "rad", "grad", "turn", "s", "ms", "Hz", "kHz", "dpi",
+      "dpcm", "dppx"
+    ],
+    "atrules": [
+      "media", "keyframes", "import", "font-face", "page", "supports",
+      "charset", "namespace", "container", "layer", "scope", "starting-style"
+    ],
+    "pseudo-classes": [
+      "active", "hover", "focus", "visited", "link", "checked",
+      "disabled", "enabled", "empty", "first-child", "last-child",
+      "only-child", "first-of-type", "last-of-type", "only-of-type",
+      "nth-child", "nth-last-child", "nth-of-type", "nth-last-of-type",
+      "not", "is", "where", "has", "root", "target", "lang", "dir",
+      "valid", "invalid", "required", "optional", "placeholder-shown",
+      "read-only", "read-write", "in-range", "out-of-range", "default",
+      "indeterminate", "fullscreen", "focus-within", "focus-visible",
+      "any-link", "local-link", "scope", "host"
+    ],
+    "pseudo-elements": [
+      "before", "after", "first-line", "first-letter", "selection",
+      "placeholder", "marker", "backdrop", "cue", "grammar-error",
+      "spelling-error", "part", "slotted"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Comment": "Comment",
+    "String": "String",
+    "SpecialChar": "SpecialChar",
+    "AtRule": "Import",
+    "Property": "Keyword",
+    "ValueKeyword": "BuiltIn",
+    "Color": "Constant",
+    "Number": "DecVal",
+    "Unit": "DataType",
+    "Function": "Function",
+    "Variable": "Variable",
+    "Selector": "Attribute",
+    "PseudoClass": "Attribute",
+    "PseudoElement": "Attribute",
+    "Operator": "Operator",
+    "PropertySep": "Char",
+    "BlockSym": "Normal",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Base": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment", "char": "/", "char1": "*" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "DetectChar", "attribute": "AtRule", "context": "at-rule", "char": "@" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-double", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-single", "char": "'" },
+        { "type": "DetectChar", "attribute": "Variable", "context": "variable", "char": "-" },
+        { "type": "DetectChar", "attribute": "BlockSym", "context": "rule-body", "char": "{" },
+        { "type": "DetectChar", "attribute": "BlockSym", "context": "#stay", "char": "}" },
+        { "type": "DetectChar", "attribute": "PseudoClass", "context": "pseudo", "char": ":" },
+        { "type": "DetectChar", "attribute": "Operator", "context": "#stay", "char": "&" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": ">" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": ">~+*," },
+        { "type": "DetectIdentifier", "attribute": "Selector", "context": "#stay" }
+      ]
+    },
+    "rule-body": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment", "char": "/", "char1": "*" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-double", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-single", "char": "'" },
+        { "type": "DetectChar", "attribute": "BlockSym", "context": "#stay", "char": "}" },
+        { "type": "DetectChar", "attribute": "BlockSym", "context": "#stay", "char": "{" },
+        { "type": "DetectChar", "attribute": "PropertySep", "context": "#stay", "char": ":" },
+        { "type": "DetectChar", "attribute": "PropertySep", "context": "#stay", "char": ";" },
+        { "type": "DetectChar", "attribute": "Variable", "context": "variable", "char": "-" },
+        { "type": "CharsetRun", "attribute": "Number", "context": "value-suffix", "String": "0123456789.", "min": 1 },
+        { "type": "keyword", "attribute": "Property", "context": "#stay", "String": "properties", "delimiters": " \t\r\n()[]{}\",'`;:.,+/*=~^!?" },
+        { "type": "keyword", "attribute": "ValueKeyword", "context": "#stay", "String": "valuekeywords", "delimiters": " \t\r\n()[]{}\",'`;:.,+/*=~^!?" },
+        { "type": "keyword", "attribute": "Color", "context": "#stay", "String": "colors", "delimiters": " \t\r\n()[]{}\",'`;:.,+/*=~^!?" },
+        { "type": "DetectIdentifier", "attribute": "Function", "context": "#stay" }
+      ]
+    },
+    "value-suffix": {
+      "attribute": "Normal",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "keyword", "attribute": "Unit", "context": "#pop", "String": "units", "delimiters": " \t\r\n()[]{}\",'`;:.,0123456789" },
+        { "type": "DetectIdentifier", "attribute": "Unit", "context": "#pop" }
+      ]
+    },
+    "at-rule": {
+      "attribute": "AtRule",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "keyword", "attribute": "AtRule", "context": "#stay", "String": "atrules" },
+        { "type": "DetectChar", "attribute": "BlockSym", "context": "#pop!rule-body", "char": "{" },
+        { "type": "DetectIdentifier", "attribute": "AtRule", "context": "#stay" },
+        { "type": "DetectSpaces", "attribute": "AtRule", "context": "#stay" }
+      ]
+    },
+    "pseudo": {
+      "attribute": "PseudoClass",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "PseudoElement", "context": "pseudo-element", "char": ":", "char1": ":" },
+        { "type": "keyword", "attribute": "PseudoClass", "context": "#pop", "String": "pseudo-classes", "delimiters": " \t\r\n()[]{}\",'`;:.,+/*=~^!?-" },
+        { "type": "DetectIdentifier", "attribute": "PseudoClass", "context": "#pop" }
+      ]
+    },
+    "pseudo-element": {
+      "attribute": "PseudoElement",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "keyword", "attribute": "PseudoElement", "context": "#pop", "String": "pseudo-elements", "delimiters": " \t\r\n()[]{}\",'`;:.,+/*=~^!?-" },
+        { "type": "DetectIdentifier", "attribute": "PseudoElement", "context": "#pop" }
+      ]
+    },
+    "variable": {
+      "attribute": "Variable",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Variable", "context": "#pop" }
+      ]
+    },
+    "string-double": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" }
+      ]
+    },
+    "string-single": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" }
+      ]
+    },
+    "comment": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "#pop", "char": "*", "char1": "/" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "comment-line": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    }
+  }
+}

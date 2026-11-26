@@ -49,6 +49,11 @@
         "agent", "code"
       ],
       "mode": "r7rs"
+    },
+    "highlight": {
+      "root": "highlight/",
+      "depends-on": [],
+      "mode": "r7rs"
     }
   },
   "tools": {

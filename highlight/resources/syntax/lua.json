@@ -1,0 +1,217 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Lua syntax derived from lua.xml by Bruno Massa, Jonathan Poelen and others (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Lua"
+  },
+  "name": "Lua",
+  "extensions": [
+    "*.lua",
+    "*.rockspec"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "controlflow": [
+      "break", "do", "else", "elseif", "end", "for", "goto", "if",
+      "repeat", "return", "then", "until", "while"
+    ],
+    "keywords": [
+      "and", "function", "in", "local", "not", "or", "global"
+    ],
+    "constants": [
+      "nil", "false", "true"
+    ],
+    "builtins": [
+      "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs",
+      "load", "loadfile", "next", "pairs", "pcall", "print", "rawequal",
+      "rawget", "rawlen", "rawset", "select", "setmetatable", "tonumber",
+      "tostring", "type", "warn", "xpcall", "require",
+      "byte", "char", "dump", "find", "format", "gmatch", "gsub", "len",
+      "lower", "match", "pack", "packsize", "rep", "reverse", "sub",
+      "unpack", "upper", "concat", "insert", "move", "remove", "sort",
+      "create", "resume", "running", "status", "wrap", "yield",
+      "close", "flush", "input", "lines", "open", "output", "popen",
+      "read", "seek", "setvbuf", "write",
+      "abs", "acos", "asin", "atan", "ceil", "cos", "deg", "exp", "floor",
+      "fmod", "huge", "log", "max", "min", "modf", "rad", "random",
+      "randomseed", "sin", "sqrt", "tan", "tointeger",
+      "clock", "date", "difftime", "execute", "exit", "getenv", "rename",
+      "time", "tmpname", "codes", "codepoint", "offset", "seeall"
+    ],
+    "metamethods": [
+      "__add", "__sub", "__mul", "__div", "__mod", "__pow", "__unm",
+      "__idiv", "__band", "__bor", "__bxor", "__bnot", "__shl", "__shr",
+      "__concat", "__len", "__eq", "__lt", "__le", "__index", "__newindex",
+      "__call", "__tostring", "__name", "__close", "__pairs", "__metatable",
+      "__gc", "__mode"
+    ],
+    "basevars": [
+      "_G", "_VERSION", "_ENV", "_PROMPT", "_PROMPT2", "LUA_PATH",
+      "LUA_CPATH", "LUA_INIT", "coroutine", "package", "string", "utf8",
+      "table", "math", "io", "os", "debug", "self"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Keyword": "Keyword",
+    "ControlFlow": "ControlFlow",
+    "Function": "Function",
+    "BuiltIn": "BuiltIn",
+    "Constant": "Constant",
+    "Variable": "Variable",
+    "Comment": "Comment",
+    "String": "String",
+    "VerbatimString": "VerbatimString",
+    "SpecialChar": "SpecialChar",
+    "DecVal": "DecVal",
+    "BaseN": "BaseN",
+    "Float": "Float",
+    "Operator": "Operator",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "shebang", "char": "#", "char1": "!", "column": 0 },
+        { "type": "StringDetect", "attribute": "Comment", "context": "comment-block-eq2", "String": "--[==[" },
+        { "type": "StringDetect", "attribute": "Comment", "context": "comment-block-eq1", "String": "--[=[" },
+        { "type": "StringDetect", "attribute": "Comment", "context": "comment-block", "String": "--[[" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "-", "char1": "-" },
+        { "type": "StringDetect", "attribute": "VerbatimString", "context": "raw-string-eq2", "String": "[==[" },
+        { "type": "StringDetect", "attribute": "VerbatimString", "context": "raw-string-eq1", "String": "[=[" },
+        { "type": "StringDetect", "attribute": "VerbatimString", "context": "raw-string", "String": "[[" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-double", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-single", "char": "'" },
+        { "type": "Hex", "attribute": "BaseN", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "DecVal", "context": "#stay" },
+        { "type": "keyword", "attribute": "ControlFlow", "context": "#stay", "String": "controlflow", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "Constant", "context": "#stay", "String": "constants", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "BuiltIn", "context": "#stay", "String": "metamethods", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "Function", "context": "#stay", "String": "builtins", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "Variable", "context": "#stay", "String": "basevars", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "StringDetect", "attribute": "Operator", "context": "#stay", "String": "..." },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ".", "char1": "." },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "=", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "~", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "/", "char1": "/" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "<" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ":", "char1": ":" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%^#&|~<>=:;,()[]{}" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "shebang": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "comment-line": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "comment-block": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Comment", "context": "#pop", "String": "]]" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "comment-block-eq1": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Comment", "context": "#pop", "String": "]=]" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "comment-block-eq2": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Comment", "context": "#pop", "String": "]==]" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "raw-string": {
+      "attribute": "VerbatimString",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "VerbatimString", "context": "#pop", "String": "]]" }
+      ]
+    },
+    "raw-string-eq1": {
+      "attribute": "VerbatimString",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "VerbatimString", "context": "#pop", "String": "]=]" }
+      ]
+    },
+    "raw-string-eq2": {
+      "attribute": "VerbatimString",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "VerbatimString", "context": "#pop", "String": "]==]" }
+      ]
+    },
+    "string-double": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "a" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "b" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "f" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "v" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "z" }
+      ]
+    },
+    "string-single": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "a" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "b" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "f" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "v" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "z" }
+      ]
+    }
+  }
+}

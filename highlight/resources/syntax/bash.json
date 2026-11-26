@@ -1,0 +1,285 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Bash syntax derived from bash.xml by Wilbert Berendsen and contributors (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Bash"
+  },
+  "name": "Bash",
+  "extensions": [
+    "*.sh",
+    "*.bash",
+    "*.ebuild",
+    "*.eclass",
+    "*.exlib",
+    "*.exheres-0",
+    "*.bashrc",
+    "*.bash_profile",
+    "*.bash_login",
+    "*.profile",
+    "*.envrc",
+    "PKGBUILD",
+    "APKBUILD"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "keywords": [
+      "break", "case", "continue", "do", "done", "elif",
+      "else", "esac", "fi", "for", "function", "if",
+      "in", "return", "select", "then", "until", "while"
+    ],
+    "builtins": [
+      ".", ":", "source", "alias", "bg", "bind",
+      "builtin", "cd", "caller", "command", "compgen", "complete",
+      "coproc", "dirs", "disown", "echo", "enable", "eval",
+      "exec", "exit", "fc", "fg", "hash", "help",
+      "history", "jobs", "kill", "logout", "popd", "printf",
+      "pushd", "pwd", "set", "shift", "shopt", "suspend",
+      "test", "time", "times", "trap", "type", "ulimit",
+      "umask", "unalias", "wait"
+    ],
+    "builtins_var": [
+      "export", "declare", "getopts", "let", "local", "read",
+      "readonly", "typeset", "unset"
+    ],
+    "unixcommands": [
+      "arch", "awk", "b2sum", "base32", "base64", "bash",
+      "bunzip2", "bzcat", "bzcmp", "bzdiff", "bzegrep", "bzfgrep",
+      "bzgrep", "bzip2", "bzip2recover", "bzless", "bzmore", "cat",
+      "chattr", "chcon", "chgrp", "chmod", "chown", "chvt",
+      "cksum", "cp", "crontab", "csplit", "date", "dd",
+      "deallocvt", "df", "dir", "dircolors", "dmesg", "dnsdomainname",
+      "domainname", "du", "dumpkeys", "ed", "egrep", "expand",
+      "false", "fgconsole", "fgrep", "fold", "fuser", "gawk",
+      "getkeycodes", "gocr", "grep", "groff", "groups", "gunzip",
+      "gzexe", "gzip", "hostid", "hostname", "iconv", "igawk",
+      "install", "kbd_mode", "kbdrate", "killall", "last", "lastb",
+      "link", "ln", "loadkeys", "loadunimap", "login", "ls",
+      "lsattr", "lsmod", "lsmod.old", "lzcat", "lzcmp", "lzdiff",
+      "lzegrep", "lzfgrep", "lzgrep", "lzless", "lzma", "lzmainfo",
+      "lzmore", "mapscrn", "md5sum", "mesg", "mkdir", "mkfifo",
+      "mknod", "mktemp", "more", "mount", "mv", "nano",
+      "netstat", "nisdomainname", "nproc", "nroff", "numfmt", "openvt",
+      "paste", "pathchk", "pgawk", "pidof", "ping", "pinky",
+      "printenv", "ps", "pstree", "ptx", "rbash", "readlink",
+      "realpath", "red", "resizecons", "rm", "rmdir", "run-parts",
+      "runcon", "sash", "sed", "setfont", "setkeycodes", "setleds",
+      "setmetamode", "setserial", "sh", "sha1sum", "sha224sum", "sha256sum",
+      "sha384sum", "sha512sum", "showkey", "shred", "shuf", "sleep",
+      "ssed", "stat", "stdbuf", "stty", "su", "sync",
+      "tar", "tempfile", "timeout", "touch", "tput", "troff",
+      "true", "truncate", "tty", "umount", "uname", "unexpand",
+      "unicode_start", "unicode_stop", "unlink", "unlzma", "unxz", "utmpdump",
+      "uuidgen", "vdir", "vi", "wall", "wc", "xz",
+      "xzcat", "ypdomainname", "zcat", "zcmp", "zdiff", "zegrep",
+      "zfgrep", "zforce", "zgrep", "zless", "zmore", "znew",
+      "zsh", "aclocal", "aconnect", "aplay", "apm", "apmsleep",
+      "apropos", "ar", "arecord", "as", "as86", "autoconf",
+      "autoheader", "automake", "basename", "bc", "bison", "c++",
+      "cal", "cc", "cdda2wav", "cdparanoia", "cdrdao", "cd-read",
+      "cdrecord", "chfn", "chroot", "chsh", "clear", "cmp",
+      "co", "col", "comm", "cpio", "cpp", "cut",
+      "dc", "diff", "diff3", "directomatic", "dirname", "env",
+      "expr", "fbset", "file", "find", "flex", "flex++",
+      "fmt", "free", "ftp", "funzip", "g++", "gc",
+      "gcc", "clang", "clang++", "valgrind", "xdg-open", "cmake",
+      "qmake", "svn", "git", "rsync", "gdb", "getent",
+      "getopt", "gettext", "gettextize", "gimp", "gimp-remote", "gimptool",
+      "gmake", "gs", "head", "hexdump", "id", "join",
+      "ld", "ld86", "ldd", "less", "lex", "locate",
+      "lockfile", "logname", "lp", "lpr", "lynx", "m4",
+      "make", "man", "msgfmt", "namei", "nasm", "nawk",
+      "nice", "nl", "nm", "nm86", "nmap", "nohup",
+      "nop", "od", "passwd", "patch", "pcregrep", "pcretest",
+      "perl", "perror", "pr", "procmail", "prune", "ps2ascii",
+      "ps2epsi", "ps2frag", "ps2pdf", "ps2ps", "psbook", "psmerge",
+      "psnup", "psresize", "psselect", "pstops", "rcs", "rev",
+      "scp", "seq", "setterm", "size", "size86", "skill",
+      "slogin", "snice", "sort", "sox", "split", "ssh",
+      "ssh-add", "ssh-agent", "ssh-keygen", "ssh-keyscan", "strings", "strip",
+      "sudo", "suidperl", "sum", "tac", "tail", "tee",
+      "tr", "tsort", "uniq", "unzip", "updatedb", "updmap",
+      "uptime", "users", "vmstat", "w", "wget", "whatis",
+      "whereis", "which", "who", "whoami", "write", "xargs",
+      "yacc", "yes", "zip", "zsoelim", "dcop", "kdialog",
+      "kfile", "xhost", "xmodmap", "xset"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Normal Text": "Normal",
+    "Command": "Normal",
+    "OtherCommand": "Normal",
+    "Path": "Normal",
+    "Keyword": "Keyword",
+    "ControlFlow": "ControlFlow",
+    "Builtin": "BuiltIn",
+    "Function": "Function",
+    "Variable": "Variable",
+    "Parameter Expansion": "Variable",
+    "Parameter Expansion Operator": "Operator",
+    "Operator": "Operator",
+    "Redirection": "Operator",
+    "Option": "Attribute",
+    "Glob": "SpecialChar",
+    "Pattern": "SpecialChar",
+    "Backquote": "SpecialChar",
+    "Escape": "SpecialChar",
+    "String Escape": "SpecialChar",
+    "String": "String",
+    "String Transl.": "String",
+    "Comment": "Comment",
+    "Decimal": "DecVal",
+    "Hex": "BaseN",
+    "Expression": "Operator",
+    "File Descriptor": "DecVal",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "shebang", "char": "#", "char1": "!", "column": 0 },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": "#" },
+        { "type": "Detect2Chars", "attribute": "Parameter Expansion", "context": "var-brace", "char": "$", "char1": "{" },
+        { "type": "Detect2Chars", "attribute": "Parameter Expansion", "context": "subst-command", "char": "$", "char1": "(" },
+        { "type": "DetectChar", "attribute": "Variable", "context": "dollar", "char": "$", "look-ahead": true },
+        { "type": "DetectChar", "attribute": "String", "context": "string-double", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-single", "char": "'" },
+        { "type": "DetectChar", "attribute": "Backquote", "context": "backquote", "char": "`" },
+        { "type": "keyword", "attribute": "ControlFlow", "context": "#stay", "String": "keywords", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "Builtin", "context": "#stay", "String": "builtins", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "Builtin", "context": "#stay", "String": "builtins_var", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "Command", "context": "#stay", "String": "unixcommands", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "Hex", "attribute": "Hex", "context": "#stay" },
+        { "type": "Float", "attribute": "Decimal", "context": "#stay" },
+        { "type": "Int", "attribute": "Decimal", "context": "#stay", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "&", "char1": "&" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "|", "char1": "|" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "&|;" },
+        { "type": "Detect2Chars", "attribute": "Redirection", "context": "#stay", "char": ">", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Redirection", "context": "#stay", "char": ">", "char1": "&" },
+        { "type": "Detect2Chars", "attribute": "Redirection", "context": "#stay", "char": "<", "char1": "<" },
+        { "type": "Detect2Chars", "attribute": "Redirection", "context": "#stay", "char": "<", "char1": ">" },
+        { "type": "DetectChar", "attribute": "Redirection", "context": "#stay", "char": ">" },
+        { "type": "DetectChar", "attribute": "Redirection", "context": "#stay", "char": "<" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=!~^" },
+        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": "()[]{}.,:" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "shebang": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "comment": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "dollar": {
+      "attribute": "Variable",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Variable", "context": "#stay", "char": "$" },
+        { "type": "DetectIdentifier", "attribute": "Variable", "context": "#pop" },
+        { "type": "AnyChar", "attribute": "Variable", "context": "#pop", "String": "*@#?$!0123456789-" }
+      ]
+    },
+    "var-brace": {
+      "attribute": "Variable",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Parameter Expansion", "context": "#pop", "char": "}" },
+        { "type": "DetectIdentifier", "attribute": "Variable", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Variable", "context": "#stay", "String": "*@#?$!-_0123456789" },
+        { "type": "AnyChar", "attribute": "Parameter Expansion Operator", "context": "#stay", "String": ":-=?+#%/,^@" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-double", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-single", "char": "'" }
+      ]
+    },
+    "subst-command": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Parameter Expansion", "context": "#pop", "char": ")" },
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": "#" },
+        { "type": "Detect2Chars", "attribute": "Parameter Expansion", "context": "var-brace", "char": "$", "char1": "{" },
+        { "type": "DetectChar", "attribute": "Variable", "context": "dollar", "char": "$", "look-ahead": true },
+        { "type": "DetectChar", "attribute": "String", "context": "string-double", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-single", "char": "'" },
+        { "type": "DetectChar", "attribute": "Backquote", "context": "backquote", "char": "`" },
+        { "type": "keyword", "attribute": "ControlFlow", "context": "#stay", "String": "keywords", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "Builtin", "context": "#stay", "String": "builtins", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "keyword", "attribute": "Command", "context": "#stay", "String": "unixcommands", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "Int", "attribute": "Decimal", "context": "#stay", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=!~^&|;<>" },
+        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": "()[]{}" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "string-double": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "String", "context": "var-brace", "char": "$", "char1": "{" },
+        { "type": "Detect2Chars", "attribute": "String", "context": "subst-command", "char": "$", "char1": "(" },
+        { "type": "DetectChar", "context": "escape", "char": "\\", "look-ahead": true },
+        { "type": "DetectChar", "context": "dollar-in-string", "char": "$", "look-ahead": true },
+        { "type": "DetectChar", "attribute": "Backquote", "context": "backquote", "char": "`" }
+      ]
+    },
+    "string-single": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "'" }
+      ]
+    },
+    "dollar-in-string": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Variable", "context": "#stay", "char": "$" },
+        { "type": "DetectIdentifier", "attribute": "Variable", "context": "#pop" },
+        { "type": "AnyChar", "attribute": "Variable", "context": "#pop", "String": "*@#?!0123456789-" }
+      ]
+    },
+    "escape": {
+      "attribute": "Escape",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Escape", "context": "#pop" },
+        { "type": "DetectIdentifier", "attribute": "Escape", "context": "#pop" },
+        { "type": "AnyChar", "attribute": "Escape", "context": "#pop", "String": "\"'`$\\" }
+      ]
+    },
+    "backquote": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Backquote", "context": "#pop", "char": "`" },
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": "#" },
+        { "type": "DetectChar", "attribute": "Variable", "context": "dollar", "char": "$", "look-ahead": true },
+        { "type": "DetectChar", "attribute": "String", "context": "string-double", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-single", "char": "'" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=!~^&|;<>()[]{}" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,267 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Markdown syntax derived from markdown.xml by Darrin Yeager, Claes Holmerson and Nibaldo Gonzalez S. (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Markdown"
+  },
+  "name": "Markdown",
+  "extensions": [
+    "*.md",
+    "*.markdown",
+    "*.mmd"
+  ],
+  "initial-context": "Normal",
+  "lists": {},
+  "item-datas": {
+    "Normal": "Normal",
+    "Normal Text": "Normal",
+    "Header": "Function",
+    "Header H1": "Function",
+    "Header H2": "Function",
+    "Header H3": "Function",
+    "Header H4": "Function",
+    "Header H5": "Function",
+    "Header H6": "Function",
+    "Blockquote": "Attribute",
+    "List": "SpecialString",
+    "Table": "Preprocessor",
+    "Code": "Information",
+    "Fenced Code": "Information",
+    "Link": "Others",
+    "Auto-Link": "Others",
+    "Comment": "Comment",
+    "Strong Text": "Keyword",
+    "Emphasis Text": "Normal",
+    "Strong-Emphasis Text": "Keyword",
+    "Strikethrough Text": "Normal",
+    "Horizontal Rule": "Comment",
+    "Keyword": "Keyword",
+    "ControlFlow": "ControlFlow",
+    "Function": "Function",
+    "Variable": "Variable",
+    "DataType": "DataType",
+    "Operator": "Operator",
+    "Extension": "Extension",
+    "Preprocessor": "Preprocessor",
+    "String": "String",
+    "Char": "Char",
+    "SpecialChar": "SpecialChar",
+    "DecVal": "DecVal",
+    "BaseN": "BaseN",
+    "Float": "Float",
+    "Constant": "Constant"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "StringDetect", "attribute": "Comment", "context": "comment", "String": "<!--" },
+        { "type": "StringDetect", "attribute": "Horizontal Rule", "context": "horizontal-rule", "String": "---", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Horizontal Rule", "context": "horizontal-rule", "String": "***", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Horizontal Rule", "context": "horizontal-rule", "String": "___", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H6", "context": "header-6", "String": "###### ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H5", "context": "header-5", "String": "##### ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H4", "context": "header-4", "String": "#### ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H3", "context": "header-3", "String": "### ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H2", "context": "header-2", "String": "## ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H1", "context": "header-1", "String": "# ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H6", "context": "header-6", "String": "######", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H5", "context": "header-5", "String": "#####", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H4", "context": "header-4", "String": "####", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H3", "context": "header-3", "String": "###", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H2", "context": "header-2", "String": "##", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H1", "context": "header-1", "String": "#", "first-non-space": true },
+        { "type": "DetectChar", "attribute": "Blockquote", "context": "blockquote", "char": ">", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "- [ ] ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "- [x] ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "- [X] ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "* [ ] ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "* [x] ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "* [X] ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "+ [ ] ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "+ [x] ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "+ [X] ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "- ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "* ", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "+ ", "first-non-space": true },
+        { "type": "DetectChar", "attribute": "Table", "context": "#stay", "char": "|" },
+        { "type": "StringDetect", "attribute": "Code", "context": "inline-code-double", "String": "``" },
+        { "type": "DetectChar", "attribute": "Code", "context": "inline-code-single", "char": "`" },
+        { "type": "StringDetect", "attribute": "Strong-Emphasis Text", "context": "bold-italic-star", "String": "***" },
+        { "type": "StringDetect", "attribute": "Strong-Emphasis Text", "context": "bold-italic-under", "String": "___" },
+        { "type": "StringDetect", "attribute": "Strong Text", "context": "bold-star", "String": "**" },
+        { "type": "StringDetect", "attribute": "Strong Text", "context": "bold-under", "String": "__" },
+        { "type": "DetectChar", "attribute": "Emphasis Text", "context": "italic-star", "char": "*" },
+        { "type": "DetectChar", "attribute": "Emphasis Text", "context": "italic-under", "char": "_" },
+        { "type": "StringDetect", "attribute": "Strikethrough Text", "context": "strikethrough", "String": "~~" },
+        { "type": "StringDetect", "attribute": "Link", "context": "link-text", "String": "![" },
+        { "type": "DetectChar", "attribute": "Link", "context": "link-text", "char": "[" },
+        { "type": "StringDetect", "attribute": "Link", "context": "url", "String": "https://" },
+        { "type": "StringDetect", "attribute": "Link", "context": "url", "String": "http://" }
+      ]
+    },
+    "header-1": {
+      "attribute": "Header H1",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Code", "context": "inline-code-double", "String": "``" },
+        { "type": "DetectChar", "attribute": "Code", "context": "inline-code-single", "char": "`" }
+      ]
+    },
+    "header-2": {
+      "attribute": "Header H2",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Code", "context": "inline-code-double", "String": "``" },
+        { "type": "DetectChar", "attribute": "Code", "context": "inline-code-single", "char": "`" }
+      ]
+    },
+    "header-3": {
+      "attribute": "Header H3",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Code", "context": "inline-code-double", "String": "``" },
+        { "type": "DetectChar", "attribute": "Code", "context": "inline-code-single", "char": "`" }
+      ]
+    },
+    "header-4": {
+      "attribute": "Header H4",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Code", "context": "inline-code-double", "String": "``" },
+        { "type": "DetectChar", "attribute": "Code", "context": "inline-code-single", "char": "`" }
+      ]
+    },
+    "header-5": {
+      "attribute": "Header H5",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Code", "context": "inline-code-double", "String": "``" },
+        { "type": "DetectChar", "attribute": "Code", "context": "inline-code-single", "char": "`" }
+      ]
+    },
+    "header-6": {
+      "attribute": "Header H6",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Code", "context": "inline-code-double", "String": "``" },
+        { "type": "DetectChar", "attribute": "Code", "context": "inline-code-single", "char": "`" }
+      ]
+    },
+    "blockquote": {
+      "attribute": "Blockquote",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Blockquote", "context": "#stay" },
+        { "type": "StringDetect", "attribute": "Code", "context": "inline-code-double", "String": "``" },
+        { "type": "DetectChar", "attribute": "Code", "context": "inline-code-single", "char": "`" },
+        { "type": "StringDetect", "attribute": "Strong Text", "context": "bold-star", "String": "**" },
+        { "type": "DetectChar", "attribute": "Emphasis Text", "context": "italic-star", "char": "*" },
+        { "type": "StringDetect", "attribute": "Link", "context": "link-text", "String": "![" },
+        { "type": "DetectChar", "attribute": "Link", "context": "link-text", "char": "[" }
+      ]
+    },
+    "horizontal-rule": {
+      "attribute": "Horizontal Rule",
+      "line-end-context": "#pop",
+      "rules": []
+    },
+    "inline-code-double": {
+      "attribute": "Code",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Code", "context": "#pop", "String": "``" }
+      ]
+    },
+    "inline-code-single": {
+      "attribute": "Code",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Code", "context": "#pop", "char": "`" }
+      ]
+    },
+    "bold-italic-star": {
+      "attribute": "Strong-Emphasis Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Strong-Emphasis Text", "context": "#pop", "String": "***" }
+      ]
+    },
+    "bold-italic-under": {
+      "attribute": "Strong-Emphasis Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Strong-Emphasis Text", "context": "#pop", "String": "___" }
+      ]
+    },
+    "bold-star": {
+      "attribute": "Strong Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Strong Text", "context": "#pop", "String": "**" }
+      ]
+    },
+    "bold-under": {
+      "attribute": "Strong Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Strong Text", "context": "#pop", "String": "__" }
+      ]
+    },
+    "italic-star": {
+      "attribute": "Emphasis Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Emphasis Text", "context": "#pop", "char": "*" }
+      ]
+    },
+    "italic-under": {
+      "attribute": "Emphasis Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Emphasis Text", "context": "#pop", "char": "_" }
+      ]
+    },
+    "strikethrough": {
+      "attribute": "Strikethrough Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Strikethrough Text", "context": "#pop", "String": "~~" }
+      ]
+    },
+    "comment": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Comment", "context": "#pop", "String": "-->" }
+      ]
+    },
+    "link-text": {
+      "attribute": "Normal",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Link", "context": "#pop!link-url", "String": "](" },
+        { "type": "DetectChar", "attribute": "Link", "context": "#pop", "char": "]" }
+      ]
+    },
+    "link-url": {
+      "attribute": "Link",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Link", "context": "#pop", "char": ")" }
+      ]
+    },
+    "url": {
+      "attribute": "Link",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "AnyChar", "attribute": "Normal", "context": "#pop", "String": " \t\r\n>)],\"", "look-ahead": true }
+      ]
+    }
+  }
+}

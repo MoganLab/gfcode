@@ -1,0 +1,267 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Rust syntax derived from rust.xml by The Rust Project Developers (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Rust"
+  },
+  "name": "Rust",
+  "extensions": [
+    "*.rs"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "fn": [
+      "fn"
+    ],
+    "type": [
+      "type"
+    ],
+    "keywords": [
+      "abstract", "alignof", "as", "async", "await", "become", "box",
+      "const", "crate", "default", "do", "dyn", "enum", "extern", "final",
+      "impl", "in", "let", "macro", "mod", "move", "mut", "offsetof",
+      "override", "priv", "proc", "pub", "pure", "ref", "sizeof", "static",
+      "struct", "super", "trait", "try", "typeof", "union", "unsafe",
+      "unsized", "use", "virtual", "where", "yield"
+    ],
+    "controlflow": [
+      "break", "continue", "else", "for", "if", "loop", "match", "return",
+      "while"
+    ],
+    "traits": [
+      "Add", "AddAssign", "Alloc", "Any", "AsMut", "AsRef", "Binary",
+      "BitAnd", "BitAndAssign", "BitOr", "BitOrAssign", "BitXor",
+      "BitXorAssign", "Borrow", "BorrowMut", "BuildHasher", "Clone",
+      "CoerceUnsized", "Copy", "Debug", "Default", "Deref", "DerefMut",
+      "DispatchFromDyn", "Display", "Div", "DivAssign",
+      "DoubleEndedIterator", "Drop", "Eq", "ExactSizeIterator", "Extend",
+      "FixedSizeArray", "Fn", "FnBox", "FnMut", "FnOnce", "From",
+      "FromIterator", "FromStr", "FusedIterator", "Future", "Generator",
+      "GlobalAlloc", "Hash", "Hasher", "Index", "IndexMut", "Into",
+      "IntoIterator", "Iterator", "LowerExp", "LowerHex", "Mul", "MulAssign",
+      "Neg", "Not", "Octal", "Ord", "PartialEq", "PartialOrd", "Pointer",
+      "Product", "RangeBounds", "Rem", "RemAssign", "Send", "Shl",
+      "ShlAssign", "Shr", "ShrAssign", "Sized", "SliceIndex", "Step", "Sub",
+      "SubAssign", "Sum", "Sync", "TrustedLen", "Try", "TryFrom", "TryInto",
+      "Unpin", "Unsize", "UpperExp", "UpperHex", "Write", "AsSlice",
+      "BufRead", "CharExt", "Decodable", "Encodable", "Error",
+      "FromPrimitive", "IteratorExt", "MultiSpan", "MutPtrExt", "Pattern",
+      "PtrExt", "Rand", "Read", "RefUnwindSafe", "Seek", "SliceConcatExt",
+      "SliceExt", "Str", "StrExt", "TDynBenchFn", "Termination", "ToOwned",
+      "ToSocketAddrs", "ToString", "UnwindSafe"
+    ],
+    "types": [
+      "bool", "isize", "usize", "i8", "i16", "i32", "i64", "i128", "u8",
+      "u16", "u32", "u64", "u128", "f32", "f64", "char", "str", "Option",
+      "Result", "Self", "Box", "Vec", "String", "Path", "PathBuf"
+    ],
+    "ctypes": [
+      "c_float", "c_double", "c_void", "FILE", "fpos_t", "DIR", "dirent",
+      "c_char", "c_schar", "c_uchar", "c_short", "c_ushort", "c_int",
+      "c_uint", "c_long", "c_ulong", "size_t", "ptrdiff_t", "clock_t",
+      "time_t", "c_longlong", "c_ulonglong", "intptr_t", "uintptr_t",
+      "off_t", "dev_t", "ino_t", "pid_t", "mode_t", "ssize_t"
+    ],
+    "self": [
+      "self"
+    ],
+    "constants": [
+      "true", "false", "Some", "None", "Ok", "Err", "Success", "Failure",
+      "Cons", "Nil", "MAX", "REPLACEMENT_CHARACTER", "UNICODE_VERSION",
+      "DIGITS", "EPSILON", "INFINITY", "MANTISSA_DIGITS", "MAX_10_EXP",
+      "MAX_EXP", "MIN", "MIN_10_EXP", "MIN_EXP", "MIN_POSITIVE", "NAN",
+      "NEG_INFINITY", "RADIX", "MAIN_SEPARATOR", "ONCE_INIT", "UNIX_EPOCH"
+    ],
+    "cconstants": [
+      "EXIT_FAILURE", "EXIT_SUCCESS", "RAND_MAX", "EOF", "SEEK_SET",
+      "SEEK_CUR", "SEEK_END", "_IOFBF", "_IONBF", "_IOLBF", "BUFSIZ",
+      "FOPEN_MAX", "FILENAME_MAX", "L_tmpnam", "TMP_MAX", "O_RDONLY",
+      "O_WRONLY", "O_RDWR", "O_APPEND", "O_CREAT", "O_EXCL", "O_TRUNC",
+      "S_IFIFO", "S_IFCHR", "S_IFBLK", "S_IFDIR", "S_IFREG", "S_IFMT",
+      "S_IEXEC", "S_IWRITE", "S_IREAD", "S_IRWXU", "S_IXUSR", "S_IWUSR",
+      "S_IRUSR", "F_OK", "R_OK", "W_OK", "X_OK", "STDIN_FILENO",
+      "STDOUT_FILENO", "STDERR_FILENO"
+    ]
+  },
+  "item-datas": {
+    "Normal Text": "Normal",
+    "Keyword": "Keyword",
+    "Control Flow": "ControlFlow",
+    "Self": "Keyword",
+    "Type": "DataType",
+    "Trait": "BuiltIn",
+    "CType": "DataType",
+    "Constant": "Constant",
+    "CConstant": "Constant",
+    "Definition": "Normal",
+    "Comment": "Comment",
+    "Scope": "Preprocessor",
+    "Number": "DecVal",
+    "String": "String",
+    "CharEscape": "SpecialChar",
+    "Character": "Char",
+    "Macro": "Preprocessor",
+    "Symbol": "Operator",
+    "Attribute": "Attribute",
+    "Lifetime": "Others",
+    "Raw Identifier": "Annotation",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "keyword", "attribute": "Keyword", "context": "Function", "String": "fn" },
+        { "type": "keyword", "attribute": "Keyword", "context": "Type", "String": "type" },
+        { "type": "keyword", "attribute": "Self", "context": "#stay", "String": "self" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords" },
+        { "type": "keyword", "attribute": "Control Flow", "context": "#stay", "String": "controlflow" },
+        { "type": "keyword", "attribute": "Type", "context": "#stay", "String": "types" },
+        { "type": "keyword", "attribute": "CType", "context": "#stay", "String": "ctypes" },
+        { "type": "keyword", "attribute": "Constant", "context": "#stay", "String": "constants" },
+        { "type": "keyword", "attribute": "CConstant", "context": "#stay", "String": "cconstants" },
+        { "type": "keyword", "attribute": "Trait", "context": "#stay", "String": "traits" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" },
+        { "type": "Detect2Chars", "attribute": "Attribute", "context": "attribute", "char": "#", "char1": "[" },
+        { "type": "StringDetect", "attribute": "Attribute", "context": "attribute", "String": "#![" },
+        { "type": "DetectChar", "attribute": "String", "context": "raw-string-r", "char": "r" },
+        { "type": "StringDetect", "attribute": "String", "context": "byte-string", "String": "b\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string", "char": "\"" },
+        { "type": "StringDetect", "attribute": "Character", "context": "character", "String": "b'" },
+        { "type": "DetectChar", "attribute": "Character", "context": "character", "char": "'" },
+        { "type": "Hex", "attribute": "Number", "context": "#stay" },
+        { "type": "Float", "attribute": "Number", "context": "#stay" },
+        { "type": "Int", "attribute": "Number", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": "=", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": "-", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": "<", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": ">", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": "=", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": "!", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": "&", "char1": "&" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": "|", "char1": "|" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": "<", "char1": "<" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": ">", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#stay", "char": ":", "char1": ":" },
+        { "type": "AnyChar", "attribute": "Symbol", "context": "#stay", "String": ";,.@~:$?<>&-+|*!/^%" },
+        { "type": "DetectIdentifier", "attribute": "Normal Text", "context": "#stay" }
+      ]
+    },
+    "Function": {
+      "attribute": "Definition",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Definition", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Definition", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Normal Text", "context": "#pop", "String": "(<" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" }
+      ]
+    },
+    "Type": {
+      "attribute": "Definition",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Definition", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Definition", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Normal Text", "context": "#pop", "String": "=<;" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" }
+      ]
+    },
+    "attribute": {
+      "attribute": "Attribute",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Attribute", "context": "#pop", "char": "]" },
+        { "type": "DetectSpaces", "attribute": "Attribute", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Attribute", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Attribute", "context": "#stay", "String": "0123456789.+-*/%=<>!&|^~?:;.,()[]{}#@'\"_" }
+      ]
+    },
+    "string": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "x" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "u" }
+      ]
+    },
+    "byte-string": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "x" }
+      ]
+    },
+    "raw-string-r": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "raw-string", "char": "\"" }
+      ]
+    },
+    "raw-string": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" }
+      ]
+    },
+    "character": {
+      "attribute": "Character",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Character", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "0" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "x" },
+        { "type": "Detect2Chars", "attribute": "CharEscape", "context": "#stay", "char": "\\", "char1": "u" }
+      ]
+    },
+    "comment-line": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@'\"\\`" }
+      ]
+    },
+    "comment-block": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "#pop", "char": "*", "char1": "/" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@'\"\\`" }
+      ]
+    }
+  }
+}

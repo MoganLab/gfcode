@@ -10,6 +10,7 @@
       "review/",
       "app/",
       "web-search/",
+      "highlight/",
       "tests/"
     ],
     "exclude": [
