@@ -16,6 +16,7 @@
     (liii pi ai message)
     (liii pi code modes output)
     (liii pi code modes flow)
+    (liii pi code modes verbose)
     (gfcode code-review files)
     (gfcode code-review prompt)
     (gfcode code-review parse)
@@ -196,9 +197,13 @@
               (if (eq? mode 'json)
                 (run-session-flow review-parsed rcfg prompt emit-json-event (lambda _ 0))
                 ;; 直接结构化审查失败（模型 error/aborted/输出截断）时，
-                ;; 降级为只读 fallback 提示词重试一次；仍失败才报错退出
-                (let ((result (run-session-flow review-parsed rcfg prompt #f pi-code-review-response))
-                     ) ;
+                ;; 降级为只读 fallback 提示词重试一次；仍失败才报错退出。
+                ;; verbose 模式下实时展示会话事件（含原始 JSON 输出），
+                ;; 结算后再打印格式化报告；其余模式保持静默只出报告。
+                (let* ((emit (if (eq? mode 'verbose) (make-verbose-emitter) #f))
+                       (result (run-session-flow review-parsed rcfg prompt emit pi-code-review-response)
+                       ) ;result
+                      ) ;
                   (if (eq? (cdr (assoc 'status result)) 'error)
                     (begin
                       (display-stderr (string-append "Structured review failed: "
@@ -221,7 +226,7 @@
                       0
                     ) ;begin
                   ) ;if
-                ) ;let
+                ) ;let*
               ) ;if
             ) ;let
           ) ;let
