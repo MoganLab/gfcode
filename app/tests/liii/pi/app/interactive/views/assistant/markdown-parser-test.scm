@@ -38,6 +38,12 @@
   "\x1b;[38;2;205;154;34m\x1b;[1m\x1b;[4m# 标题\x1b;[0m"
 ) ;check
 
+;; Table separators use the theme's Preprocessor/Keyword color; cells stay plain.
+(check (car (%markdown-visual-lines (parse "| 中文 | x |") 80))
+  =>
+  "\x1b;[38;2;105;173;208m|\x1b;[0m 中文 \x1b;[38;2;105;173;208m|\x1b;[0m x \x1b;[38;2;105;173;208m|\x1b;[0m"
+) ;check
+
 (define heading3
   "### 核心原因：今天执行的其实还是修改前的旧 Cron 批次（外加 GitHub 队列积压）"
 ) ;define

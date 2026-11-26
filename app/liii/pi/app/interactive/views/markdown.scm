@@ -28,8 +28,10 @@
             ((member attr '("Link" "Auto-Link")) "Link")
             ((equal? attr "Emphasis Text") "Emphasis")
             ((equal? attr "Strikethrough Text") "Strike")
-            ((member attr '("Import" "Extension" "Keyword" "ControlFlow"
-                            "Preprocessor"))
+            ((member attr
+               '("Import" "Extension" "Keyword" "ControlFlow" "Preprocessor"
+                 "Table")
+             ) ;member
              "Keyword"
             ) ;
             ((member attr
