@@ -15,6 +15,8 @@ description: 使用 tmux（包括 Windows 上的 psmux）启动和控制交互�
 - 每次 `send-keys` 之前和 `capture-pane` 之前都检查会话；失败时报告实际错误，不要声称操作成功。
 - 不要通过杀掉服务端、使用 `kill-server` 或清理所有会话来解决单个会话的问题。
 - 未经用户同意，不要关闭用户已有的会话；仅清理本任务创建且不再需要的会话。
+- 向已运行的会话发消息时，**文本与 `Enter` 必须拆成两次 `send-keys`，中间 `sleep 1`**；
+  合并成 `send-keys "$MSG" Enter` 在 psmux 下不可靠（详见第 3 节）。首条消息优先用启动参数提交。
 
 ## 1\. 检查环境与会话
 
@@ -69,7 +71,7 @@ tmux has-session -t "$SESSION" 2>/dev/null && \
 powershell.exe -NoProfile -Command "Start-Process psmux.exe -ArgumentList 'new-session','-d','-s','$SESSION','--','gf','pi','--session-dir','$SD_WIN','hello' -WindowStyle Hidden"
 ```
 
-启动参数消息通常比界面尚未初始化时立即 `send-keys` 更可靠。显式指定要运行的程序，不要假设新窗格默认运行 `gf pi`。
+启动参数消息**最可靠**——它绕过 TUI 输入框直接作为初始用户消息，不存在 `Enter` 被吞的问题。需要发首条消息时优先用启动参数；只有向**已运行**的会话追加消息时才用第 3 节的两次 `send-keys`。显式指定要运行的程序，不要假设新窗格默认运行 `gf pi`。
 
 注意：`Start-Process` 仍**不能保证**服务端永久存活（Job 限制下偶发 breakaway 失败
 时仍会被清理），因此务必配合下文的隔离 `--session-dir`，以便服务端被清后能用
@@ -97,7 +99,17 @@ cwd** 时，外层 agent 自身的对话文件往往是字典序最大的那一�
 
 ## 3\. 发送消息并观察输出
 
-发送前捕获一次快照。它用于判断消息是否已提交，以及后续输出是否确实发生变化：
+`gf pi` 兼容 Pi 的 TUI 约定，**提交键是 `Enter`**（普通提交）；模型正在工作时按 Enter 提交的消息会作为
+“steering message”排队，等当前工具调用结束后才处理。所以 `Enter` 一定能送达，但未必立即出现在对话区。
+
+### 重要：必须把文本和 Enter 拆成两次 `send-keys`
+
+在本环境的 psmux 下，`tmux send-keys -t "$SESSION" "$MESSAGE" Enter`（文本与 Enter 在同一条命令里）
+**不可靠**：psmux 几乎同时把文本和 `Enter` 注入伪终端，`Enter` 可能在 TUI 还没消费完文本时就到达，
+导致 `Enter` 被吞掉，消息一直停在输入框、jsonl 无记录（实测多次复现）。
+
+可靠做法：先单独输入文本，**`sleep 1`** 让 TUI 渲染并消费输入，再单独发 `Enter`。中间的 `sleep 1` 是经验阈值；
+`sleep 0.5` 实测仍偶发失败，不要更短。
 
 ```bash
 SESSION='gf-pi-hello'
@@ -108,18 +120,58 @@ tmux has-session -t "$SESSION" 2>/dev/null || {
   exit 1
 }
 
-tmux capture-pane -p -t "$SESSION" -S -100
-tmux send-keys -t "$SESSION" "$MESSAGE" Enter
-sleep 3
+tmux capture-pane -p -t "$SESSION" -S -100          # 发送前快照
+
+tmux send-keys -t "$SESSION" "$MESSAGE"            # 1) 先输入文本
+sleep 1                                            #    等 TUI 渲染（不要省略）
+tmux send-keys -t "$SESSION" Enter                 # 2) 再单独提交
+sleep 5                                            #    等模型开始回复
 tmux has-session -t "$SESSION" 2>/dev/null && \
   tmux capture-pane -p -t "$SESSION" -S -150
 ```
 
-- 使用 `send-keys ... Enter` 提交单行消息，不要模拟粘贴多行文本。
+- 不要写 `send-keys "$MESSAGE" Enter` 合并成一条；文本与 Enter 必须分两次 `send-keys`，中间 `sleep 1`。
+- 若输入框可能有残留文本（例如上一条未提交、或刚恢复会话），先 `send-keys C-c` 清空再输入，更稳。
+- 不要模拟粘贴多行文本；单行消息一次提交。多行内容改用 `--continue <message>` 启动参数或拆成多条。
 - 将消息作为单个参数传递，避免 shell 拆分；消息含敏感信息时避免在日志和最终回复中复述。
-- 发送成功不等于模型已回复。等待后重新捕获，必要时每隔 5–10 秒轮询。
+
+### 如何判断消息是否真正送达
+
+`Enter` 已按下、屏幕输入框清空、**不等于**消息已提交。尤其模型正在 `Working` 时，消息会排队，
+屏幕不会立即显示。判断是否真正送达看**隔离目录里的 jsonl**，而非屏幕底部：
+
+```bash
+SESSION_DIR='/tmp/gf-pi-xxxxxx'                  # 与启动时同一个隔离目录
+rg '"role":"user"' "$SESSION_DIR"/*.jsonl | tail -5
+```
+
+- 看到新增的 `"role":"user"` 且 `"content"` 是该消息，才算真正送达。
+- jsonl 仍只有旧消息、且输入框已被清空，可能是消息在排队（模型工作时）——继续轮询，不要重发。
+- jsonl 仍只有旧消息、且输入框里还停着该文本，是 `Enter` 被吞了——用 `C-c` 清空后重试拆开的两次 `send-keys`。
+- 状态未知时不要自动重发，避免模型收到重复请求。
+
+### 观察回复
+
 - 使用 `-S -100` 或更大的负数读取滚动历史；不要只根据屏幕底部判断回复状态。
+- 发送成功不等于模型已回复。等待后重新捕获，必要时每隔 5–10 秒轮询。
 - 若看到消息仍在输入区、明显的转义序列或未提交的文本，先捕获完整窗格，不要盲目再次按 Enter。
+
+需要连续观察时，使用带会话检查和次数上限的轮询：
+
+```bash
+SESSION='gf-pi-hello'
+
+for attempt in 1 2 3 4 5 6; do
+  if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+    printf 'Session disappeared while waiting: %s\n' "$SESSION" >&2
+    exit 1
+  fi
+
+  printf '\n--- poll %s ---\n' "$attempt"
+  tmux capture-pane -p -t "$SESSION" -S -100
+  sleep 5
+done
+```
 
 需要连续观察时，使用带会话检查和次数上限的轮询：
 
@@ -186,9 +238,12 @@ psmux 服务端本身**没有空闲超时**，设计为一直存活到显式 `ki
 
 1. 用 `tmux list-sessions` 确认当前状态；记录该命令自身的错误。
 2. 若会话仍在，直接捕获输出，不要重建会话或重发消息。
-3. 若会话消失，检查最后一份快照是否显示进程退出、错误或未提交的消息。
-4. 状态未知时不要自动重发消息，避免模型收到重复请求。
-5. 需要重启并继续**同一子对话**时，用启动时保存的隔离 `--session-dir` 恢复，
+3. 若会话消失，先查隔离目录的 jsonl（`rg '"role":"user"' "$SESSION_DIR"/*.jsonl`），
+   判断最后一条消息是否真正落盘。只有 jsonl **没有**该消息时才需要重发；若已落盘，
+   用 `--continue --session-dir <隔离目录>` 恢复即可看到模型回复，不要重发。
+4. 同时检查最后一份快照是否显示进程退出、错误或仍停在输入框的未提交文本。
+5. 状态未知时不要自动重发消息，避免模型收到重复请求。
+6. 需要重启并继续**同一子对话**时，用启动时保存的隔离 `--session-dir` 恢复，
    而不是裸用 `gf pi --continue`，且仍用 `Start-Process` 启动以延长存活：
 
 ```bash
@@ -224,7 +279,7 @@ tmux has-session -t "$SESSION" 2>/dev/null && \
 汇报时包含：
 
 - 实际使用的 tmux 会话名；
-- 已提交的用户消息；
+- 已提交的用户消息，以及每条是否已确认落盘（用 jsonl 核对，而非仅凭屏幕）；
 - 从 `capture-pane` 观察到的关键输出；
 - 当前会话状态，以及是否发生过退出或恢复。
 
