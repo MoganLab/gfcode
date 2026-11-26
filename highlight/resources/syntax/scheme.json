@@ -1,0 +1,129 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Scheme syntax derived from scheme.xml by Dominik Haumann <dhaumann@kde.org> (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Scheme"
+  },
+  "name": "Scheme",
+  "extensions": [
+    "*.scm",
+    "*.ss",
+    "*.scheme"
+  ],
+  "initial-context": "Level0",
+  "lists": {
+    "keywords": [
+      "lambda", "if", "else", "cond", "case", "and", "or",
+      "let", "let*", "letrec", "letrec*", "let-values", "let*-values",
+      "begin", "do", "delay", "delay-force", "make-promise", "force",
+      "parameterize", "guard", "quasiquote", "unquote", "unquote-splicing",
+      "quote", "set!", "include", "include-ci", "syntax-rules",
+      "syntax-error", "import", "export", "define-library", "when", "unless"
+    ],
+    "defines": [
+      "define", "define*", "define-values", "define-record-type",
+      "define*-record-type", "define-syntax", "define-macro"
+    ],
+    "operators": [
+      "+", "-", "*", "/", "=", "<", ">", "<=", ">=", "=>", "...", ".", "?", "!"
+    ],
+    "char-names": [
+      "space", "newline", "tab", "alarm", "backspace", "delete", "escape", "null"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Keyword": "Keyword",
+    "Extension": "Extension",
+    "Operator": "Operator",
+    "Comment": "Comment",
+    "String": "String",
+    "Char": "Char",
+    "SpecialChar": "SpecialChar",
+    "DecVal": "DecVal"
+  },
+  "contexts": {
+    "Level0": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": ";" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "multiline-comment", "char": "#", "char1": "|" },
+        { "type": "DetectChar", "attribute": "String", "context": "string", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "DecVal", "context": "#stay", "char": "#", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "DecVal", "context": "#stay", "char": "#", "char1": "f" },
+        { "type": "Detect2Chars", "attribute": "Char", "context": "char-lit", "char": "#", "char1": "\\" },
+        { "type": "keyword", "attribute": "Extension", "context": "#stay", "String": "defines" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords" },
+        { "type": "keyword", "attribute": "Operator", "context": "#stay", "String": "operators" },
+        { "type": "Int", "attribute": "DecVal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "Level1", "char": "(" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#pop", "char": ")" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "{}[]" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "Level1": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": ";" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "multiline-comment", "char": "#", "char1": "|" },
+        { "type": "DetectChar", "attribute": "String", "context": "string", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "DecVal", "context": "#stay", "char": "#", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "DecVal", "context": "#stay", "char": "#", "char1": "f" },
+        { "type": "Detect2Chars", "attribute": "Char", "context": "char-lit", "char": "#", "char1": "\\" },
+        { "type": "keyword", "attribute": "Extension", "context": "#stay", "String": "defines" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords" },
+        { "type": "keyword", "attribute": "Operator", "context": "#stay", "String": "operators" },
+        { "type": "Int", "attribute": "DecVal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "Level1", "char": "(" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#pop", "char": ")" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "{}[]" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "comment": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "multiline-comment": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "#pop", "char": "|", "char1": "#" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "multiline-comment", "char": "#", "char1": "|" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "string": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" }
+      ]
+    },
+    "char-lit": {
+      "attribute": "Char",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "keyword", "attribute": "Char", "context": "#pop", "String": "char-names" },
+        { "type": "DetectIdentifier", "attribute": "Char", "context": "#pop" }
+      ]
+    }
+  }
+}

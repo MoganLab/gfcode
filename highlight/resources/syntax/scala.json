@@ -1,0 +1,193 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Scala syntax derived from scala.xml by Stephane Micheloud (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Scala"
+  },
+  "name": "Scala",
+  "extensions": [
+    "*.scala",
+    "*.sbt"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "keywords": [
+      "abstract", "class", "def", "extends", "false", "final", "forSome",
+      "implicit", "import", "lazy", "new", "null", "object", "override",
+      "package", "private", "protected", "requires", "sealed", "super",
+      "this", "trait", "true", "type", "val", "var", "with", "given",
+      "using", "enum", "then", "export"
+    ],
+    "controlflow": [
+      "case", "catch", "do", "else", "finally", "for", "if", "match",
+      "return", "throw", "try", "while", "yield"
+    ],
+    "types": [
+      "boolean", "byte", "char", "double", "float", "int", "long", "short",
+      "unit"
+    ],
+    "predef": [
+      "Any", "AnyRef", "AnyVal", "Nothing", "Null", "Unit", "Boolean",
+      "Int", "Long", "Short", "Byte", "Float", "Double", "Char", "String",
+      "List", "Seq", "Option", "Some", "None", "Either", "Left", "Right",
+      "Map", "Set", "Array", "Vector", "Tuple", "Function", "PartialFunction",
+      "Iterable", "Iterator", "Future", "Try", "Success", "Failure"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Keyword": "Keyword",
+    "ControlFlow": "ControlFlow",
+    "DataType": "DataType",
+    "Predef": "BuiltIn",
+    "String": "String",
+    "RawString": "VerbatimString",
+    "Interpolation": "SpecialString",
+    "Char": "Char",
+    "SpecialChar": "SpecialChar",
+    "Comment": "Comment",
+    "DecVal": "DecVal",
+    "BaseN": "BaseN",
+    "Float": "Float",
+    "Operator": "Operator",
+    "Import": "Import",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" },
+        { "type": "StringDetect", "attribute": "RawString", "context": "raw-string", "String": "\"\"\"" },
+        { "type": "Detect2Chars", "attribute": "Interpolation", "context": "interp-s", "char": "s", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "Interpolation", "context": "interp-f", "char": "f", "char1": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Char", "context": "char", "char": "'" },
+        { "type": "Hex", "attribute": "BaseN", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "DecVal", "context": "#stay" },
+        { "type": "keyword", "attribute": "ControlFlow", "context": "#stay", "String": "controlflow" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords" },
+        { "type": "keyword", "attribute": "DataType", "context": "#stay", "String": "types" },
+        { "type": "keyword", "attribute": "Predef", "context": "#stay", "String": "predef" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "-", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "=", "char1": ">" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "-" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "=", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "!", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "<", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ">", "char1": "=" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "&", "char1": "&" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "|", "char1": "|" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "+", "char1": "+" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "-", "char1": "-" },
+        { "type": "DetectChar", "attribute": "Operator", "context": "#stay", "char": "`" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=<>!&|^~?:." },
+        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": "()[]{};," },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "comment-line": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@'\"\\" }
+      ]
+    },
+    "comment-block": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "#pop", "char": "*", "char1": "/" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@'\"\\" }
+      ]
+    },
+    "string": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    },
+    "raw-string": {
+      "attribute": "RawString",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "RawString", "context": "#pop", "String": "\"\"\"" }
+      ]
+    },
+    "interp-s": {
+      "attribute": "Interpolation",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Interpolation", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "Interpolation", "context": "interp-expr", "char": "$", "char1": "{" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "$", "char1": "$" },
+        { "type": "DetectChar", "attribute": "Interpolation", "context": "interp-var", "char": "$" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" }
+      ]
+    },
+    "interp-f": {
+      "attribute": "Interpolation",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Interpolation", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "Interpolation", "context": "interp-expr", "char": "$", "char1": "{" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "$", "char1": "$" },
+        { "type": "DetectChar", "attribute": "Interpolation", "context": "interp-var", "char": "$" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" }
+      ]
+    },
+    "interp-expr": {
+      "attribute": "Interpolation",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Interpolation", "context": "#pop", "char": "}" },
+        { "type": "DetectIdentifier", "attribute": "Interpolation", "context": "#stay" }
+      ]
+    },
+    "interp-var": {
+      "attribute": "Interpolation",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Interpolation", "context": "#pop" }
+      ]
+    },
+    "char": {
+      "attribute": "Char",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Char", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    }
+  }
+}

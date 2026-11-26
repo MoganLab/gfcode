@@ -1,0 +1,76 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Diff syntax derived from diff.xml by Matthew Woehlke & Eduardo Robles Elvira (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Diff"
+  },
+  "name": "Diff",
+  "extensions": [
+    "*.diff",
+    "*.patch",
+    "*.rej"
+  ],
+  "initial-context": "Normal",
+  "lists": {},
+  "item-datas": {
+    "Normal": "Normal",
+    "File": "Keyword",
+    "Header": "DataType",
+    "Added": "Variable",
+    "Removed": "String",
+    "ChangedOld": "String",
+    "ChangedNew": "Variable"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Header", "context": "line-Header", "String": "@@", "column": 0 },
+        { "type": "StringDetect", "attribute": "Header", "context": "line-Header", "String": "+++", "column": 0 },
+        { "type": "StringDetect", "attribute": "File", "context": "line-File", "String": "---", "column": 0 },
+        { "type": "StringDetect", "attribute": "File", "context": "line-File", "String": "***", "column": 0 },
+        { "type": "StringDetect", "attribute": "File", "context": "line-File", "String": "diff", "column": 0 },
+        { "type": "StringDetect", "attribute": "File", "context": "line-File", "String": "Only in", "column": 0 },
+        { "type": "StringDetect", "attribute": "File", "context": "line-File", "String": "Index:", "column": 0 },
+        { "type": "DetectChar", "attribute": "Added", "context": "line-Added", "char": "+", "column": 0 },
+        { "type": "DetectChar", "attribute": "Removed", "context": "line-Removed", "char": "-", "column": 0 },
+        { "type": "DetectChar", "attribute": "ChangedOld", "context": "line-ChangedOld", "char": "!", "column": 0 },
+        { "type": "DetectChar", "attribute": "Normal", "context": "line-Normal", "char": "\\", "column": 0 }
+      ]
+    },
+    "line-Header": {
+      "attribute": "Header",
+      "line-end-context": "#pop",
+      "rules": []
+    },
+    "line-File": {
+      "attribute": "File",
+      "line-end-context": "#pop",
+      "rules": []
+    },
+    "line-Added": {
+      "attribute": "Added",
+      "line-end-context": "#pop",
+      "rules": []
+    },
+    "line-Removed": {
+      "attribute": "Removed",
+      "line-end-context": "#pop",
+      "rules": []
+    },
+    "line-ChangedOld": {
+      "attribute": "ChangedOld",
+      "line-end-context": "#pop",
+      "rules": []
+    },
+    "line-Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#pop",
+      "rules": []
+    }
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: C syntax derived from c.xml by Sebastian Pipping <webmaster@hartwork.org> (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "C"
+  },
+  "name": "C",
+  "extensions": [
+    "*.c",
+    "*.C",
+    "*.h"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "controlflow": [
+      "break", "case", "continue", "default", "do", "else", "for", "goto",
+      "if", "return", "switch", "while"
+    ],
+    "keywords": [
+      "struct", "union", "enum", "typedef", "sizeof", "typeof",
+      "typeof_unqual", "alignas", "alignof", "_Alignas", "_Alignof",
+      "static_assert", "_Static_assert", "_Noreturn", "_Generic",
+      "true", "false", "nullptr"
+    ],
+    "types": [
+      "void", "bool", "_Bool", "char", "short", "int", "long", "float",
+      "double", "signed", "unsigned", "char16_t", "char32_t", "size_t",
+      "ssize_t", "ptrdiff_t", "int8_t", "int16_t", "int32_t", "int64_t",
+      "uint8_t", "uint16_t", "uint32_t", "uint64_t", "intptr_t", "uintptr_t",
+      "intmax_t", "uintmax_t", "FILE", "fpos_t", "time_t", "va_list"
+    ],
+    "modifiers": [
+      "const", "volatile", "restrict", "static", "extern", "inline",
+      "_Thread_local", "_Atomic", "register", "auto", "constexpr"
+    ],
+    "pp-directives": [
+      "include", "define", "ifdef", "ifndef", "endif", "if", "else",
+      "elif", "elifdef", "elifndef", "pragma", "undef", "line", "error",
+      "warning", "embed"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Keyword": "Keyword",
+    "ControlFlow": "ControlFlow",
+    "DataType": "DataType",
+    "String": "String",
+    "Char": "Char",
+    "SpecialChar": "SpecialChar",
+    "Comment": "Comment",
+    "Preprocessor": "Preprocessor",
+    "DecVal": "DecVal",
+    "BaseN": "BaseN",
+    "Float": "Float",
+    "Operator": "Operator",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Preprocessor", "context": "preprocessor", "char": "#", "first-non-space": true },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "DetectChar", "attribute": "String", "context": "string", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Char", "context": "char", "char": "'" },
+        { "type": "Hex", "attribute": "BaseN", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "DecVal", "context": "#stay" },
+        { "type": "keyword", "attribute": "ControlFlow", "context": "#stay", "String": "controlflow" },
+        { "type": "keyword", "attribute": "DataType", "context": "#stay", "String": "types" },
+        { "type": "keyword", "attribute": "DataType", "context": "#stay", "String": "modifiers" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords" },
+        { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "-", "char1": ">" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=<>!&|^~?:." },
+        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": "{}[](),;" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "preprocessor": {
+      "attribute": "Preprocessor",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "DetectChar", "attribute": "String", "context": "string", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "include-angle", "char": "<" },
+        { "type": "keyword", "attribute": "Preprocessor", "context": "#stay", "String": "pp-directives" },
+        { "type": "DetectSpaces", "attribute": "Preprocessor", "context": "#stay" },
+        { "type": "Hex", "attribute": "BaseN", "context": "#stay" },
+        { "type": "Int", "attribute": "DecVal", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Preprocessor", "context": "#stay" }
+      ]
+    },
+    "include-angle": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": ">" }
+      ]
+    },
+    "comment-line": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "comment-block": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "#pop", "char": "*", "char1": "/" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "string": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    },
+    "char": {
+      "attribute": "Char",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Char", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "'" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "SpecialChar", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    }
+  }
+}

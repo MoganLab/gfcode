@@ -1,0 +1,226 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: TOML syntax derived from toml.xml by flying-sheep@web.de (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: LGPL-2.0-or-later",
+    "name": "TOML"
+  },
+  "name": "TOML",
+  "extensions": [
+    "Cargo.lock",
+    "*.toml",
+    "*.rc",
+    "*.cfg",
+    "*.cf",
+    "*.cnf",
+    "*.ini",
+    "mirrorlist"
+  ],
+  "initial-context": "Toml",
+  "lists": {
+    "bools": [
+      "true", "false"
+    ]
+  },
+  "item-datas": {
+    "Whitespace": "Normal",
+    "Key": "DataType",
+    "TableHeader": "Keyword",
+    "Assignment": "Operator",
+    "Comment": "Comment",
+    "Date": "BaseN",
+    "Float": "Float",
+    "Int": "DecVal",
+    "Boolean true": "Constant",
+    "Boolean false": "Constant",
+    "String": "String",
+    "LitString": "VerbatimString",
+    "Escape": "SpecialChar",
+    "Array": "Operator",
+    "InlineTable": "Operator",
+    "NextEntry": "Operator",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Toml": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Whitespace", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "TableHeader", "context": "NestedTableHeader", "char": "[", "char1": "[" },
+        { "type": "DetectChar", "attribute": "TableHeader", "context": "TableHeader", "char": "[" },
+        { "type": "DetectChar", "attribute": "Assignment", "context": "Value", "char": "=" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "#" },
+        { "type": "DetectChar", "attribute": "Key", "context": "QuotedKey", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Key", "context": "LitQuotedKey", "char": "'" },
+        { "type": "DetectChar", "attribute": "Key", "context": "#stay", "char": "." },
+        { "type": "DetectIdentifier", "attribute": "Key", "context": "#stay" }
+      ]
+    },
+    "TableHeader": {
+      "attribute": "TableHeader",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "TableHeader", "context": "#pop", "char": "]" },
+        { "type": "DetectSpaces", "attribute": "Whitespace", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "TableHeader", "context": "QuotedKey", "char": "\"" },
+        { "type": "DetectChar", "attribute": "TableHeader", "context": "LitQuotedKey", "char": "'" },
+        { "type": "DetectChar", "attribute": "TableHeader", "context": "#stay", "char": "." },
+        { "type": "DetectIdentifier", "attribute": "TableHeader", "context": "#stay" }
+      ]
+    },
+    "NestedTableHeader": {
+      "attribute": "TableHeader",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "TableHeader", "context": "#pop", "char": "]", "char1": "]" },
+        { "type": "DetectSpaces", "attribute": "Whitespace", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "TableHeader", "context": "QuotedKey", "char": "\"" },
+        { "type": "DetectChar", "attribute": "TableHeader", "context": "LitQuotedKey", "char": "'" },
+        { "type": "DetectChar", "attribute": "TableHeader", "context": "#stay", "char": "." },
+        { "type": "DetectIdentifier", "attribute": "TableHeader", "context": "#stay" }
+      ]
+    },
+    "Value": {
+      "attribute": "Normal",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Whitespace", "context": "#stay" },
+        { "type": "WordDetect", "attribute": "Boolean true", "context": "#pop", "String": "true", "delimiters": " \t\r\n]#,}" },
+        { "type": "WordDetect", "attribute": "Boolean false", "context": "#pop", "String": "false", "delimiters": " \t\r\n]#,}" },
+        { "type": "StringDetect", "attribute": "String", "context": "MultilineString", "String": "\"\"\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "String", "char": "\"" },
+        { "type": "StringDetect", "attribute": "LitString", "context": "LitMultilineString", "String": "'''" },
+        { "type": "DetectChar", "attribute": "LitString", "context": "LitString", "char": "'" },
+        { "type": "DetectChar", "attribute": "Array", "context": "Array", "char": "[" },
+        { "type": "DetectChar", "attribute": "InlineTable", "context": "InlineTable", "char": "{" },
+        { "type": "Hex", "attribute": "Int", "context": "#pop" },
+        { "type": "Float", "attribute": "Float", "context": "#pop" },
+        { "type": "Int", "attribute": "Int", "context": "#pop" }
+      ]
+    },
+    "Comment": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@$'\"\\`" }
+      ]
+    },
+    "QuotedKey": {
+      "attribute": "Key",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Key", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "u" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "U" }
+      ]
+    },
+    "LitQuotedKey": {
+      "attribute": "Key",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Key", "context": "#pop", "char": "'" }
+      ]
+    },
+    "String": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "b" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "f" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "u" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "U" }
+      ]
+    },
+    "MultilineString": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "String", "context": "#pop", "String": "\"\"\"" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "u" },
+        { "type": "Detect2Chars", "attribute": "Escape", "context": "#stay", "char": "\\", "char1": "U" }
+      ]
+    },
+    "LitString": {
+      "attribute": "LitString",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "LitString", "context": "#pop", "char": "'" }
+      ]
+    },
+    "LitMultilineString": {
+      "attribute": "LitString",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "LitString", "context": "#pop", "String": "'''" }
+      ]
+    },
+    "Array": {
+      "attribute": "Array",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Whitespace", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Array", "context": "#pop", "char": "]" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "#" },
+        { "type": "DetectChar", "attribute": "NextEntry", "context": "InArray", "char": "," },
+        { "type": "StringDetect", "attribute": "String", "context": "MultilineString", "String": "\"\"\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "String", "char": "\"" },
+        { "type": "StringDetect", "attribute": "LitString", "context": "LitMultilineString", "String": "'''" },
+        { "type": "DetectChar", "attribute": "LitString", "context": "LitString", "char": "'" },
+        { "type": "DetectChar", "attribute": "Array", "context": "Array", "char": "[" },
+        { "type": "DetectChar", "attribute": "InlineTable", "context": "InlineTable", "char": "{" },
+        { "type": "Hex", "attribute": "Int", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "Int", "context": "#stay" },
+        { "type": "WordDetect", "attribute": "Boolean true", "context": "#stay", "String": "true", "delimiters": " \t\r\n]#,}" },
+        { "type": "WordDetect", "attribute": "Boolean false", "context": "#stay", "String": "false", "delimiters": " \t\r\n]#,}" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "InArray": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Array", "context": "#pop#pop", "char": "]" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "#" },
+        { "type": "IncludeRules", "attribute": "Normal", "context": "#stay", "context-ref": "#TOML.Array" }
+      ]
+    },
+    "InlineTable": {
+      "attribute": "InlineTable",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "InlineTable", "context": "#pop", "char": "}" },
+        { "type": "DetectSpaces", "attribute": "Whitespace", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "Comment", "char": "#" },
+        { "type": "DetectChar", "attribute": "Assignment", "context": "Value", "char": "=" },
+        { "type": "DetectChar", "attribute": "NextEntry", "context": "#stay", "char": "," },
+        { "type": "DetectChar", "attribute": "Key", "context": "QuotedKey", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Key", "context": "LitQuotedKey", "char": "'" },
+        { "type": "DetectChar", "attribute": "Key", "context": "#stay", "char": "." },
+        { "type": "DetectIdentifier", "attribute": "Key", "context": "#stay" }
+      ]
+    }
+  }
+}

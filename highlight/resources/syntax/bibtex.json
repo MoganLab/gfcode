@@ -1,0 +1,117 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: BibTeX syntax derived from bibtex.xml by Jeroen Wijnhout and Thomas Braun (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: LGPL-2.0-or-later",
+    "name": "BibTeX"
+  },
+  "name": "BibTeX",
+  "extensions": [
+    "*.bib"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "entries": [
+      "@article", "@book", "@booklet", "@conference", "@collection",
+      "@electronic", "@inbook", "@incollection", "@inproceedings",
+      "@manual", "@mastersthesis", "@misc", "@online", "@patent",
+      "@periodical", "@proceedings", "@report", "@phdthesis", "@set",
+      "@thesis", "@techreport", "@unpublished", "@www", "@person",
+      "@company", "@place"
+    ]
+  },
+  "item-datas": {
+    "Normal Text": "Normal",
+    "Entry": "Variable",
+    "Command": "Function",
+    "Field": "DataType",
+    "Ref Key": "Others",
+    "LatexCommand": "Char",
+    "Comment": "Comment",
+    "Error": "Error",
+    "String": "String"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "keyword", "attribute": "Entry", "context": "Entry", "String": "entries", "delimiters": " \t\r\n{}()," },
+        { "type": "StringDetect", "attribute": "Command", "context": "StringCommand", "String": "@string" },
+        { "type": "StringDetect", "attribute": "Command", "context": "StringCommand", "String": "@String" },
+        { "type": "StringDetect", "attribute": "Command", "context": "PreambleCommand", "String": "@preamble" },
+        { "type": "StringDetect", "attribute": "Command", "context": "PreambleCommand", "String": "@Preamble" },
+        { "type": "StringDetect", "attribute": "Comment", "context": "#stay", "String": "@comment" },
+        { "type": "StringDetect", "attribute": "Comment", "context": "#stay", "String": "@Comment" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "PreambleCommand": {
+      "attribute": "Normal Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop!CurlyBracket", "char": "{" }
+      ]
+    },
+    "StringCommand": {
+      "attribute": "Normal Text",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop!CurlyBracket", "char": "{" },
+        { "type": "DetectIdentifier", "attribute": "String", "context": "#pop!CurlyBracket" }
+      ]
+    },
+    "Entry": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#stay", "char": "{" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "Field", "char": "," },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop", "char": "}" },
+        { "type": "DetectIdentifier", "attribute": "Ref Key", "context": "#stay" }
+      ]
+    },
+    "Field": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Field", "context": "#stay", "first-non-space": true },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#stay", "char": "=" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "CurlyBracket", "char": "{" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "QuotedText", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop", "char": "}", "look-ahead": true },
+        { "type": "AnyChar", "attribute": "Normal Text", "context": "#stay", "String": ",#" },
+        { "type": "Int", "attribute": "Normal Text", "context": "#stay" }
+      ]
+    },
+    "CurlyBracket": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "CurlyBracket", "char": "{" },
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop", "char": "}" },
+        { "type": "DetectChar", "attribute": "LatexCommand", "context": "latex-cmd", "char": "\\" }
+      ]
+    },
+    "QuotedText": {
+      "attribute": "String",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Normal Text", "context": "#pop", "char": "\"" },
+        { "type": "DetectChar", "attribute": "LatexCommand", "context": "latex-cmd", "char": "\\" }
+      ]
+    },
+    "latex-cmd": {
+      "attribute": "LatexCommand",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "LatexCommand", "context": "#pop" },
+        { "type": "AnyChar", "attribute": "LatexCommand", "context": "#pop", "String": "()[]{}!.,;:?#$&%_^~ " }
+      ]
+    }
+  }
+}

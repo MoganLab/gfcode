@@ -1,0 +1,232 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: YAML syntax derived from yaml.xml by Dr Orlovsky MA and Nibaldo González S. (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: LGPL-2.0-or-later",
+    "name": "YAML"
+  },
+  "name": "YAML",
+  "extensions": [
+    "*.yaml",
+    "*.yml",
+    ".clang-format",
+    ".clang-tidy",
+    "metadata",
+    "*.ksy"
+  ],
+  "initial-context": "normal",
+  "lists": {
+    "booleans": [
+      "true", "True", "TRUE", "false", "False", "FALSE", "yes", "Yes",
+      "YES", "no", "No", "NO", "on", "On", "ON", "off", "Off", "OFF",
+      "y", "Y", "n", "N"
+    ],
+    "nulls": [
+      "null", "Null", "NULL", "~"
+    ]
+  },
+  "item-datas": {
+    "Normal Text": "Attribute",
+    "Attribute": "Attribute",
+    "Comment": "Comment",
+    "End of Document": "Comment",
+    "Document Header": "Preprocessor",
+    "Tag": "Others",
+    "Alias": "Others",
+    "Reference": "Others",
+    "Key": "Function",
+    "Directive": "Preprocessor",
+    "Key Points Operator": "Keyword",
+    "Operator": "Keyword",
+    "String": "String",
+    "Escaped Character": "SpecialChar",
+    "Literal/Folded Operator": "Char",
+    "Null": "Char",
+    "Boolean": "Char",
+    "Integer": "DecVal",
+    "Float": "Float",
+    "Timestamp": "BaseN",
+    "Error": "Error"
+  },
+  "contexts": {
+    "normal": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": "#" },
+        { "type": "StringDetect", "attribute": "Document Header", "context": "#stay", "String": "---", "column": 0 },
+        { "type": "StringDetect", "attribute": "End of Document", "context": "#stay", "String": "...", "column": 0 },
+        { "type": "DetectChar", "attribute": "Directive", "context": "directive", "char": "%", "column": 0 },
+        { "type": "StringDetect", "attribute": "Operator", "context": "#stay", "String": "- " },
+        { "type": "StringDetect", "attribute": "Operator", "context": "#stay", "String": "? " },
+        { "type": "DetectChar", "attribute": "Operator", "context": "list", "char": "[" },
+        { "type": "DetectChar", "attribute": "Operator", "context": "hash", "char": "{" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-sq", "char": "'" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-dq", "char": "\"" },
+        { "type": "AnyChar", "attribute": "Literal/Folded Operator", "context": "block-operator", "String": "|>" },
+        { "type": "DetectChar", "attribute": "Tag", "context": "tag", "char": "!" },
+        { "type": "DetectChar", "attribute": "Alias", "context": "alias", "char": "&" },
+        { "type": "DetectChar", "attribute": "Reference", "context": "reference", "char": "*" },
+        { "type": "DetectChar", "attribute": "Key Points Operator", "context": "key", "char": ":", "look-ahead": true },
+        { "type": "DetectIdentifier", "attribute": "Normal Text", "context": "key-plain" }
+      ]
+    },
+    "key-plain": {
+      "attribute": "Key",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": "#" },
+        { "type": "StringDetect", "attribute": "Key Points Operator", "context": "value", "String": ": " },
+        { "type": "DetectChar", "attribute": "Key Points Operator", "context": "value", "char": ":", "look-ahead": true },
+        { "type": "DetectIdentifier", "attribute": "Key", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Key", "context": "#stay", "String": "._-/" }
+      ]
+    },
+    "key": {
+      "attribute": "Key Points Operator",
+      "line-end-context": "#pop",
+      "fallthrough-context": "value",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "StringDetect", "attribute": "Key Points Operator", "context": "value", "String": ": " }
+      ]
+    },
+    "value": {
+      "attribute": "Attribute",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": "#" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-sq", "char": "'" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-dq", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Operator", "context": "list", "char": "[" },
+        { "type": "DetectChar", "attribute": "Operator", "context": "hash", "char": "{" },
+        { "type": "AnyChar", "attribute": "Literal/Folded Operator", "context": "block-operator", "String": "|>" },
+        { "type": "DetectChar", "attribute": "Alias", "context": "alias", "char": "&" },
+        { "type": "DetectChar", "attribute": "Reference", "context": "reference", "char": "*" },
+        { "type": "DetectChar", "attribute": "Tag", "context": "tag", "char": "!" },
+        { "type": "Hex", "attribute": "Integer", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "Integer", "context": "#stay" },
+        { "type": "keyword", "attribute": "Boolean", "context": "#stay", "String": "booleans", "delimiters": " \t\r\n,[]{}:#\"" },
+        { "type": "keyword", "attribute": "Null", "context": "#stay", "String": "nulls", "delimiters": " \t\r\n,[]{}:#\"" },
+        { "type": "StringDetect", "attribute": "Float", "context": "#stay", "String": ".inf" },
+        { "type": "StringDetect", "attribute": "Float", "context": "#stay", "String": ".Inf" },
+        { "type": "StringDetect", "attribute": "Float", "context": "#stay", "String": ".INF" },
+        { "type": "StringDetect", "attribute": "Float", "context": "#stay", "String": ".nan" },
+        { "type": "StringDetect", "attribute": "Float", "context": "#stay", "String": ".NaN" },
+        { "type": "StringDetect", "attribute": "Float", "context": "#stay", "String": ".NAN" },
+        { "type": "DetectIdentifier", "attribute": "Attribute", "context": "#stay" }
+      ]
+    },
+    "list": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Operator", "context": "#pop", "char": "]" },
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": "#" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-sq", "char": "'" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-dq", "char": "\"" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "Integer", "context": "#stay" },
+        { "type": "keyword", "attribute": "Boolean", "context": "#stay", "String": "booleans", "delimiters": " \t\r\n,[]{}:#\"" },
+        { "type": "keyword", "attribute": "Null", "context": "#stay", "String": "nulls", "delimiters": " \t\r\n,[]{}:#\"" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": ",[]" },
+        { "type": "DetectIdentifier", "attribute": "Attribute", "context": "#stay" }
+      ]
+    },
+    "hash": {
+      "attribute": "Normal Text",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Operator", "context": "#pop", "char": "}" },
+        { "type": "DetectSpaces", "attribute": "Normal Text", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Comment", "context": "comment", "char": "#" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-sq", "char": "'" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-dq", "char": "\"" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Int", "attribute": "Integer", "context": "#stay" },
+        { "type": "keyword", "attribute": "Boolean", "context": "#stay", "String": "booleans", "delimiters": " \t\r\n,[]{}:#\"" },
+        { "type": "keyword", "attribute": "Null", "context": "#stay", "String": "nulls", "delimiters": " \t\r\n,[]{}:#\"" },
+        { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": ",{}" },
+        { "type": "DetectIdentifier", "attribute": "Attribute", "context": "#stay" }
+      ]
+    },
+    "string-sq": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "'" },
+        { "type": "Detect2Chars", "attribute": "String", "context": "#stay", "char": "'", "char1": "'" }
+      ]
+    },
+    "string-dq": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "Detect2Chars", "attribute": "Escaped Character", "context": "#stay", "char": "\\", "char1": "\\" },
+        { "type": "Detect2Chars", "attribute": "Escaped Character", "context": "#stay", "char": "\\", "char1": "\"" },
+        { "type": "Detect2Chars", "attribute": "Escaped Character", "context": "#stay", "char": "\\", "char1": "n" },
+        { "type": "Detect2Chars", "attribute": "Escaped Character", "context": "#stay", "char": "\\", "char1": "t" },
+        { "type": "Detect2Chars", "attribute": "Escaped Character", "context": "#stay", "char": "\\", "char1": "r" },
+        { "type": "Detect2Chars", "attribute": "Escaped Character", "context": "#stay", "char": "\\", "char1": "0" }
+      ]
+    },
+    "block-operator": {
+      "attribute": "Literal/Folded Operator",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Literal/Folded Operator", "context": "#stay", "char": "|" },
+        { "type": "DetectChar", "attribute": "Literal/Folded Operator", "context": "#stay", "char": ">" },
+        { "type": "DetectChar", "attribute": "Literal/Folded Operator", "context": "#stay", "char": "-" },
+        { "type": "DetectChar", "attribute": "Literal/Folded Operator", "context": "#stay", "char": "+" },
+        { "type": "AnyChar", "attribute": "Literal/Folded Operator", "context": "#stay", "String": "0123456789" }
+      ]
+    },
+    "comment": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@$'\"\\`" }
+      ]
+    },
+    "directive": {
+      "attribute": "Directive",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Directive", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Directive", "context": "#stay", "String": " .:/" }
+      ]
+    },
+    "tag": {
+      "attribute": "Tag",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Tag", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Tag", "context": "#stay" }
+      ]
+    },
+    "alias": {
+      "attribute": "Alias",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Alias", "context": "#stay" }
+      ]
+    },
+    "reference": {
+      "attribute": "Reference",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Reference", "context": "#stay" }
+      ]
+    }
+  }
+}

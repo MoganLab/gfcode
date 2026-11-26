@@ -1,0 +1,203 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: Vue syntax derived from vue.xml by James Zuccon (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "Vue"
+  },
+  "name": "Vue",
+  "extensions": [
+    "*.vue"
+  ],
+  "initial-context": "Normal",
+  "lists": {},
+  "item-datas": {
+    "Normal": "Normal",
+    "Comment": "Comment",
+    "Doctype": "DataType",
+    "Tag": "Keyword",
+    "TagClose": "Keyword",
+    "AttributeName": "Attribute",
+    "Value": "String",
+    "Binding": "Function",
+    "Interpolation": "SpecialString",
+    "InterpolationSymbol": "Operator",
+    "EntityRef": "DecVal",
+    "Symbol": "Operator",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "StringDetect", "attribute": "Comment", "context": "comment", "String": "<!--" },
+        { "type": "StringDetect", "attribute": "Doctype", "context": "doctype", "String": "<!DOCTYPE", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Doctype", "context": "doctype", "String": "<!doctype", "first-non-space": true },
+        { "type": "Detect2Chars", "attribute": "InterpolationSymbol", "context": "interp", "char": "{", "char1": "{" },
+        { "type": "DetectChar", "attribute": "EntityRef", "context": "entity", "char": "&" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "tag-open", "char": "<" },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "comment": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "Comment", "context": "#pop", "String": "-->" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" }
+      ]
+    },
+    "doctype": {
+      "attribute": "Doctype",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop", "char": ">" },
+        { "type": "DetectSpaces", "attribute": "Doctype", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Doctype", "context": "#stay" }
+      ]
+    },
+    "entity": {
+      "attribute": "EntityRef",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "EntityRef", "context": "#pop", "char": ";" },
+        { "type": "DetectIdentifier", "attribute": "EntityRef", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "EntityRef", "context": "#stay", "String": "0123456789#" }
+      ]
+    },
+    "interp": {
+      "attribute": "Interpolation",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "InterpolationSymbol", "context": "#pop", "String": "}}" },
+        { "type": "DetectSpaces", "attribute": "Interpolation", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Interpolation", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Interpolation", "context": "#stay", "String": ".+-*/%=<>!&|^~?:;.,()[]'\"" }
+      ]
+    },
+    "tag-open": {
+      "attribute": "Tag",
+      "line-end-context": "#stay",
+      "fallthrough-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop!tag-close", "char": "/" },
+        { "type": "StringDetect", "attribute": "Tag", "context": "#pop!style-tag", "String": "style" },
+        { "type": "StringDetect", "attribute": "Tag", "context": "#pop!script-tag", "String": "script" },
+        { "type": "DetectIdentifier", "attribute": "Tag", "context": "#pop!tag-attrs" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop", "char": ">" }
+      ]
+    },
+    "tag-close": {
+      "attribute": "TagClose",
+      "line-end-context": "#stay",
+      "fallthrough-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "TagClose", "context": "#pop!style-end", "String": "style" },
+        { "type": "StringDetect", "attribute": "TagClose", "context": "#pop!script-end", "String": "script" },
+        { "type": "DetectIdentifier", "attribute": "TagClose", "context": "#pop!tag-close-wait" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop", "char": ">" }
+      ]
+    },
+    "tag-attrs": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Symbol", "context": "#pop", "char": "/", "char1": ">" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop", "char": ">" },
+        { "type": "DetectChar", "attribute": "Value", "context": "attr-value", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Value", "context": "attr-value-single", "char": "'" },
+        { "type": "DetectChar", "attribute": "Binding", "context": "binding-name", "char": ":" },
+        { "type": "DetectChar", "attribute": "Binding", "context": "binding-name", "char": "@" },
+        { "type": "DetectChar", "attribute": "Binding", "context": "binding-name", "char": "#" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#stay", "char": "=" },
+        { "type": "DetectIdentifier", "attribute": "AttributeName", "context": "#stay" }
+      ]
+    },
+    "binding-name": {
+      "attribute": "Binding",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "DetectIdentifier", "attribute": "Binding", "context": "#pop" },
+        { "type": "DetectChar", "attribute": "Binding", "context": "#stay", "char": "-" },
+        { "type": "DetectChar", "attribute": "Binding", "context": "#stay", "char": "." },
+        { "type": "DetectChar", "attribute": "Binding", "context": "#stay", "char": "_" }
+      ]
+    },
+    "tag-close-wait": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop", "char": ">" }
+      ]
+    },
+    "attr-value": {
+      "attribute": "Value",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Value", "context": "#pop", "char": "\"" }
+      ]
+    },
+    "attr-value-single": {
+      "attribute": "Value",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Value", "context": "#pop", "char": "'" }
+      ]
+    },
+    "style-tag": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop!style-css", "char": ">" }
+      ]
+    },
+    "style-css": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "TagClose", "context": "#pop!style-end", "String": "</style" },
+        { "type": "IncludeRules", "attribute": "Normal", "context": "#stay", "context-ref": "##CSS" }
+      ]
+    },
+    "style-end": {
+      "attribute": "TagClose",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop", "char": ">" }
+      ]
+    },
+    "script-tag": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop!script-js", "char": ">" }
+      ]
+    },
+    "script-js": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "StringDetect", "attribute": "TagClose", "context": "#pop!script-end", "String": "</script" },
+        { "type": "IncludeRules", "attribute": "Normal", "context": "#stay", "context-ref": "##JavaScript" }
+      ]
+    },
+    "script-end": {
+      "attribute": "TagClose",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#pop", "char": ">" }
+      ]
+    }
+  }
+}

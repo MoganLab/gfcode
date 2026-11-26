@@ -1,0 +1,233 @@
+{
+  "metadata": {
+    "copyright": [
+      "SPDX-FileCopyrightText: 2026 The Goldfish Scheme Authors",
+      "SPDX-FileCopyrightText: JavaScript syntax derived from javascript.xml by Anders Lund, Joseph Wenninger and Whitehawk Stormchaser (KDE syntax-highlighting)"
+    ],
+    "license": "SPDX-License-Identifier: MIT",
+    "name": "JavaScript"
+  },
+  "name": "JavaScript",
+  "extensions": [
+    "*.js",
+    "*.mjs",
+    "*.cjs",
+    "*.kwinscript",
+    "*.julius"
+  ],
+  "initial-context": "Normal",
+  "lists": {
+    "controlflow": [
+      "await", "break", "case", "catch", "continue", "debugger", "do",
+      "else", "finally", "for", "if", "return", "switch", "throw",
+      "try", "while", "with"
+    ],
+    "keywords": [
+      "const", "delete", "in", "instanceof", "new", "of", "this",
+      "typeof", "var", "void", "set", "get"
+    ],
+    "reserved": [
+      "async", "class", "enum", "extends", "super", "arguments",
+      "implements", "interface", "let", "private", "protected", "public",
+      "static", "yield"
+    ],
+    "modules": [
+      "import", "from", "as", "default", "export", "package"
+    ],
+    "primitives": [
+      "Infinity", "NaN", "false", "null", "true", "undefined"
+    ],
+    "builtins": [
+      "Array", "ArrayBuffer", "Atomics", "BigInt", "BigInt64Array",
+      "BigUint64Array", "Boolean", "DataView", "Date", "FinalizationRegistry",
+      "Float32Array", "Float64Array", "Function", "Generator",
+      "GeneratorFunction", "Int8Array", "Int16Array", "Int32Array", "Intl",
+      "JSON", "Map", "Math", "Number", "Object", "Promise", "Proxy",
+      "Reflect", "RegExp", "SIMD", "Set", "SharedArrayBuffer", "String",
+      "Symbol", "TypedArray", "Uint8Array", "Uint16Array", "Uint32Array",
+      "Uint8ClampedArray", "WeakMap", "WeakRef", "WeakSet", "Error",
+      "EvalError", "InternalError", "RangeError", "ReferenceError",
+      "SyntaxError", "TypeError", "URIError", "console", "document",
+      "globalThis", "navigator", "process", "window", "module", "exports",
+      "require", "__filename", "__dirname"
+    ],
+    "functions": [
+      "clearInterval", "clearTimeout", "decodeURI", "decodeURIComponent",
+      "encodeURI", "encodeURIComponent", "escape", "eval", "isFinite",
+      "isNaN", "parseFloat", "parseInt", "setInterval", "setTimeout",
+      "unescape", "fetch"
+    ]
+  },
+  "item-datas": {
+    "Normal": "Normal",
+    "Keyword": "Keyword",
+    "ControlFlow": "ControlFlow",
+    "Reserved": "Keyword",
+    "Module": "Import",
+    "Primitives": "Constant",
+    "Constant": "Constant",
+    "Built-in Objects": "BuiltIn",
+    "Function Name": "Function",
+    "Function Declaration": "Function",
+    "Object Member": "Attribute",
+    "Object Property (Built-in)": "Attribute",
+    "Symbol": "Operator",
+    "Special Operators": "Keyword",
+    "Private Member Operator": "Normal",
+    "Decimal": "DecVal",
+    "Hex": "BaseN",
+    "Float": "Float",
+    "String": "String",
+    "Template": "VerbatimString",
+    "Escape": "SpecialChar",
+    "Reserved Char. Escape": "SpecialChar",
+    "Substitution": "SpecialChar",
+    "Comment": "Comment",
+    "Regular Expression": "SpecialString",
+    "Error": "Error"
+  },
+  "contexts": {
+    "Normal": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "shebang", "char": "#", "char1": "!", "column": 0 },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" },
+        { "type": "StringDetect", "attribute": "Template", "context": "template", "String": "`" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-double", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-single", "char": "'" },
+        { "type": "WordDetect", "attribute": "Keyword", "context": "function-name", "String": "function" },
+        { "type": "keyword", "attribute": "ControlFlow", "context": "#stay", "String": "controlflow", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Reserved", "context": "#stay", "String": "reserved", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Module", "context": "#stay", "String": "modules", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Primitives", "context": "#stay", "String": "primitives", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Built-in Objects", "context": "#stay", "String": "builtins", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Function Name", "context": "#stay", "String": "functions", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "Hex", "attribute": "Hex", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Decimal", "attribute": "Decimal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "member", "char": ".", "look-ahead": true },
+        { "type": "Detect2Chars", "attribute": "Special Operators", "context": "#stay", "char": "=", "char1": ">" },
+        { "type": "DetectChar", "attribute": "Private Member Operator", "context": "#stay", "char": "#" },
+        { "type": "AnyChar", "attribute": "Symbol", "context": "#stay", "String": "+-*/%=<>!&|^~?:;" },
+        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": "()[]{}.," },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "shebang": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "/.-_:=~" }
+      ]
+    },
+    "comment-line": {
+      "attribute": "Comment",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@$&'\"\\" }
+      ]
+    },
+    "comment-block": {
+      "attribute": "Comment",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "#pop", "char": "*", "char1": "/" },
+        { "type": "DetectSpaces", "attribute": "Comment", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Comment", "context": "#stay" },
+        { "type": "AnyChar", "attribute": "Comment", "context": "#stay", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@$&'\"\\" }
+      ]
+    },
+    "string-double": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "\"" },
+        { "type": "DetectChar", "attribute": "Escape", "context": "escape", "char": "\\", "look-ahead": true }
+      ]
+    },
+    "string-single": {
+      "attribute": "String",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "DetectChar", "attribute": "String", "context": "#pop", "char": "'" },
+        { "type": "DetectChar", "attribute": "Escape", "context": "escape", "char": "\\", "look-ahead": true }
+      ]
+    },
+    "template": {
+      "attribute": "Template",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Template", "context": "#pop", "char": "`" },
+        { "type": "Detect2Chars", "attribute": "Substitution", "context": "substitution", "char": "$", "char1": "{" },
+        { "type": "DetectChar", "attribute": "Escape", "context": "escape", "char": "\\", "look-ahead": true }
+      ]
+    },
+    "substitution": {
+      "attribute": "Normal",
+      "line-end-context": "#stay",
+      "rules": [
+        { "type": "DetectChar", "attribute": "Substitution", "context": "#pop", "char": "}" },
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-line", "char": "/", "char1": "/" },
+        { "type": "Detect2Chars", "attribute": "Comment", "context": "comment-block", "char": "/", "char1": "*" },
+        { "type": "StringDetect", "attribute": "Template", "context": "template", "String": "`" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-double", "char": "\"" },
+        { "type": "DetectChar", "attribute": "String", "context": "string-single", "char": "'" },
+        { "type": "keyword", "attribute": "ControlFlow", "context": "#stay", "String": "controlflow", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Reserved", "context": "#stay", "String": "reserved", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Module", "context": "#stay", "String": "modules", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Primitives", "context": "#stay", "String": "primitives", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Built-in Objects", "context": "#stay", "String": "builtins", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "keyword", "attribute": "Function Name", "context": "#stay", "String": "functions", "delimiters": " \t\r\n()[]{}\",'`;\\.:=+-*/%^#~<>&|!?" },
+        { "type": "Hex", "attribute": "Hex", "context": "#stay" },
+        { "type": "Float", "attribute": "Float", "context": "#stay" },
+        { "type": "Decimal", "attribute": "Decimal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "member", "char": ".", "look-ahead": true },
+        { "type": "Detect2Chars", "attribute": "Special Operators", "context": "#stay", "char": "=", "char1": ">" },
+        { "type": "AnyChar", "attribute": "Symbol", "context": "#stay", "String": "+-*/%=<>!&|^~?:;" },
+        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": "()[]{},." },
+        { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
+      ]
+    },
+    "escape": {
+      "attribute": "Escape",
+      "line-end-context": "#pop",
+      "rules": [
+        { "type": "AnyChar", "attribute": "Reserved Char. Escape", "context": "#pop", "String": "0bfnrtv\"'`\\/" },
+        { "type": "DetectIdentifier", "attribute": "Escape", "context": "#pop" },
+        { "type": "DetectSpaces", "attribute": "Escape", "context": "#pop" },
+        { "type": "AnyChar", "attribute": "Escape", "context": "#pop", "String": "+-*/%=<>!&|^~?:;.,()[]{}#@$&" }
+      ]
+    },
+    "member": {
+      "attribute": "Normal",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectChar", "attribute": "Symbol", "context": "#stay", "char": "." },
+        { "type": "DetectChar", "attribute": "Private Member Operator", "context": "#stay", "char": "#" },
+        { "type": "DetectIdentifier", "attribute": "Object Member", "context": "#pop" }
+      ]
+    },
+    "function-name": {
+      "attribute": "Normal",
+      "line-end-context": "#pop",
+      "fallthrough-context": "#pop",
+      "rules": [
+        { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
+        { "type": "DetectIdentifier", "attribute": "Function Declaration", "context": "#pop" },
+        { "type": "DetectChar", "attribute": "Private Member Operator", "context": "#stay", "char": "#" }
+      ]
+    }
+  }
+}
