@@ -94,7 +94,15 @@
     ) ;define
 
     (define (%thinking-box turn-box)
-      (cadddr turn-box)
+      ;; 先确保思考状态槽补齐再访问 cadddr，避免 turn-box 元素不足时抛错；
+      ;; turn-box 非 pair 时返回 #f（调用方均已用 (vector? tb) 守卫）
+      (if (pair? turn-box)
+        (begin
+          (ensure-message-slots turn-box)
+          (cadddr turn-box)
+        ) ;begin
+        #f
+      ) ;if
     ) ;define
 
     (define (%handle-thinking-start! turn-box port)
