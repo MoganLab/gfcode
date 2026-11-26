@@ -321,6 +321,7 @@
                              ) ;
                             ) ;
                   ;; 全部转换成功后再替换界面
+                  (%pi-app-diff-run-set! app #f)
                   (container-clear! (%pi-app-chat app))
                   (for-each (lambda (card) (container-add! (%pi-app-chat app) card)) cards)
                   ;; 复位旧会话的引用：工具卡片索引、thinking 引用与文本选区
