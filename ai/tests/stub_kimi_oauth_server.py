@@ -18,6 +18,8 @@ Scenario is chosen by the first CLI arg (default "ok"):
   refresh-403   refresh grant returns 403
   refresh-flaky refresh grant: 429 twice then 200 (retry backoff path)
   refresh-500   refresh grant: always 500 (retries exhausted)
+  headers       authorize: echo back received X-Msh-* headers as JSON fields
+                (device_name/device_model/device_id/os_version/platform/version)
 
 Prints "PORT:<port>" on stdout once listening.
 """
@@ -62,6 +64,24 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return
             if SCENARIO == "authorize-bad":
                 self._send(200, {"user_code": "ABCD-1234"})
+                return
+            if SCENARIO == "headers":
+                h = self.headers
+                self._send(200, {
+                    "device_code": "stub-device-code",
+                    "user_code": "ABCD-1234",
+                    "verification_uri": "https://www.kimi.com/code",
+                    "verification_uri_complete":
+                        "https://www.kimi.com/code/authorize_device?user_code=ABCD-1234",
+                    "interval": 1,
+                    "expires_in": 900,
+                    "device_name": h.get("X-Msh-Device-Name"),
+                    "device_model": h.get("X-Msh-Device-Model"),
+                    "device_id": h.get("X-Msh-Device-Id"),
+                    "os_version": h.get("X-Msh-Os-Version"),
+                    "platform": h.get("X-Msh-Platform"),
+                    "version": h.get("X-Msh-Version"),
+                })
                 return
             self._send(200, {
                 "device_code": "stub-device-code",

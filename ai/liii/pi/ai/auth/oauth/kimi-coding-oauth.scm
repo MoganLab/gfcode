@@ -24,6 +24,7 @@
     (liii pi ai time)
     (liii pi ai template)
     (liii pi ai config credential)
+    (liii pi ai auth device-info)
     (liii pi ai auth oauth device-flow)
   ) ;import
   (export KIMI_OAUTH_CLIENT_ID
@@ -104,8 +105,11 @@
     ) ;define
 
     ;; 表单编码 POST（application/x-www-form-urlencoded），网络错误/超时
-    ;; 归一为 status-code 0 的响应对象，交由调用方按状态分类
-    (define (%kimi-post-form url fields)
+    ;; 归一为 status-code 0 的响应对象，交由调用方按状态分类。
+    ;; 附加 X-Msh-* 设备信息头（Kimi CLI 同款）：device_authorization 时服务端
+    ;; 据此在账号中心"登录设备"列表展示设备名，缺省显示"未知设备"。
+    ;; headers 为额外请求头 alist，缺省为完整设备信息头。
+    (define* (%kimi-post-form url fields (headers #f))
       (catch #t
         (lambda ()
           (http-post url
@@ -120,8 +124,10 @@
               "&"
             ) ;string-join
             :headers
-            '(("Content-Type" . "application/x-www-form-urlencoded")
-              ("Accept" . "application/json"))
+            (append (or headers (pi-device-headers))
+              '(("Content-Type" . "application/x-www-form-urlencoded")
+                ("Accept" . "application/json"))
+            ) ;append
             :timeout %request-timeout-seconds
           ) ;http-post
         ) ;lambda
