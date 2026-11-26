@@ -28,7 +28,7 @@
   (liii json)
   (liii string)
   (liii pi code event)
-  (liii pi code modes verbose)
+  (liii pi code modes verbose events)
 ) ;import
 
 (check-set-mode! 'report-failed)
