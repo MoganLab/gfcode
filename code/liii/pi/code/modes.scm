@@ -111,14 +111,18 @@
       ) ;let*
     ) ;define
 
-    (define (resolve-app-mode mode-option print-flag stdin-tty stdout-tty)
+    (define* (resolve-app-mode mode-option print-flag stdin-tty stdout-tty (custom-flow? #f))
       (cond ((or (equal? mode-option "json") (eq? mode-option 'json)) 'json)
             ((or (equal? mode-option "verbose") (eq? mode-option 'verbose)) 'verbose)
             ((or (equal? mode-option "text") (eq? mode-option 'text)) 'print)
+            ;; 独立扩展 flow（如 --code-review）即使默认模式为 interactive，
+            ;; 也必须交给 dispatch-pi，不能在启动 TUI 后绕过 flow；
+            ;; 默认用 verbose 实时展示事件，避免脚本/管道场景长时间无输出。
+            (custom-flow? 'verbose)
             ((or print-flag (not stdin-tty) (not stdout-tty)) 'verbose)
             (else 'interactive)
       ) ;cond
-    ) ;define
+    ) ;define*
 
   ) ;begin
 ) ;define-library
