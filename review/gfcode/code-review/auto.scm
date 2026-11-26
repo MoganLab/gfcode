@@ -15,8 +15,27 @@
   (export pi-build-review-injection pi-edited-files-from-tool-calls
     make-pi-review-edit-tracker pi-review-tracker? pi-review-track-tool-result!
     pi-review-tracker-end-turn! pi-review-tracker-take-edits!
+    pi-code-review-injection-suppressed? pi-code-review-injection-suppress!
+    pi-code-review-injection-restore! pi-code-review-injection-enabled?
   ) ;export
   (begin
+
+    ;; 独立审查（--code-review / 交互 /review）期间抑制自动注入；
+    ;; CLI 与 worker 均为单任务串行，普通标志即可，结算后由调用方恢复
+    (define pi-code-review-injection-suppressed? #f)
+
+    (define (pi-code-review-injection-suppress!)
+      (set! pi-code-review-injection-suppressed? #t)
+    ) ;define
+
+    (define (pi-code-review-injection-restore!)
+      (set! pi-code-review-injection-suppressed? #f)
+    ) ;define
+
+    ;; 读取时求值（导出变量是按值绑定，injector 必须调用本过程）
+    (define (pi-code-review-injection-enabled?)
+      (not pi-code-review-injection-suppressed?)
+    ) ;define
 
     (define (%field key entry default)
       (let ((pair (assoc key entry)))
@@ -143,7 +162,8 @@
                    ) ;and
              ) ;path
             ) ;
-        (when (and (string? path) (not (string-null? (string-trim-both path))))
+        (when
+          (and (string? path) (not (string-null? (string-trim-both path))))
           (%tracker-current-set! tracker (%push-edited (%tracker-current tracker) path))
         ) ;when
       ) ;let*
@@ -153,10 +173,7 @@
     (define (pi-review-tracker-end-turn! tracker turn-index)
       (let ((files (%tracker-current tracker)))
         (%tracker-snapshot-set! tracker
-          (if (null? files)
-            #f
-            (list (cons 'files files) (cons 'turnIndex turn-index))
-          ) ;if
+          (if (null? files) #f (list (cons 'files files) (cons 'turnIndex turn-index)))
         ) ;%tracker-snapshot-set!
         (%tracker-current-set! tracker '())
       ) ;let

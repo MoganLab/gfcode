@@ -193,7 +193,16 @@
       (catch #t
         (lambda ()
           (let* ((handler (extension-command-def-handler command))
-                 (result (handler args (list (cons 'config cfg) (cons 'cwd (path->string (path-cwd))))))
+                 (ctx (list (cons 'config cfg)
+                        (cons 'cwd (path->string (path-cwd)))
+                        ;; 命令若提供独立执行窗口，则 session 在该窗口内运行
+                        ;; （如 code-review 用它抑制自动注入）；缺省直接执行
+                        (cons 'run-isolated
+                          (lambda (thunk) (thunk))
+                        ) ;cons
+                      ) ;list
+                 ) ;ctx
+                 (result (handler args ctx))
                  (status (and (pair? result) (assq 'status result) (cdr (assq 'status result))))
                 ) ;
             (cond
@@ -218,15 +227,19 @@
                    (list 'tps_report (cdr (assoc 'notice result)))
                  ) ;pi-tui-send-event!
                ) ;when
-               (let ((response (run-session-flow (cdr (assoc 'parsed result))
-                                 (cdr (assoc 'config result))
-                                 (cdr (assoc 'prompt result))
-                                 (make-tui-emit event-chan)
-                                 (cdr (assoc 'on-finish result))
-                                 sfile
-                                 '()
-                                 #f
-                               ) ;run-session-flow
+               (let ((response ((cdr (assoc 'run-isolated ctx))
+                                 (lambda ()
+                                   (run-session-flow (cdr (assoc 'parsed result))
+                                     (cdr (assoc 'config result))
+                                     (cdr (assoc 'prompt result))
+                                     (make-tui-emit event-chan)
+                                     (cdr (assoc 'on-finish result))
+                                     sfile
+                                     '()
+                                     #f
+                                   ) ;run-session-flow
+                                 ) ;lambda
+                               ) ;run-isolated
                      ) ;response
                     ) ;
                  (if (eq? (cdr (assoc 'status response)) 'error)

@@ -141,7 +141,6 @@
         "      --code-review              Review uncommitted changes and print a report\n"
         "      --staged                   With --code-review, review only staged changes\n"
         "      --ref <ref>                With --code-review, diff against the given ref\n"
-        "      --auto-review              Inject a per-language review checklist after write/edit\n"
         "      --system-prompt <text>     Override system prompt\n"
         "      --append-system-prompt <text>\n"
         "                                 Append system prompt section\n"

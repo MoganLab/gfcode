@@ -23,9 +23,6 @@
         (make-extension-flag-def "--code-review" "Review diff" :key 'code-review)
       ) ;register-flag!
       (register-flag! api
-        (make-extension-flag-def "--auto-review" "Auto review" :key 'auto-review)
-      ) ;register-flag!
-      (register-flag! api
         (make-extension-flag-def "--staged" "Review staged diff" :key 'staged)
       ) ;register-flag!
       (register-flag! api
@@ -53,13 +50,9 @@
       (register-validator! api
         (lambda (parsed . extra)
           (let ((code-review (pi-args-ref parsed 'code-review))
-                (auto-review (pi-args-ref parsed 'auto-review))
                 (staged (pi-args-ref parsed 'staged))
                 (ref (pi-args-ref parsed 'review-ref))
                ) ;
-            (when (and code-review auto-review)
-              (error 'pi-arg-error "--code-review and --auto-review cannot be used together")
-            ) ;when
             (when (and staged (not code-review))
               (error 'pi-arg-error "--staged requires --code-review")
             ) ;when
@@ -74,7 +67,13 @@
       (register-flow! api
         (make-extension-flow-def 'code-review
           (lambda (p) (pi-args-ref p 'code-review))
-          (lambda (parsed cfg mode initial-msg) (run-code-review-flow parsed cfg mode))
+          (lambda (parsed cfg mode initial-msg)
+            ;; 独立审查全程抑制自动注入；结算（含异常）后恢复
+            (dynamic-wind pi-code-review-injection-suppress!
+              (lambda () (run-code-review-flow parsed cfg mode))
+              pi-code-review-injection-restore!
+            ) ;dynamic-wind
+          ) ;lambda
           :local?   #f
           :priority 10
         ) ;make-extension-flow-def
@@ -82,10 +81,12 @@
 
       ;; 5. 自动审查生命周期：tool_execution_end 只记成功编辑，
       ;; turn_end 固化快照，下一次 agent 请求前注入一次并清空
-      (pi-on! api 'tool_execution_end
+      (pi-on! api
+        'tool_execution_end
         (lambda (payload) (pi-review-track-tool-result! tracker payload))
       ) ;pi-on!
-      (pi-on! api 'turn_end
+      (pi-on! api
+        'turn_end
         (lambda (payload)
           (pi-review-tracker-end-turn! tracker
             (let ((entry (and (pair? payload) (assq 'turn payload))))
@@ -95,10 +96,15 @@
         ) ;lambda
       ) ;pi-on!
 
-      ;; 6. 注册 prompt injector：消费上一 turn 的编辑快照（一次性）
+      ;; 6. 注册 prompt injector：自动审查默认启用（对齐 pi-code-review）；
+      ;; 消费上一 turn 的编辑快照（一次性）；--code-review 独立审查期间
+      ;; 由 interactive 模块置位抑制标志，避免历史快照重复注入
       (register-prompt-injector! api
         (lambda (tool-calls)
-          (let* ((snapshot (pi-review-tracker-take-edits! tracker))
+          (let* ((snapshot (and (pi-code-review-injection-enabled?)
+                             (pi-review-tracker-take-edits! tracker)
+                           ) ;and
+                 ) ;snapshot
                  (files (and snapshot (cdr (assoc 'files snapshot))))
                  (block (and files (pi-build-review-injection files)))
                 ) ;

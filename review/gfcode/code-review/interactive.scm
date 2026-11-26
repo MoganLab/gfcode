@@ -7,6 +7,7 @@
 (define-library (gfcode code-review interactive)
   (import (scheme base)
     (liii pi code cli args)
+    (gfcode code-review auto)
     (gfcode code-review args)
     (gfcode code-review modes)
   ) ;import
@@ -41,6 +42,16 @@
                 (list (cons 'parsed (pi-code-review-parsed parsed))
                   (cons 'config (pi-code-review-config config))
                   (cons 'on-finish pi-code-review-response)
+                  ;; 独立审查会话在抑制窗口内执行：首轮 injector 不消费
+                  ;; 历史编辑快照；dynamic-wind 保证异常/中止后也恢复
+                  (cons 'run-isolated
+                    (lambda (thunk)
+                      (dynamic-wind pi-code-review-injection-suppress!
+                        thunk
+                        pi-code-review-injection-restore!
+                      ) ;dynamic-wind
+                    ) ;lambda
+                  ) ;cons
                 ) ;list
               ) ;append
             ) ;if

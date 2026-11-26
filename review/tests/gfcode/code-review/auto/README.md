@@ -29,4 +29,9 @@ gf doc pi-review-tracker-take-edits!
 - `make-pi-review-edit-tracker` - 创建按 turn 聚合成功编辑的追踪器（ST4 实现）
 - `pi-review-track-tool-result!` - 记录成功的 write/edit 执行结果（ST4 实现）
 - `pi-review-tracker-end-turn!` - 将当前 turn 的编辑固化为快照（ST4 实现）
-- `pi-review-tracker-take-edits!` - 消费并清空上一 turn 的快照（ST4 实现）
+- `pi-review-tracker-take-edits!` - 消费并清空上一 turn 的快照
+
+### 独立审查抑制
+- `pi-code-review-injection-enabled?` - 自动注入是否启用（读取时求值）
+- `pi-code-review-injection-suppress!` - 独立审查期间抑制自动注入
+- `pi-code-review-injection-restore!` - 审查结算后恢复自动注入
