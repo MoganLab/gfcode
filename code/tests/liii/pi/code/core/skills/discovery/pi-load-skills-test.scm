@@ -1,6 +1,7 @@
 ;; pi-load-skills
 ;; 技能加载器：显式 --skill 路径与默认目录（gf 配置目录 skills 优先、
-;; pi agent 目录 skills 兼容、当前目录 .pi/skills）多源合并扫描；
+;; pi agent 目录 skills 兼容、当前目录 .gf/skills 优先并兼容 .pi/skills）
+;; 多源合并扫描；
 ;; SKILL.md 边界停止递归、跳过隐藏目录与 node_modules、未写 name 时回退
 ;; 父目录名、同名冲突首见胜出（winner/loser）。
 ;;
@@ -119,6 +120,39 @@
     (check (pi-skill-description pdf) => "项目定制版 PDF 工具")
     (check-true (string-contains? (pi-skill-file-path pdf) "project-skills"))
   ) ;let
+) ;let
+
+;; 3. 默认项目目录：.gf/skills 与 .pi/skills 均加载，同名时 .gf 优先
+
+(define cwd (path-join base-dir "cwd"))
+
+(define gf-tmux-dir (path-join cwd ".gf" "skills" "tmux"))
+
+(define pi-tmux-dir (path-join cwd ".pi" "skills" "tmux"))
+
+(define pi-only-dir (path-join cwd ".pi" "skills" "pi-only"))
+(path-mkdir gf-tmux-dir :parents #t :exist-ok #t)
+(path-mkdir pi-tmux-dir :parents #t :exist-ok #t)
+(path-mkdir pi-only-dir :parents #t :exist-ok #t)
+(path-write-text (path-join gf-tmux-dir "SKILL.md")
+  "---\nname: tmux\ndescription: GF 项目技能\n---\n# GF tmux"
+) ;path-write-text
+(path-write-text (path-join pi-tmux-dir "SKILL.md")
+  "---\nname: tmux\ndescription: PI 同名技能\n---\n# PI tmux"
+) ;path-write-text
+(path-write-text (path-join pi-only-dir "SKILL.md")
+  "---\nname: pi-only\ndescription: PI 兼容技能\n---\n# PI only"
+) ;path-write-text
+
+(let ((skills (pi-load-skills :cwd cwd)))
+  (check (length skills) => 2)
+  (let ((tmux (find (lambda (s) (string=? (pi-skill-name s) "tmux")) skills)))
+    (check (pi-skill-description tmux) => "GF 项目技能")
+    (check-true (string-contains? (pi-skill-file-path tmux) ".gf"))
+  ) ;let
+  (check-false
+    (find (lambda (s) (string=? (pi-skill-name s) "missing")) skills)
+  ) ;check-false
 ) ;let
 
 (rmtree base-dir)
