@@ -1,5 +1,5 @@
 ;; pi-get-agent-dir
-;; 返回 agent 目录（会话 sessions/、扩展 extensions/ 等非 JSON 配置的默认位置）。
+;; 返回扩展、技能等 gf agent 资源的根目录。
 ;;
 ;; 语法
 ;; ----
@@ -20,8 +20,7 @@
 ;;
 ;; 注意
 ;; ----
-;; agent 目录与 JSON 配置目录（gf-get-config-dir）默认均为 ~/.gf/agent，
-;; 二者统一，不再兼容 node 版 pi 的 ~/.pi/agent。
+;; 此目录不决定默认会话位置；会话另存于 ~/.pi/agent/sessions。
 
 (import (scheme base)
   (scheme process-context)

@@ -75,8 +75,7 @@
     ;; models/（provider 与模型配置）/ models-store.json / web-search.json 等所在目录。
     ;; 优先级：显式目录参数 > GF_CONFIG_DIR > PI_CODING_AGENT_DIR
     ;;         > ~/.gf/agent
-    ;; 返回绝对路径（path 对象）；会话目录（sessions/）与扩展目录（extensions/）
-    ;; 仍归属 agent 目录（pi-get-agent-dir）。
+    ;; 返回绝对路径（path 对象）；不影响默认会话目录 ~/.pi/agent/sessions。
 
     ;; 从 cfg 中取 JSON 配置文件目录（path 对象）：
     ;; 优先 config-dir，缺失时回退 agent-dir
@@ -247,7 +246,7 @@
 
     (define (resolve-pi-config parsed-args . opt-env)
       (let* ((env-agent-dir (lookup-env-var "PI_CODING_AGENT_DIR" opt-env))
-             (agent-dir (pi-get-agent-dir env-agent-dir))
+             (agent-dir (pi-get-session-agent-dir env-agent-dir))
              ;; JSON 配置文件目录：固定 ~/.gf/agent（不再回退 ~/.pi/agent）
              (config-dir (gf-get-config-dir env-agent-dir))
              (config-dir-str (path->string config-dir))
