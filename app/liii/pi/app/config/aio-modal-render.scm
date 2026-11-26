@@ -18,10 +18,10 @@
   (export pi-config-aio-modal-render)
   (begin
 
-    (define %accent "\x1b;[35m")
+    (define %accent "\x1b;[38;2;167;152;215m")
     (define %reset "\x1b;[0m")
     (define %dim "\x1b;[2m")
-    (define %selected-style "\x1b;[48;2;74;44;122m\x1b;[38;2;244;240;255m")
+    (define %selected-style "\x1b;[48;2;33;59;73m\x1b;[38;2;222;224;225m")
 
     (define (%ref alist key default)
       (let ((pair (and (pair? alist) (assoc key alist))))

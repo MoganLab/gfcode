@@ -87,8 +87,8 @@
 
     ;; 页眉配色（24-bit RGB）
     (define %c-brand '(138 190 183))
-    (define %c-dim '(102 102 102))
-    (define %c-mid '(128 128 128))
+    (define %c-dim '(126 136 142))
+    (define %c-mid '(157 165 169))
 
     ;; 上色：parts 逐段拼接
     (define (%fg c . parts)

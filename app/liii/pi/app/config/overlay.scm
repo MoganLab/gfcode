@@ -18,7 +18,7 @@
   (export pi-config-render-overlay pi-config-overlay-step)
   (begin
 
-    (define %accent "\x1b;[35m")
+    (define %accent "\x1b;[38;2;167;152;215m")
     (define %reset "\x1b;[0m")
     (define %dim "\x1b;[2m")
 

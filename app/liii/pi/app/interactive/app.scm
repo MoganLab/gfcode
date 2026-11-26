@@ -373,6 +373,7 @@
                     #f
                     display-jobs
                     #f
+                    #f
                   ) ;%make-pi-app
              ) ;app
              (ed (%make-pi-editor app tl))

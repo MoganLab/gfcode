@@ -25,6 +25,7 @@
     (liii pi app interactive working)
     (liii pi app interactive app-bash)
     (liii pi app interactive app-diff)
+    (liii pi app interactive app-markdown)
     (liii pi app interactive app-highlight)
     (liii pi app interactive bash)
     (liii pi app interactive app-name)
@@ -66,7 +67,10 @@
 
     (define (pi-app-add-assistant-text! app text)
       (%pi-app-invalidate-scroll! app)
-      (container-add! (%pi-app-chat app) (make-assistant-card text))
+      (let ((card (make-assistant-card text)))
+        (container-add! (%pi-app-chat app) card)
+        (%markdown-dirty! app card)
+      ) ;let
     ) ;define
 
     (define (pi-app-add-retry-message! app msg)
@@ -95,17 +99,13 @@
             (begin
               (%pi-app-invalidate-scroll! app)
               (assistant-card-append-text! card delta)
+              (%markdown-dirty! app card)
             ) ;begin
-            ;; 首个增量如果仅为空白（如 thinking 结束后的前导换行），暂不创建空卡片；
-            ;; 遇到实际文本时去掉前导空白再建卡，避免卡片顶部多余空行
-            (let ((trimmed (string-trim delta)))
-              (unless (string-null? trimmed)
-                (%pi-app-invalidate-scroll! app)
-                (let ((new-card (make-assistant-card trimmed)))
-                  (%pi-app-assistant-card-set! app new-card)
-                  (container-add! (%pi-app-chat app) new-card)
-                ) ;let
-              ) ;unless
+            (let ((new-card (make-assistant-card delta)))
+              (%pi-app-invalidate-scroll! app)
+              (%pi-app-assistant-card-set! app new-card)
+              (container-add! (%pi-app-chat app) new-card)
+              (%markdown-dirty! app new-card)
             ) ;let
           ) ;if
         ) ;let
@@ -426,10 +426,10 @@
             ) ;when
           ) ;let
         ) ;let
-        (when has-event
+        (%pi-app-pump-highlight! app)
+        (when (or (%markdown-pump! app) has-event)
           (pi-app-render! app)
         ) ;when
-        (%pi-app-pump-highlight! app)
       ) ;let
     ) ;define
 

@@ -33,7 +33,7 @@
 ) ;check
 (check (%diff-visual-lines (list row) #f 4)
   =>
-  '("\x1b;[38;2;190;242;200m+中\x1b;[39m")
+  '("\x1b;[38;2;104;183;141m+中\x1b;[39m")
 ) ;check
 (check (map strip-ansi (%diff-visual-lines (list row) #t 2)) => '("+" "中"))
 (check (map strip-ansi (%diff-visual-lines (make-list 11 row) #f 80))
@@ -49,8 +49,8 @@
     4
   ) ;%diff-visual-lines
   =>
-  '("\x1b;[38;2;255;190;190mr\x1b;[39m" "\x1b;[38;2;140;210;220mh\x1b;[39m"
-    "\x1b;[38;2;167;152;215mf\x1b;[39m" "\x1b;[38;2;157;165;169mn\x1b;[39m")
+  '("\x1b;[38;2;234;127;129mr\x1b;[39m" "\x1b;[38;2;157;165;169mh\x1b;[39m"
+    "\x1b;[38;2;157;165;169mf\x1b;[39m" "\x1b;[38;2;157;165;169mn\x1b;[39m")
 ) ;check
 
 (check-report)

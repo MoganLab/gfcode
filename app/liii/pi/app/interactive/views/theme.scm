@@ -7,7 +7,7 @@
 (define-library (liii pi app interactive views theme)
   (export %bg-user %fg-user %bg-pending %bg-success %bg-error %fg-title
     %fg-added %fg-removed %fg-output %fg-accent %fg-warning %fg-thinking
-    %fg-reset %bold-reset %fg-dim %italic %ansi-reset apply-card-bg
+    %fg-border %fg-reset %bold-reset %fg-dim %italic %ansi-reset apply-card-bg
     %tool-diff-counts
   ) ;export
   (import (scheme base) (liii tui text-width))
@@ -21,11 +21,12 @@
     (define %bg-error "\x1b;[48;2;91;40;42m")
     (define %fg-title "\x1b;[1m\x1b;[38;2;222;224;225m")
     (define %fg-output "\x1b;[38;2;157;165;169m")
-    (define %fg-added "\x1b;[38;2;190;242;200m")
-    (define %fg-removed "\x1b;[38;2;255;190;190m")
+    (define %fg-added "\x1b;[38;2;104;183;141m")
+    (define %fg-removed "\x1b;[38;2;234;127;129m")
+    (define %fg-border "\x1b;[38;2;95;168;204m")
     (define %fg-accent "\x1b;[38;2;167;152;215m")
     (define %fg-warning "\x1b;[38;2;205;154;34m")
-    (define %fg-thinking "\x1b;[38;2;157;165;169m")
+    (define %fg-thinking "\x1b;[38;2;150;160;164m")
     (define %italic "\x1b;[3m")
 
     ;; 只关闭前景/粗体，不清除行背景。

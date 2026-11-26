@@ -87,7 +87,7 @@
 (emit (result 2 1 data))
 
 (define after (rows 80))
-(check-true (string-contains? (string-join after "\n") "\x1b;[38;2;190;242;200m")
+(check-true (string-contains? (string-join after "\n") "\x1b;[38;2;104;183;141m")
 ) ;check-true
 (check (map strip-ansi after) => (map strip-ansi before))
 (emit (result 2 1 #f) (diff 2))
@@ -98,6 +98,7 @@
 (tool-card-set-expanded! card #f)
 (check (rows 80) => after)
 (emit)
+(check (car (chan-try-recv! jobs #f)) => 'markdown_job)
 (check (chan-try-recv! jobs #f) => #f)
 
 (check-report)

@@ -45,7 +45,7 @@
     %pi-app-tool-timer-last-tick-set! pi-app-tool-timer-last-tick-set!
     pi-app-request-selection-chan pi-app-exit-requested?
     %pi-app-exit-requested-set! %pi-app-display-jobs %pi-app-diff-run
-    %pi-app-diff-run-set!
+    %pi-app-diff-run-set! %pi-app-markdown %pi-app-markdown-set!
   ) ;export
   (import (scheme base) (liii date-time) (liii pi app interactive selection))
   (begin
@@ -67,7 +67,7 @@
         rendered-frame dock-length working-border-row skills
         enable-skill-commands scroll-hint-rect thinking-level-explicit
         recovery-card tool-timer-last-tick request-selection-chan exit-requested
-        display-jobs diff-run
+        display-jobs diff-run markdown
       ) ;%make-pi-app
       pi-app?
       (term pi-app-term)
@@ -81,6 +81,7 @@
       (footer %pi-app-footer)
       (queue pi-app-queue)
       (handler %pi-app-handler)
+      (markdown %pi-app-markdown %pi-app-markdown-set!)
       (display-jobs %pi-app-display-jobs)
       (diff-run %pi-app-diff-run %pi-app-diff-run-set!)
       (jobs-chan pi-app-jobs-chan)

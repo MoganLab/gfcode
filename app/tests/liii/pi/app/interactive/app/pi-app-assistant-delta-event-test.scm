@@ -40,7 +40,7 @@
   ) ;string-join
 ) ;define
 
-;; 1. 跳过纯空白前导增量，首个有效增量建卡并去掉前导空白；后续增量原地追加到同一卡片
+;; 1. 流式首段和后续增量都保留原始空白。
 (let ((app (make-pi-app
              :terminal (make-virtual-terminal :width 100 :height 40)
              :handler  (lambda (a m) #t)
@@ -49,21 +49,21 @@
      ) ;
   (send-event! app '(assistant_text_delta "\n\n"))
   (pi-app-poll-events! app)
-  (check (length (pi-app-chat app)) => 0)
-  (check (pi-app-assistant-card app) => #f)
+  (check (length (pi-app-chat app)) => 1)
+  (check (assistant-card-text (pi-app-assistant-card app)) => "\n\n")
 
   (send-event! app '(assistant_text_delta "\n你好，"))
   (pi-app-poll-events! app)
   (check (length (pi-app-chat app)) => 1)
   (let ((card (car (pi-app-chat app))))
     (check (pi-app-assistant-card app) => card)
-    (check (assistant-card-text card) => "你好，")
+    (check (assistant-card-text card) => "\n\n\n你好，")
 
     (send-event! app '(assistant_text_delta "世界！"))
     (pi-app-poll-events! app)
     (check (length (pi-app-chat app)) => 1)
     (check (pi-app-assistant-card app) => card)
-    (check (assistant-card-text card) => "你好，世界！")
+    (check (assistant-card-text card) => "\n\n\n你好，世界！")
     (check-true (string-contains? (chat-text app) "你好，世界！"))
   ) ;let
 

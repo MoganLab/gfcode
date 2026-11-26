@@ -31,6 +31,7 @@
     "Code": "Information",
     "Fenced Code": "Information",
     "Link": "Others",
+    "Link URL": "Others",
     "Auto-Link": "Others",
     "Comment": "Comment",
     "Strong Text": "Keyword",
@@ -242,7 +243,7 @@
       ]
     },
     "link-text": {
-      "attribute": "Normal",
+      "attribute": "Link",
       "line-end-context": "#pop",
       "rules": [
         { "type": "StringDetect", "attribute": "Link", "context": "#pop!link-url", "String": "](" },
@@ -250,10 +251,10 @@
       ]
     },
     "link-url": {
-      "attribute": "Link",
+      "attribute": "Link URL",
       "line-end-context": "#pop",
       "rules": [
-        { "type": "DetectChar", "attribute": "Link", "context": "#pop", "char": ")" }
+        { "type": "DetectChar", "attribute": "Link URL", "context": "#pop", "char": ")" }
       ]
     },
     "url": {

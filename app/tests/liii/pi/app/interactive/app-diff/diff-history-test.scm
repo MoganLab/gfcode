@@ -82,6 +82,11 @@
         (check-false (string-contains? (chat) "Turn changes"))
         (check-false (string-contains? (chat) "+1 -1"))
         (check-false (string-contains? (chat) "-live"))
+        ;; History may schedule Markdown but must never enqueue a diff.
+        (let ((job (chan-try-recv! (%pi-app-display-jobs app) #f)))
+          (check (and job (car job)) => 'markdown_job)
+          (check (and job (cadddr job)) => "History reply")
+        ) ;let
         (check (chan-try-recv! (%pi-app-display-jobs app) #f) => #f)
         (check (path-read-text file) => original)
       ) ;let

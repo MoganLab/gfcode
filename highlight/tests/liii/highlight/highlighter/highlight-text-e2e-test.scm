@@ -267,4 +267,11 @@
   ) ;when
 ) ;let*
 
+;; The link label and destination remain separate even when rendered verbatim.
+(let* ((def (load-syntax-definition "markdown"))
+       (spans (caar (highlight-text "[x](y)" def)))
+      ) ;
+  (check (map caddr spans) => '("Link" "Link" "Link" "Link URL" "Link URL"))
+) ;let*
+
 (check-report)

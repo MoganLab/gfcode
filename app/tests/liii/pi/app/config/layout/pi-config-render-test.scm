@@ -166,7 +166,7 @@
       ) ;raw
      ) ;
   ;; 焦点列浓紫、非焦点列浅紫
-  (check (string-contains raw "48;2;74;44;122") => #t)
+  (check (string-contains raw "48;2;33;59;73") => #t)
   (check (string-contains raw "48;2;56;46;78") => #t)
 ) ;let
 
