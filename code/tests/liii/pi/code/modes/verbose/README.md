@@ -15,6 +15,7 @@ gf doc display-agent-event
 gf doc display-verbose-event
 gf doc make-verbose-emitter
 gf doc handle-verbose-result
+gf doc verbose-thinking-ping-due?
 ```
 
 ## 函数分类索引
@@ -22,6 +23,9 @@ gf doc handle-verbose-result
 ### 事件显示
 - `display-agent-event` - 格式化输出带 emoji 和轮次标记的 Agent 事件
 - `display-verbose-event` - 便捷调用 display-agent-event 格式化 Agent 事件
+
+### 思考状态展示
+- `verbose-thinking-ping-due?` - 判断是否到达思考进度提示阈值
 
 ### 流程集成
 - `make-verbose-emitter` - 构造 verbose 事件发射器过程

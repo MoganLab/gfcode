@@ -21,7 +21,7 @@
 (import (scheme base)
   (liii check)
   (liii pi ai message)
-  (liii pi code modes verbose)
+  (liii pi code modes verbose events)
 ) ;import
 
 (check-set-mode! 'report-failed)
