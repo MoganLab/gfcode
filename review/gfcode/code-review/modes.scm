@@ -19,14 +19,47 @@
     (gfcode code-review parse)
     (gfcode code-review format)
   ) ;import
-  (export run-code-review-flow)
+  (export pi-prepare-code-review pi-code-review-parsed pi-code-review-config
+    run-code-review-flow
+  ) ;export
   (begin
 
     (define %review-system-prompt
       "You are a code reviewer operating inside pi. You have no tools: do not call, request, or simulate tool calls. All file contents to review are provided in the user message. Return only the JSON findings object requested there."
     ) ;define
 
-    (define (%review-parsed parsed)
+    (define* (pi-prepare-code-review parsed
+               cfg
+               (collector pi-collect-changed-files)
+               (file-records pi-review-file-records)
+             ) ;pi-prepare-code-review
+      (let* ((file-args (pi-args-ref parsed 'messages))
+             (explicit (and (pair? file-args) file-args))
+             (collected (collector
+                          :ref     (or (pi-args-ref parsed 'review-ref) "HEAD")
+                          :staged  (pi-args-ref parsed 'staged)
+                          :files   explicit
+                          :timeout (pi-resolve-timeout parsed cfg)
+                        ) ;collector
+             ) ;collected
+             (paths (cdr (assoc 'paths collected)))
+             (notice (cdr (assoc 'message collected)))
+            ) ;
+        (if (null? paths)
+          (list (cons 'status 'no-files) (cons 'notice notice))
+          (let ((records (file-records paths)))
+            (list (cons 'status 'ok)
+              (cons 'paths paths)
+              (cons 'records records)
+              (cons 'prompt (pi-build-review-prompt records))
+              (cons 'notice notice)
+            ) ;list
+          ) ;let
+        ) ;if
+      ) ;let*
+    ) ;define*
+
+    (define (pi-code-review-parsed parsed)
       (if (pi-args-ref parsed 'system-prompt)
         parsed
         (cons (cons 'system-prompt %review-system-prompt)
@@ -38,7 +71,7 @@
       ) ;if
     ) ;define
 
-    (define (%review-config cfg)
+    (define (pi-code-review-config cfg)
       (cons (cons 'tools '())
         (filter
           (lambda (pair) (not (eq? (car pair) 'tools)))
@@ -129,40 +162,28 @@
     ) ;define
 
     (define (run-code-review-flow parsed cfg mode)
-      (let* ((file-args (pi-args-ref parsed 'messages))
-             (explicit (and (pair? file-args) file-args))
-             (collected (pi-collect-changed-files
-                          :ref     (or (pi-args-ref parsed 'review-ref) "HEAD")
-                          :staged  (pi-args-ref parsed 'staged)
-                          :files   explicit
-                          :timeout (pi-resolve-timeout parsed cfg)
-                        ) ;pi-collect-changed-files
-             ) ;collected
-             (paths (cdr (assoc 'paths collected)))
-             (notice (cdr (assoc 'message collected)))
-            ) ;
-        (if (null? paths)
+      (let ((request (pi-prepare-code-review parsed cfg)))
+        (if (eq? (cdr (assoc 'status request)) 'no-files)
           (let ((msg "No changed files found. Specify file paths or make some changes first."))
             (if (eq? mode 'json) (display-stderr msg) (begin (display msg) (newline)))
             0
           ) ;let
-          (begin
+          (let ((notice (cdr (assoc 'notice request))))
             (when notice
               (display-stderr notice)
             ) ;when
-            (let* ((records (pi-review-file-records paths))
-                   (prompt (pi-build-review-prompt records))
-                   (rcfg (%review-config cfg))
-                   (review-parsed (%review-parsed parsed))
-                  ) ;
+            (let ((rcfg (pi-code-review-config cfg))
+                  (review-parsed (pi-code-review-parsed parsed))
+                  (prompt (cdr (assoc 'prompt request)))
+                 ) ;
               (if (eq? mode 'json)
                 (run-session-flow review-parsed rcfg prompt emit-json-event (lambda _ 0))
                 (run-session-flow review-parsed rcfg prompt #f %print-review-result)
               ) ;if
-            ) ;let*
-          ) ;begin
+            ) ;let
+          ) ;let
         ) ;if
-      ) ;let*
+      ) ;let
     ) ;define
 
   ) ;begin
