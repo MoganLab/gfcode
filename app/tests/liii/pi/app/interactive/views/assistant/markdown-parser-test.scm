@@ -11,6 +11,8 @@
 ;; 解析过程：输入原始字符串，返回安全行或 #f。
 (import (scheme base)
   (liii check)
+  (liii cmark)
+  (liii pi app interactive selection)
   (liii string)
   (liii tui text-width)
   (liii highlight definition)
@@ -36,6 +38,12 @@
 (check (car (%markdown-visual-lines (parse "# 标题") 80))
   =>
   "\x1b;[38;2;205;154;34m\x1b;[1m\x1b;[4m# 标题\x1b;[0m"
+) ;check
+
+;; Table separators use the theme's Preprocessor/Keyword color; cells stay plain.
+(check (car (%markdown-visual-lines (parse "| 中文 | x |") 80))
+  =>
+  "\x1b;[38;2;105;173;208m|\x1b;[0m 中文 \x1b;[38;2;105;173;208m|\x1b;[0m x \x1b;[38;2;105;173;208m|\x1b;[0m"
 ) ;check
 
 (define heading3
@@ -68,10 +76,35 @@
   =>
   '(("Link" "Muted") ("Quote") ("Muted") ("CodeBlock") ("Muted"))
 ) ;check
+(check (roles "正文 **[#44 [1404] 更新](https://github.com/MoganLab/gfcode/pull/44)** 后文"
+       ) ;roles
+  =>
+  '(("Plain" "Strong" "Link" "Muted" "Strong" "Plain"))
+) ;check
 (check (roles "```python\nreturn 42\n```")
   =>
   '(("Muted") ("Keyword" "Plain" "Number") ("Muted"))
 ) ;check
+
+;; Narrow viewports must not insert clipboard newlines inside a table row.
+
+(define table
+  "名称|状态|数量\n:---|:---:|---:\n中文|a\\|b|12\ngfcode|完成|1"
+) ;define
+
+(define table-lines (%markdown-visual-lines (parse table) 12))
+(check (map strip-ansi table-lines)
+  =>
+  '("| 名称   | 状态  | 数量 |" "| :----- | :---: | ---: |"
+    "| 中文   | a\\|b  |   12 |" "| gfcode | 完成  |    1 |")
+) ;check
+(check (markdown->md-stem (selection-extract-text table-lines '(0 . 0) '(30 . 3)))
+  =>
+  (markdown->md-stem table)
+) ;check
+
+(define fenced (string-append "````markdown\n```\n" table "\n````"))
+(check (map car (parse fenced)) => (string-split fenced "\n"))
 
 (define controls
   (string-append "a\t\r\nb" (byte-vector->string (byte-vector 255)))

@@ -35,6 +35,7 @@
                 (cons "Heading1" (string-append %fg-warning "\x1b;[1m\x1b;[4m"))
                 (cons "Heading" (string-append %fg-warning "\x1b;[1m"))
                 (cons "List" %fg-accent)
+                (cons "TableBorder" "\x1b;[38;2;105;173;208m")
                 (cons "Keyword" "\x1b;[38;2;105;173;208m")
                 (cons "Function" %fg-warning)
                 (cons "Variable" "\x1b;[38;2;93;179;186m")
@@ -135,12 +136,18 @@
       ) ;apply
     ) ;define
     (define (%markdown-visual-lines rows width)
-      (wrap-text
-        (string-join (map (lambda (row) (ansi-row row markdown-palette %ansi-reset)) rows)
-          "\n"
-        ) ;string-join
-        width
-      ) ;wrap-text
+      (append-map
+        (lambda (row)
+          (let ((line (ansi-row row markdown-palette %ansi-reset)))
+            (if
+              (and (pair? (cdr row)) (equal? (caddr (cadr row)) "TableBorder"))
+              (list line)
+              (wrap-text line width)
+            ) ;if
+          ) ;let
+        ) ;lambda
+        rows
+      ) ;append-map
     ) ;define
     (define (%diff-visual-lines rows expanded? width)
       (let* ((hidden

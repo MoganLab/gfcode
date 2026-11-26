@@ -78,6 +78,37 @@
 (check-false (any (lambda (pair) (apply equal? pair)) (map list plain (render)))
 ) ;check-false
 (check (map (lambda (ls) (map strip-ansi ls)) (render)) => plain)
+;; Exercise the real display worker's syntax-resource lookup, not just the parser.
+
+(define pr-link
+  "**[#44 [1404] 修正版本更新范围并跳过纯版本提交发布](https://github.com/MoganLab/gfcode/pull/44)**"
+) ;define
+(chan-send! events (list 'assistant_text_delta pr-link) 100)
+(pi-app-poll-events! app)
+
+(define link-card (pi-app-assistant-card app))
+
+(define (link-line)
+  (car (component-render link-card 160))
+) ;define
+(let loop
+  ((remaining 200))
+  (pi-app-poll-events! app)
+  (when
+    (and (> remaining 0) (not (string-contains? (link-line) "\x1b;[4m")))
+    (sleep 0.01)
+    (loop (- remaining 1))
+  ) ;when
+) ;let
+(check-true (string-contains? (link-line)
+              "\x1b;[38;2;105;173;208m\x1b;[4m[#44 [1404] 修正版本更新范围并跳过纯版本提交发布]"
+            ) ;string-contains?
+) ;check-true
+(check-true (string-contains? (link-line)
+              "\x1b;[38;2;157;165;169mhttps://github.com/MoganLab/gfcode/pull/44"
+            ) ;string-contains?
+) ;check-true
+(check (strip-ansi (link-line)) => pr-link)
 (chan-close! jobs)
 (check (path-read-text (path file)) => original)
 (check (path-stat-mtime (path-stat file)) => modified)
