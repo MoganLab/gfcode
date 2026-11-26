@@ -123,7 +123,11 @@
         ) ;check
       ) ;unless
     ) ;let
+    (check (%diff-text-snapshot "") => "")
+    (check (%diff-text-snapshot "中文") => "中文")
+    (check (%diff-text-snapshot (string #\nul #\a)) => #f)
     (check (%diff-text-snapshot (string #\a #\nul #\b)) => #f)
+    (check (%diff-text-snapshot (string-append "中文" (string #\nul))) => #f)
     ;; A large snapshot does not change the original result.
     (check-false
       (pi-tool-result-is-error (run-tool "large" "write" (write-args (make-string 262145 #\z)))

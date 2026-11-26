@@ -64,7 +64,7 @@
                 (lambda (entry)
                   (let ((path (%clean-tool-display-text (car entry))))
                     (container-add! box
-                      (make-status-card (string-append (string-join (string-split path "\n") " ")
+                      (make-status-card (string-append (string-replace path "\n" " ")
                                           " "
                                           (%tool-diff-counts (cadr entry) (caddr entry))
                                         ) ;string-append

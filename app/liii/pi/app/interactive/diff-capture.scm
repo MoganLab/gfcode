@@ -7,10 +7,9 @@
     %diff-capture-jobs %diff-capture-call %diff-capture-call-set!
     %diff-capture-count %diff-capture-count-set! %diff-capture-misses
     %diff-capture-misses-set! %diff-tool? %diff-read-snapshot %pi-diff-start
-    %diff-without-nul? %diff-text-snapshot %diff-cwd %diff-try-send!
-    %diff-enqueue! %pi-with-turn-diff %diff-written-size? %diff-valid-path?
-    %diff-read-bounded %diff-snapshot-before %diff-snapshot-after
-    %diff-observe-tool
+    %diff-text-snapshot %diff-try-send! %diff-enqueue! %pi-with-turn-diff
+    %diff-written-size? %diff-valid-path? %diff-read-bounded
+    %diff-snapshot-before %diff-snapshot-after %diff-observe-tool
   ) ;export
   (import (scheme base)
     (scheme file)
@@ -18,6 +17,7 @@
     (liii go)
     (liii os)
     (liii path stat)
+    (only (liii string) string-index)
     (liii pi ai config runtime)
     (liii pi ai tools result)
     (liii pi code core tools read)
@@ -44,19 +44,10 @@
       (or (equal? name "edit") (equal? name "write"))
     ) ;define
 
-    (define (%diff-without-nul? text)
-      (let ((size (string-length text)))
-        (let loop
-          ((i 0))
-          (or (= i size) (and (not (char=? (string-ref text i) #\nul)) (loop (+ i 1))))
-        ) ;let
-      ) ;let
-    ) ;define
-
     (define (%diff-text-snapshot text)
       (and (string? text)
         (<= (string-length text) %diff-snapshot-bytes)
-        (%diff-without-nul? text)
+        (not (string-index text #\nul))
         text
       ) ;and
     ) ;define
@@ -96,17 +87,6 @@
         ) ;lambda
         (lambda args (and missing-ok? ""))
       ) ;catch
-    ) ;define
-
-    (define (%diff-cwd opts)
-      (let loop
-        ((rest opts))
-        (cond ((not (pair? rest)) (getcwd))
-              ((not (pair? (cdr rest))) (getcwd))
-              ((eq? (car rest) :cwd) (cadr rest))
-              (else (loop (cddr rest)))
-        ) ;cond
-      ) ;let
     ) ;define
 
     ;; Never wait to enqueue optional display data. Closed channels on shutdown
@@ -151,7 +131,7 @@
     ) ;define
 
     (define (%diff-valid-path? p)
-      (and (string? p) (<= 1 (string-length p) 4096) (%diff-without-nul? p))
+      (and (string? p) (<= 1 (string-length p) 4096) (not (string-index p #\nul)))
     ) ;define
 
     (define (%diff-written-size? absolute text)
@@ -169,7 +149,7 @@
     (define (%diff-snapshot-before args opts write?)
       (let ((display-path (pi-arg-ref args "path")))
         (and (%diff-valid-path? display-path)
-          (let* ((resolved (pi-resolve-path display-path (%diff-cwd opts)))
+          (let* ((resolved (pi-resolve-path display-path (pi-keyword-value :cwd opts (getcwd))))
                  (absolute (and (<= (string-length resolved) 4096) resolved))
                  (write-after (and write? (%diff-text-snapshot (pi-arg-ref args "content"))))
                  (before
