@@ -14,9 +14,11 @@
 
 ```bash
 gf doc run-code-review-flow
+gf doc pi-prepare-code-review
 ```
 
 ## 函数分类索引
 
 ### 工作流入口
 - `run-code-review-flow` - 执行代码审查流程，支持终端展示与 JSON 事件两种模式
+- `pi-prepare-code-review` - 收集变更并构建可复用的只读审查请求（ST2 实现）
