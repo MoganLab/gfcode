@@ -21,7 +21,12 @@
 ;; --------
 ;; 不修改输入；保留用户显式 system-prompt，配置中的 tools 始终替换为空列表。
 
-(import (liii check) (liii pi code cli args) (gfcode code-review modes))
+(import (liii check)
+  (liii pi code cli args)
+  (liii pi code cli args query)
+  (liii pi code config)
+  (gfcode code-review modes)
+) ;import
 
 (check-set-mode! 'report-failed)
 
@@ -32,9 +37,7 @@
   (check (pi-args-ref result 'messages) => '("a.scm"))
 ) ;let*
 
-(let* ((original '((messages . ("a.scm"))))
-       (result (pi-code-review-parsed original))
-      ) ;
+(let* ((original '((messages "a.scm"))) (result (pi-code-review-parsed original)))
   (check-true (string? (pi-args-ref result 'system-prompt)))
   (check (pi-args-ref original 'system-prompt) => #f)
 ) ;let*
@@ -45,6 +48,22 @@
   (check (cdr (assoc 'tools result)) => '())
   (check (cdr (assoc 'provider result)) => "google")
   (check (cdr (assoc 'tools original)) => '("write"))
+) ;let*
+
+;; 实际 CLI 使用 pi-cli-args / pi-config record，而非测试用的 alist。
+(let* ((original (make-pi-cli-args :messages '("a.scm")))
+       (result (pi-code-review-parsed original))
+      ) ;
+  (check-true (string? (pi-args-ref result 'system-prompt)))
+  (check (pi-args-ref original 'system-prompt) => #f)
+) ;let*
+
+(let* ((original (make-pi-config :provider "google" :tools '("write")))
+       (result (pi-code-review-config original))
+      ) ;
+  (check (pi-cfg-ref result 'tools) => '())
+  (check (pi-cfg-ref result 'provider) => "google")
+  (check (pi-cfg-ref original 'tools) => '("write"))
 ) ;let*
 
 (check-report)

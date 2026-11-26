@@ -270,6 +270,7 @@
                                   (pi-args-ref parsed 'print)
                                   (stdin-tty?)
                                   (stdout-tty?)
+                                  (%has-matching-flow? reg parsed)
                                 ) ;resolve-app-mode
                           ) ;mode
                          ) ;

@@ -3,7 +3,7 @@
 ;;
 ;; 语法
 ;; ----
-;; (resolve-app-mode mode-option print-flag stdin-tty stdout-tty)
+;; (resolve-app-mode mode-option print-flag stdin-tty stdout-tty :custom-flow? custom-flow?)
 ;;
 ;; 参数
 ;; ----
@@ -18,6 +18,9 @@
 ;;
 ;; stdout-tty : boolean
 ;; 标准输出是否为终端。
+;;
+;; custom-flow? : boolean（可选）
+;; 是否匹配独立扩展 flow；匹配时默认使用非交互分发，显式 mode 优先。
 ;;
 ;; 返回值
 ;; ----
@@ -40,5 +43,9 @@
 (check (resolve-app-mode #f #f #f #t) => 'verbose)
 (check (resolve-app-mode #f #f #t #f) => 'verbose)
 (check (resolve-app-mode #f #f #t #t) => 'interactive)
+;; 匹配独立扩展 flow 时优先非交互分发，避免 --code-review 只打开 TUI。
+(check (resolve-app-mode #f #f #t #t #t) => 'print)
+;; 显式输出模式仍优先于 flow 的默认非交互模式。
+(check (resolve-app-mode "json" #f #t #t #t) => 'json)
 
 (check-report)

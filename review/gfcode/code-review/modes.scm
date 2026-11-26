@@ -10,6 +10,8 @@
     (liii string)
     (liii list)
     (liii pi code cli args)
+    (liii pi code cli args query)
+    (liii pi code config)
     (liii pi agent tools)
     (liii pi ai message)
     (liii pi code modes output)
@@ -62,22 +64,14 @@
     (define (pi-code-review-parsed parsed)
       (if (pi-args-ref parsed 'system-prompt)
         parsed
-        (cons (cons 'system-prompt %review-system-prompt)
-          (filter
-            (lambda (pair) (not (and (pair? pair) (eq? (car pair) 'system-prompt))))
-            parsed
-          ) ;filter
-        ) ;cons
+        (pi-args-set parsed 'system-prompt %review-system-prompt)
       ) ;if
     ) ;define
 
     (define (pi-code-review-config cfg)
-      (cons (cons 'tools '())
-        (filter
-          (lambda (pair) (not (eq? (car pair) 'tools)))
-          cfg
-        ) ;filter
-      ) ;cons
+      ;; CLI 实际传入 pi-config record；pi-cfg-set 同时兼容 record 与 alist，
+      ;; 保留 provider、模型、认证等其余配置，只清空审查会话的工具列表。
+      (pi-cfg-set cfg 'tools '())
     ) ;define
 
     (define (%field alist key)
