@@ -68,6 +68,19 @@
         ) ;if
       ) ;let
     ) ;define
+    (define (highlight-lines lines definition deadline)
+      (let loop
+        ((ls lines) (state (initial-highlight-state definition)) (out '()))
+        (cond ((> (current-jiffy) deadline) #f)
+              ((null? ls) (reverse out))
+              (else
+                (let-values (((spans next) (highlight-line (car ls) state definition)))
+                  (loop (cdr ls) next (cons (cons (car ls) (pack spans)) out))
+                ) ;let-values
+              ) ;else
+        ) ;cond
+      ) ;let
+    ) ;define
     (define (%make-markdown-parser loader)
       (let ((definition 'unloaded))
         (lambda (raw)
@@ -86,17 +99,7 @@
                       ) ;when
                       definition
                     ) ;begin
-                    (let loop
-                      ((ls lines) (state (initial-highlight-state definition)) (out '()))
-                      (cond ((> (current-jiffy) deadline) #f)
-                            ((null? ls) (reverse out))
-                            (else
-                              (let-values (((spans next) (highlight-line (car ls) state definition)))
-                                (loop (cdr ls) next (cons (cons (car ls) (pack spans)) out))
-                              ) ;let-values
-                            ) ;else
-                      ) ;cond
-                    ) ;let
+                    (highlight-lines lines definition deadline)
                   ) ;and
                 ) ;let
               ) ;and
