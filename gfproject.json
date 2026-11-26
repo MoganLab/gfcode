@@ -25,7 +25,7 @@
     "app": {
       "root": "app/",
       "depends-on": [
-        "code", "agent", "ai"
+        "code", "agent", "ai", "highlight"
       ],
       "mode": "r7rs"
     },

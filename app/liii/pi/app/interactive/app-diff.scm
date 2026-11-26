@@ -3,7 +3,7 @@
 
 (define-library (liii pi app interactive app-diff)
   (export %pi-app-handle-diff-event! %pi-app-apply-diff! %pi-app-settle-diff!
-    %pi-app-reset-diff!
+    %pi-app-reset-diff! %pi-app-current-diff-id
   ) ;export
   (import (scheme base)
     (liii string)
@@ -24,6 +24,12 @@
       (settled? %app-diff-run-settled? %app-diff-run-settled-set!)
       (summary %app-diff-run-summary %app-diff-run-summary-set!)
     ) ;define-record-type
+
+    (define (%pi-app-current-diff-id app)
+      (let ((run (%pi-app-diff-run app)))
+        (and run (%app-diff-run-id run))
+      ) ;let
+    ) ;define
 
     (define (%pi-app-reset-diff! app)
       ;; Dispatch retires the old live index even if the optional run marker

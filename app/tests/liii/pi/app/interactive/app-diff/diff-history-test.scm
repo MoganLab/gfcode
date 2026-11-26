@@ -23,6 +23,7 @@
   (liii pi code core session-manager)
   (liii pi app interactive app)
   (liii pi app interactive app-history)
+  (liii pi app interactive state)
 ) ;import
 
 (check-set-mode! 'report-failed)
@@ -73,6 +74,7 @@
         (check-true (pi-app-rebuild-history! app file))
         (emit '(diff_result 1 "same" "never-read.txt" "+late-live" 1 1 1)
           '(turn_diff_summary 1 (("never-read.txt" 1 1)))
+          '(diff_highlight_result 1 "same" 1 (("+late-live" (0 10 "Added"))))
           '(agent_settled #f)
         ) ;emit
         (check-true (string-contains? (chat) "History reply"))
@@ -80,6 +82,7 @@
         (check-false (string-contains? (chat) "Turn changes"))
         (check-false (string-contains? (chat) "+1 -1"))
         (check-false (string-contains? (chat) "-live"))
+        (check (chan-try-recv! (%pi-app-display-jobs app) #f) => #f)
         (check (path-read-text file) => original)
       ) ;let
     ) ;lambda
