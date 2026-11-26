@@ -71,11 +71,13 @@
     ;; turn-box 结构: (轮次 消息缓冲 是否已打印过本条消息的行 思考状态盒)
     ;; 思考状态盒为 vector #(active? start-ms last-ping-ms)，由 ensure 惰性补齐
     (define (ensure-message-slots turn-box)
+      ;; 每个槽位单独补齐：每条 when 只追加一个元素，
+      ;; 避免在 turn-box 元素不足时把思考状态盒误置为 #f。
       (when (null? (cdr turn-box))
-        (set-cdr! turn-box (list "" #f #f))
+        (set-cdr! turn-box (list ""))
       ) ;when
       (when (null? (cddr turn-box))
-        (set-cdr! (cdr turn-box) (list #f #f))
+        (set-cdr! (cdr turn-box) (list #f))
       ) ;when
       (when (null? (cdddr turn-box))
         (set-cdr! (cddr turn-box) (list (vector #f 0 0)))

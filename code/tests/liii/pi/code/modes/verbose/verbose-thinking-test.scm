@@ -129,4 +129,24 @@
   ) ;let
 ) ;let*
 
+;; 8. 惰性补齐：turn-box 仅含轮次时仍能正常跟踪思考状态
+;;    回归旧 ensure-message-slots 在 turn-box 元素不足时把思考盒置为 #f 的 bug
+(let* ((tb (list 0))
+       (turn (string->json "{\"type\":\"turn_start\"}"))
+       (start (string->json "{\"type\":\"message_update\",\"assistantMessageEvent\":{\"type\":\"thinking_start\",\"contentIndex\":0}}"
+              ) ;string->json
+       ) ;start
+      ) ;
+  ;; 先触发 turn_start 惰性补齐槽位
+  (display-agent-event turn "" tb)
+  ;; 思考盒应已被补齐为 vector，而非 #f
+  (check-true (vector? (cadddr tb)))
+  ;; 随后 thinking_start 能正常记录 active 状态
+  (display-agent-event start "" tb)
+  (check (vector-ref (cadddr tb) 0) => #t)
+  ;; 消息缓冲槽也应被补齐为空字符串
+  (check (cadr tb) => "")
+  (check (caddr tb) => #f)
+) ;let*
+
 (check-report)
