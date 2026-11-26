@@ -1,6 +1,17 @@
-;; %pi-display-worker (jobs events) consumes serialized diff jobs in a go
-;; session and sends runtime diff_result and turn_diff_summary events. Unavailable
-;; snapshots/budget overflow produce skipped results; no file I/O is performed.
+;; %pi-display-worker
+;; 在 go 会话内消费有界快照并汇总本轮净变化，不读盘。
+;;
+;; 语法
+;; ----
+;; (%pi-display-worker jobs events)
+;;
+;; 参数
+;; ----
+;; jobs : 展示任务通道；events : 接收 diff_result 和 turn_diff_summary 的通道。
+;;
+;; 返回值
+;; ----
+;; 不使用返回值；通过 events 发送结果。预算超限或快照无效时跳过该 diff。
 (import (scheme base)
   (liii check)
   (only (liii base) byte-vector->string)

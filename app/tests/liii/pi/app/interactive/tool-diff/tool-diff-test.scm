@@ -1,8 +1,19 @@
 ;; %tool-diff
-;; (%tool-diff before after [with-text?]) takes UTF-8 strings and returns
-;; (diff-text added removed first-changed-line), or #f when the input exceeds
-;; a calculation budget. Omitted previews and absent line positions are #f.
-;; CRLF is equivalent to LF; a changed final newline changes one logical line.
+;; 规范化换行并计算精确的行级差异；末尾换行变化计为一行替换。
+;;
+;; 语法
+;; ----
+;; (%tool-diff before after [with-text? [cancelled?]])
+;;
+;; 参数
+;; ----
+;; before、after : string?，比较前后的 UTF-8 文本。
+;; with-text? : boolean?，是否生成预览；cancelled? : 可选的零参数取消谓词。
+;;
+;; 返回值
+;; ----
+;; (diff-text added removed first-changed-line)，无预览或位置时相应字段为 #f；
+;; 超出计算预算或取消时返回 #f。非字符串输入抛出 type-error。
 (import (scheme base)
   (liii check)
   (liii string)
@@ -54,4 +65,5 @@
 (check (%tool-diff "" (repeat-line "a\n" 1000)) => '(#f 1000 0 1))
 (check (%tool-diff "" (repeat-line "\n" 9000)) => #f)
 (check (%tool-diff (make-string 262145 #\a) "") => #f)
+
 (check-report)

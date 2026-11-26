@@ -1,6 +1,18 @@
-;; %pi-diff-executor and %pi-diff-emit decorate the executor and event bridge
-;; with one run's runtime state. They preserve the original result and events.
-;; %pi-diff-finish! closes the run without waiting for the display worker.
+;; %pi-diff-executor
+;; 包装原工具执行器，并按同一轮的工具事件捕获有界快照。
+;;
+;; 语法
+;; ----
+;; (%pi-diff-executor run execute)
+;;
+;; 参数
+;; ----
+;; run : 本轮快照状态，由 %pi-make-diff-capture 构造。
+;; execute : 原工具执行过程，接收工具名、参数和可选项。
+;;
+;; 返回值
+;; ----
+;; procedure?。原样返回工具结果并传播原工具异常；快照不可用时跳过 diff。
 (import (scheme base)
   (scheme file)
   (liii check)

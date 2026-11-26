@@ -1,6 +1,17 @@
-;; %pi-app-handle-diff-event! applies runtime display events without waiting.
-;; (pi-app-poll-events! app) consumes the same events used by the real workers.
-;; No return value is required; stale/duplicate results and failures are ignored.
+;; pi-app-poll-events!
+;; 消费展示事件，验证早到、迟到、重复结果和本轮汇总的顺序。
+;;
+;; 语法
+;; ----
+;; (pi-app-poll-events! app)
+;;
+;; 参数
+;; ----
+;; app : pi-app?，已装配事件通道的 TUI 实例。
+;;
+;; 返回值
+;; ----
+;; 不使用返回值；仅修改当前轮的匹配卡片，忽略过期或非法事件。
 (import (scheme base)
   (liii check)
   (liii go)
@@ -147,4 +158,5 @@
 (emit (start "fold") (end "fold" #t))
 (check-true (shows? "Saved!"))
 (check-true (shows? "+   最后一行"))
+
 (check-report)

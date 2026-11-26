@@ -1,6 +1,18 @@
-;; %diff-performance: measure bounded capture and background diff separately.
-;; This test takes no arguments. A gated display worker must not block the tool,
-;; queue settlement, or the next dispatch; no timing threshold is machine-specific.
+;; %pi-display-worker
+;; 用受控通道延迟展示线程，验证工具、结算和下一轮不会等待 diff。
+;;
+;; 语法
+;; ----
+;; (%pi-display-worker jobs events)
+;;
+;; 参数
+;; ----
+;; jobs : 展示任务通道；events : 展示结果通道。
+;;
+;; 返回值
+;; ----
+;; 不使用返回值；通过 events 发送结果，jobs 关闭时退出。
+;; 测试还分别记录有界快照和后台计算耗时，不以某个耗时值作为门槛。
 (import (scheme base)
   (scheme file)
   (scheme time)

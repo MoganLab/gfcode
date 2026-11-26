@@ -9,7 +9,8 @@
     %diff-capture-misses-set! %diff-tool? %diff-read-snapshot %pi-diff-start
     %diff-without-nul? %diff-text-snapshot %diff-cwd %diff-try-send!
     %diff-enqueue! %pi-with-turn-diff %diff-written-size? %diff-valid-path?
-    %diff-read-bounded
+    %diff-read-bounded %diff-snapshot-before %diff-snapshot-after
+    %diff-observe-tool
   ) ;export
   (import (scheme base)
     (scheme file)
@@ -163,65 +164,72 @@
       ) ;and
     ) ;define
 
+    ;; Return the resolved path and the bounded input snapshot. An unreadable
+    ;; file still has a key so it can be excluded from the run's net summary.
+    (define (%diff-snapshot-before args opts write?)
+      (let ((display-path (pi-arg-ref args "path")))
+        (and (%diff-valid-path? display-path)
+          (let* ((resolved (pi-resolve-path display-path (%diff-cwd opts)))
+                 (absolute (and (<= (string-length resolved) 4096) resolved))
+                 (write-after (and write? (%diff-text-snapshot (pi-arg-ref args "content"))))
+                 (before
+                   (and absolute
+                     (or (not write?) write-after)
+                     (catch #t (lambda () (%diff-read-snapshot absolute write?)) (lambda args #f))
+                   ) ;and
+                 ) ;before
+                ) ;
+            (list display-path absolute before write-after)
+          ) ;let*
+        ) ;and
+      ) ;let
+    ) ;define
+
+    (define (%diff-snapshot-after absolute before write? write-after)
+      (and before
+        (catch #t
+          (lambda ()
+            (if write?
+              (and (%diff-written-size? absolute write-after) write-after)
+              (%diff-read-snapshot absolute #f)
+            ) ;if
+          ) ;lambda
+          (lambda args #f)
+        ) ;catch
+      ) ;and
+    ) ;define
+
+    (define (%diff-observe-tool run id execute name args opts)
+      (let* ((write? (equal? name "write"))
+             (snapshot (catch #t (lambda () (%diff-snapshot-before args opts write?)) (lambda args #f))
+             ) ;snapshot
+             ;; Keep the original call outside the observer catches: execute
+             ;; once, propagate exceptions, and return the exact result.
+             (result (apply execute name args opts))
+            ) ;
+        (when (and (pi-tool-result? result) (not (pi-tool-result-is-error result)))
+          (let* ((path (and snapshot (car snapshot)))
+                 (absolute (and snapshot (cadr snapshot)))
+                 (before (and snapshot (caddr snapshot)))
+                 (after (%diff-snapshot-after absolute before write? (and snapshot (cadddr snapshot)))
+                 ) ;after
+                ) ;
+            (catch #t
+              (lambda () (%diff-enqueue! run id path absolute before after))
+              (lambda args #f)
+            ) ;catch
+          ) ;let*
+        ) ;when
+        result
+      ) ;let*
+    ) ;define
+
     (define (%pi-diff-executor run execute)
       (lambda (name args . opts)
         (let ((call (%diff-capture-call run)))
-          (if
-            (not (and call (equal? (cdr call) name)))
+          (if (and call (equal? (cdr call) name))
+            (%diff-observe-tool run (car call) execute name args opts)
             (apply execute name args opts)
-            (let ((absolute #f)
-                  (display-path #f)
-                  (before #f)
-                  (write-after #f)
-                  (write? (equal? name "write"))
-                 ) ;
-              (catch #t
-                (lambda ()
-                  (let ((p (pi-arg-ref args "path")))
-                    (when (%diff-valid-path? p)
-                      (set! display-path p)
-                      (set! absolute (pi-resolve-path p (%diff-cwd opts)))
-                      (when (> (string-length absolute) 4096)
-                        (set! absolute #f)
-                      ) ;when
-                      (when write?
-                        (set! write-after (%diff-text-snapshot (pi-arg-ref args "content")))
-                      ) ;when
-                      (when (and absolute (or (not write?) write-after))
-                        (set! before (%diff-read-snapshot absolute write?))
-                      ) ;when
-                    ) ;when
-                  ) ;let
-                ) ;lambda
-                (lambda args #f)
-              ) ;catch
-              ;; Keep the originals outside the observation catches: execute
-              ;; once, propagate its exceptions, and return its exact result.
-              (let ((result (apply execute name args opts)))
-                (when (and (pi-tool-result? result) (not (pi-tool-result-is-error result)))
-                  (let ((after
-                          (and before
-                            (catch #t
-                              (lambda ()
-                                (if write?
-                                  (and (%diff-written-size? absolute write-after) write-after)
-                                  (%diff-read-snapshot absolute #f)
-                                ) ;if
-                              ) ;lambda
-                              (lambda args #f)
-                            ) ;catch
-                          ) ;and
-                        ) ;after
-                       ) ;
-                    (catch #t
-                      (lambda () (%diff-enqueue! run (car call) display-path absolute before after))
-                      (lambda args #f)
-                    ) ;catch
-                  ) ;let
-                ) ;when
-                result
-              ) ;let
-            ) ;let
           ) ;if
         ) ;let
       ) ;lambda

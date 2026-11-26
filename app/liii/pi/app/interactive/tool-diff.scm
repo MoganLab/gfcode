@@ -5,7 +5,8 @@
   ;; Export the private helpers for the independent go session.
   (export %tool-diff %diff-snapshot-bytes %diff-lines %diff-common-edge
     %diff-lines-count-limit %diff-matrix %diff-operations %diff-hunks
-    %diff-hunk-header %diff-preview
+    %diff-hunk-header %diff-preview %diff-write-hunk %diff-write-op
+    %diff-compare-lines %diff-compare-middle %diff-middle-result %diff-cr-end
   ) ;export
   (import (scheme base)
     (scheme write)
@@ -15,6 +16,15 @@
   (begin
     (define %diff-snapshot-bytes (* 256 1024))
     (define %diff-lines-count-limit 8192)
+
+    (define (%diff-cr-end text cr size)
+      (let ((next (+ cr 1)))
+        (if (and (< next size) (char=? (string-ref text next) #\newline))
+          (+ next 1)
+          next
+        ) ;if
+      ) ;let
+    ) ;define
 
     ;; Keep the newline in the comparison key so a missing final newline is
     ;; visible as a line change. Fold CRLF and bare CR like path-read-text.
@@ -33,13 +43,7 @@
            ) ;
            ((char=? (string-ref text i) #\return)
             (and (< count %diff-lines-count-limit)
-              (let ((next
-                      (if
-                        (and (< (+ i 1) size) (char=? (string-ref text (+ i 1)) #\newline))
-                        (+ i 2)
-                        (+ i 1)
-                      ) ;if
-                    ) ;next
+              (let ((next (%diff-cr-end text i size))
                     (line (string-append (substring text start i) "\n"))
                    ) ;
                 (loop next next (cons line lines) (+ count 1))
@@ -164,47 +168,102 @@
       ) ;let*
     ) ;define
 
+    (define (%diff-write-op old new op out)
+      (let* ((tag (car op))
+             (line (if (char=? tag #\+) (vector-ref new (caddr op)) (vector-ref old (cadr op)))
+             ) ;line
+             (end (- (string-length line) 1))
+             (terminated? (char=? (string-ref line end) #\newline))
+            ) ;
+        (write-char tag out)
+        (display (if terminated? (substring line 0 end) line) out)
+        (newline out)
+        (unless terminated?
+          (display "\\ No newline at end of file" out)
+          (newline out)
+        ) ;unless
+      ) ;let*
+    ) ;define
+
+    (define (%diff-write-hunk old new ops hunk out)
+      (let ((start (car hunk)) (end (cdr hunk)))
+        (display (%diff-hunk-header (vector-ref ops start) (vector-ref ops (- end 1)))
+          out
+        ) ;display
+        (newline out)
+        (do ((i start (+ i 1)))
+          ((= i end))
+          (%diff-write-op old new (vector-ref ops i) out)
+        ) ;do
+      ) ;let
+    ) ;define
+
     (define (%diff-preview old new ops)
-      (let ((text
-              (call-with-output-string
-                (lambda (out)
-                  (define (write-line text)
-                    (display text out)
-                    (newline out)
-                  ) ;define
-                  (for-each
-                    (lambda (hunk)
-                      (let ((start (car hunk)) (end (cdr hunk)))
-                        (write-line (%diff-hunk-header (vector-ref ops start) (vector-ref ops (- end 1)))
-                        ) ;write-line
-                        (do ((i start (+ i 1)))
-                          ((= i end))
-                          (let* ((op (vector-ref ops i))
-                                 (tag (car op))
-                                 (line (if (char=? tag #\+) (vector-ref new (caddr op)) (vector-ref old (cadr op)))
-                                 ) ;line
-                                 (end (- (string-length line) 1))
-                                 (terminated? (char=? (string-ref line end) #\newline))
-                                ) ;
-                            (write-char tag out)
-                            (write-line (if terminated? (substring line 0 end) line))
-                            (unless terminated?
-                              (write-line "\\ No newline at end of file")
-                            ) ;unless
-                          ) ;let*
-                        ) ;do
-                      ) ;let
-                    ) ;lambda
-                    (%diff-hunks ops)
-                  ) ;for-each
-                ) ;lambda
-              ) ;call-with-output-string
-            ) ;text
-           ) ;
+      (let* ((hunks (%diff-hunks ops))
+             (text
+               (call-with-output-string
+                 (lambda (out)
+                   (for-each (lambda (hunk) (%diff-write-hunk old new ops hunk out)) hunks)
+                 ) ;lambda
+               ) ;call-with-output-string
+             ) ;text
+            ) ;
         (and (<= (string-length text) (+ 1 (* 48 1024)))
           (string-trim-right text #\newline)
         ) ;and
-      ) ;let
+      ) ;let*
+    ) ;define
+
+    (define (%diff-middle-result old new start n m stride cells with-text?)
+      (let* ((shared (if cells (vector-ref cells 0) 0))
+             (added (- m shared))
+             (removed (- n shared))
+             (changed (+ added removed))
+             (ops (and with-text?
+                    (<= 1 changed 200)
+                    (%diff-operations old new start n m stride cells)
+                  ) ;and
+             ) ;ops
+            ) ;
+        (list (and ops (%diff-preview old new ops))
+          added
+          removed
+          (and (> changed 0) (+ start 1))
+        ) ;list
+      ) ;let*
+    ) ;define
+
+    (define (%diff-compare-middle old new start n m with-text? cancelled?)
+      (let* ((stride (+ m 1)) (matrix? (and (> n 0) (> m 0))))
+        (and
+          (or (not matrix?) (<= (* (+ n 1) stride) 250000))
+          (let ((cells (and matrix? (%diff-matrix old new start n m stride cancelled?))))
+            (and (or (not matrix?) cells)
+              (not (cancelled?))
+              (%diff-middle-result old new start n m stride cells with-text?)
+            ) ;and
+          ) ;let
+        ) ;and
+      ) ;let*
+    ) ;define
+
+    (define (%diff-compare-lines old new with-text? cancelled?)
+      (let* ((old-size (vector-length old))
+             (new-size (vector-length new))
+             (limit (min old-size new-size))
+             (start (%diff-common-edge old new 0 0 1 limit))
+             (tail (%diff-common-edge old new (- old-size 1) (- new-size 1) -1 (- limit start))
+             ) ;tail
+            ) ;
+        (%diff-compare-middle old
+          new
+          start
+          (- old-size start tail)
+          (- new-size start tail)
+          with-text?
+          cancelled?
+        ) ;%diff-compare-middle
+      ) ;let*
     ) ;define
 
     (define* (%tool-diff before after (with-text? #t) (cancelled? (lambda () #f)))
@@ -215,42 +274,7 @@
         (if (string=? before after)
           '(#f 0 0 #f)
           (let ((old (%diff-lines before)) (new (%diff-lines after)))
-            (and old
-              new
-              (let* ((old-size (vector-length old))
-                     (new-size (vector-length new))
-                     (limit (min old-size new-size))
-                     (start (%diff-common-edge old new 0 0 1 limit))
-                     (tail (%diff-common-edge old new (- old-size 1) (- new-size 1) -1 (- limit start))
-                     ) ;tail
-                     (n (- old-size start tail))
-                     (m (- new-size start tail))
-                     (stride (+ m 1))
-                    ) ;
-                (and
-                  (or (zero? n) (zero? m) (<= (* (+ n 1) stride) 250000))
-                  (let* ((matrix? (and (> n 0) (> m 0)))
-                         (cells (and matrix? (%diff-matrix old new start n m stride cancelled?)))
-                         (shared (if cells (vector-ref cells 0) 0))
-                         (added (- m shared))
-                         (removed (- n shared))
-                         (changed (+ added removed))
-                        ) ;
-                    (and (or (not matrix?) cells)
-                      (not (cancelled?))
-                      (list (and with-text?
-                              (<= 1 changed 200)
-                              (%diff-preview old new (%diff-operations old new start n m stride cells))
-                            ) ;and
-                        added
-                        removed
-                        (and (> changed 0) (+ start 1))
-                      ) ;list
-                    ) ;and
-                  ) ;let*
-                ) ;and
-              ) ;let*
-            ) ;and
+            (and old new (%diff-compare-lines old new with-text? cancelled?))
           ) ;let
         ) ;if
       ) ;and

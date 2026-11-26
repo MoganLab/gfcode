@@ -1,6 +1,17 @@
-;; pi-app-rebuild-history! must not retain runtime diff state across a resume.
-;; Given an app and a readable session path, it returns #t after replacing the
-;; chat with historical messages and leaves the underlying session unchanged.
+;; pi-app-rebuild-history!
+;; 成功恢复历史后，隔离恢复前的 diff 和汇总事件。
+;;
+;; 语法
+;; ----
+;; (pi-app-rebuild-history! app session-file)
+;;
+;; 参数
+;; ----
+;; app : pi-app?，交互式应用实例；session-file : string?，会话 JSONL 路径。
+;;
+;; 返回值
+;; ----
+;; boolean?。成功替换聊天记录返回 #t，失败返回 #f；不改写会话文件。
 (import (scheme base)
   (scheme file)
   (liii check)
