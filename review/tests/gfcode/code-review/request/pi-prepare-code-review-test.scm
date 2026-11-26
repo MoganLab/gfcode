@@ -21,8 +21,6 @@
 ;; alist
 ;; status 为 ok 或 no-files；ok 时包含 paths、records、prompt 和 notice。
 ;;
-;; 错误行为
-;; --------
 ;; 没有变更文件时不调用 file-records，返回 no-files。
 
 (import (liii check) (liii string) (gfcode code-review request))

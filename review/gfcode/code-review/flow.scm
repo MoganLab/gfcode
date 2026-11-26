@@ -39,6 +39,41 @@
       ) ;let
     ) ;define
 
+    (define (%run-fallback review-parsed rcfg request result)
+      ;; 结构化审查失败后用非结构化提示词重试一次，仍失败才报错退出。
+      (display-stderr (string-append "Structured review failed: "
+                        (cdr (assoc 'message result))
+                        "; retrying with fallback prompt."
+                      ) ;string-append
+      ) ;display-stderr
+      (%print-review-result
+        (run-session-flow review-parsed
+          rcfg
+          (pi-build-fallback-prompt (cdr (assoc 'records request)))
+          #f
+          identity
+        ) ;run-session-flow
+      ) ;%print-review-result
+    ) ;define
+
+    (define (%run-review-default review-parsed rcfg prompt mode request)
+      ;; verbose 模式实时展示会话事件（含原始 JSON 输出）再结算；
+      ;; 其余模式静默只出报告。结构化失败时降级为单次只读 fallback。
+      (let* ((emit (if (eq? mode 'verbose) (make-verbose-emitter) #f))
+             (result (run-session-flow review-parsed rcfg prompt emit pi-code-review-response)
+             ) ;result
+            ) ;
+        (if (eq? (cdr (assoc 'status result)) 'error)
+          (%run-fallback review-parsed rcfg request result)
+          (begin
+            (display (cdr (assoc 'report result)))
+            (newline)
+            0
+          ) ;begin
+        ) ;if
+      ) ;let*
+    ) ;define
+
     (define (run-code-review-flow parsed cfg mode)
       (let ((request (pi-prepare-code-review parsed cfg)))
         (if (eq? (cdr (assoc 'status request)) 'no-files)
@@ -56,37 +91,7 @@
                  ) ;
               (if (eq? mode 'json)
                 (run-session-flow review-parsed rcfg prompt emit-json-event (lambda _ 0))
-                ;; 直接结构化审查失败（模型 error/aborted/输出截断）时，
-                ;; 降级为只读 fallback 提示词重试一次；仍失败才报错退出。
-                ;; verbose 模式下实时展示会话事件（含原始 JSON 输出），
-                ;; 结算后再打印格式化报告；其余模式保持静默只出报告。
-                (let* ((emit (if (eq? mode 'verbose) (make-verbose-emitter) #f))
-                       (result (run-session-flow review-parsed rcfg prompt emit pi-code-review-response)
-                       ) ;result
-                      ) ;
-                  (if (eq? (cdr (assoc 'status result)) 'error)
-                    (begin
-                      (display-stderr (string-append "Structured review failed: "
-                                        (cdr (assoc 'message result))
-                                        "; retrying with fallback prompt."
-                                      ) ;string-append
-                      ) ;display-stderr
-                      (%print-review-result
-                        (run-session-flow review-parsed
-                          rcfg
-                          (pi-build-fallback-prompt (cdr (assoc 'records request)))
-                          #f
-                          identity
-                        ) ;run-session-flow
-                      ) ;%print-review-result
-                    ) ;begin
-                    (begin
-                      (display (cdr (assoc 'report result)))
-                      (newline)
-                      0
-                    ) ;begin
-                  ) ;if
-                ) ;let*
+                (%run-review-default review-parsed rcfg prompt mode request)
               ) ;if
             ) ;let
           ) ;let

@@ -15,8 +15,6 @@
 ;; alist
 ;; 成功时含 status=ok 与 report；模型失败或截断时含 status=error 与 message。
 ;;
-;; 错误行为
-;; --------
 ;; error、aborted 和 length 不生成 findings；非法 JSON 由解析器生成 parse-error finding。
 
 (import (liii check)
