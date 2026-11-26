@@ -19,9 +19,6 @@
 ;; alist
 ;; 参数错误返回 status=error；无变更返回 status=no-files；
 ;; 成功时追加 parsed、config、prompt、on-finish 供通用 worker 执行。
-;;
-;; 错误行为
-;; --------
 ;; 未知参数不抛异常，以可读错误结果返回。
 
 (import (liii check) (liii string) (gfcode code-review interactive))
@@ -29,20 +26,27 @@
 (check-set-mode! 'report-failed)
 
 (let* ((seen #f)
-       (result (pi-code-review-command "--staged --ref=main a.scm"
-                 (list (cons 'config (list (cons 'tools '("write")) (cons 'provider "google"))))
-                 :prepare
-                 (lambda (parsed cfg)
-                   (set! seen parsed)
-                   (list (cons 'status 'ok) (cons 'prompt "review") (cons 'notice #f))
-                 ) ;lambda
-               ) ;pi-code-review-command
-              ) ;result
+       (result
+         (pi-code-review-command "--staged --ref=main a.scm"
+           (list
+             (cons 'config (list (cons 'tools '("write")) (cons 'provider "google")))
+           ) ;list
+           :prepare
+           (lambda (parsed cfg)
+             (set! seen parsed)
+             (list (cons 'status 'ok) (cons 'prompt "review") (cons 'notice #f))
+           ) ;lambda
+         ) ;pi-code-review-command
+       ) ;result
       ) ;
   (check (cdr (assoc 'status result)) => 'ok)
   (check (cdr (assoc 'prompt result)) => "review")
   (check (procedure? (cdr (assoc 'on-finish result))) => #t)
-  (check (cdr (assoc 'tools (cdr (assoc 'config result)))) => '())
+  (check
+    (cdr (assoc 'tools (cdr (assoc 'config result))))
+    =>
+    '()
+  ) ;check
   (check (cdr (assoc 'messages seen)) => '("a.scm"))
   (check (cdr (assoc 'review-ref seen)) => "main")
   (check (cdr (assoc 'staged seen)) => #t)
@@ -52,12 +56,13 @@
 
 (check (cdr (assoc 'status (pi-code-review-command "--bad" '()))) => 'error)
 
-(let ((result (pi-code-review-command ""
-                '()
-                :prepare (lambda (parsed cfg) (list (cons 'status 'no-files)))
-              ) ;pi-code-review-command
-       ) ;result
-      ) ;
+(let ((result
+        (pi-code-review-command ""
+          '()
+          :prepare (lambda (parsed cfg) (list (cons 'status 'no-files)))
+        ) ;pi-code-review-command
+      ) ;result
+     ) ;
   (check (cdr (assoc 'status result)) => 'no-files)
   (check-true (string? (cdr (assoc 'message result))))
 ) ;let

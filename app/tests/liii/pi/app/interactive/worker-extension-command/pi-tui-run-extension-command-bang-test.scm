@@ -39,7 +39,8 @@
 (check-set-mode! 'report-failed)
 
 (define (drain chan)
-  (let loop ((acc '()))
+  (let loop
+    ((acc '()))
     (let ((ev (chan-try-recv! chan #f)))
       (if ev (loop (cons ev acc)) (reverse acc))
     ) ;let
@@ -48,10 +49,12 @@
 
 ;; 1. no-files handler：投递 notice 与 agent_settled
 (let* ((chan (make-chan 16))
-       (command (make-extension-command-def "/probe"
-                  "probe"
-                  (lambda (args ctx) '((status . no-files) (message . "nothing to review")))
-                ) ;make-extension-command-def
+       (command
+         (make-extension-command-def "/probe"
+           "probe"
+           (lambda (args ctx) '((status . no-files)
+                                (message . "nothing to review")))
+         ) ;make-extension-command-def
        ) ;command
       ) ;
   (pi-tui-run-extension-command! command "" '() '() #f chan)
@@ -92,24 +95,24 @@
 ;; 4. session 请求：session-timeout=-1 立即错误结算，投递错误与 agent_settled
 (let* ((chan (make-chan 16))
        (sfile (path->string (path-join (path-temp-dir) "pi-ext-cmd-test.jsonl")))
-       (command (make-extension-command-def "/review"
-                  "review"
-                  (lambda (args ctx)
-                    (list (cons 'status 'ok)
-                      (cons 'parsed '((session-timeout . -1) (no-skills . #t)))
-                      (cons 'config
-                        (list (cons 'tools '())
-                          (cons 'provider "google")
-                          (cons 'config-dir (path->string (path-temp-dir)))
-                        ) ;list
-                      ) ;cons
-                      (cons 'prompt "review this")
-                      (cons 'on-finish
-                        (lambda (msgs) '((status . ok) (report . "report-text")))
-                      ) ;cons
-                    ) ;list
-                  ) ;lambda
-                ) ;make-extension-command-def
+       (command
+         (make-extension-command-def "/review"
+           "review"
+           (lambda (args ctx)
+             (list (cons 'status 'ok)
+               (cons 'parsed '((session-timeout . -1) (no-skills . #t)))
+               (cons 'config
+                 (list (cons 'tools '())
+                   (cons 'provider "google")
+                   (cons 'config-dir (path->string (path-temp-dir)))
+                 ) ;list
+               ) ;cons
+               (cons 'prompt "review this")
+               (cons 'on-finish (lambda (msgs) '((status . ok)
+                                                 (report . "report-text"))))
+             ) ;list
+           ) ;lambda
+         ) ;make-extension-command-def
        ) ;command
       ) ;
   (pi-tui-run-extension-command! command "" '() '() sfile chan)
@@ -118,7 +121,8 @@
     ;; 超时错误经事件流（error）与结算回调（ok 空报告）两条路径均可上屏，
     ;; 这里只验证命令链路完整结算且无未捕获异常
     (check-true
-      (let loop ((rest events))
+      (let loop
+        ((rest events))
         (cond ((null? rest) #f)
               ((memq (car (car rest)) '(extension_command_error extension_command_report)) #t)
               (else (loop (cdr rest)))
@@ -132,42 +136,46 @@
 ;;    降级结算不再重试；两次均失败时投递错误
 (let* ((chan (make-chan 32))
        (sfile (path->string (path-join (path-temp-dir) "pi-ext-cmd-retry-test.jsonl")))
-       (command (make-extension-command-def "/review"
-                  "review"
-                  ;; handler 与 on-finish 在 worker 内同一次求值，用 let 绑定
-                  ;; 捕获 fallback-runner，避免跨闭包引用外层环境
-                  (lambda (args ctx)
-                    (let ((runner (cdr (assoc 'fallback-runner ctx))))
-                      (list (cons 'status 'ok)
-                        (cons 'notice #f)
-                        (cons 'parsed '((session-timeout . -1) (no-skills . #t)))
-                        (cons 'config
-                          (list (cons 'tools '())
-                            (cons 'provider "google")
-                            (cons 'config-dir (path->string (path-temp-dir)))
-                          ) ;list
-                        ) ;cons
-                        (cons 'prompt "structured")
-                        (cons 'on-finish
-                          (lambda (msgs)
-                            (runner "fallback prompt"
-                              (lambda (msgs2) '((status . ok) (report . "fallback-report")))
-                            ) ;runner
-                          ) ;lambda
-                        ) ;cons
-                      ) ;list
-                    ) ;let
-                  ) ;lambda
-                ) ;make-extension-command-def
+       (command
+         (make-extension-command-def "/review"
+           "review"
+           ;; handler 与 on-finish 在 worker 内同一次求值，用 let 绑定
+           ;; 捕获 fallback-runner，避免跨闭包引用外层环境
+           (lambda (args ctx)
+             (let ((runner (cdr (assoc 'fallback-runner ctx))))
+               (list (cons 'status 'ok)
+                 (cons 'notice #f)
+                 (cons 'parsed '((session-timeout . -1) (no-skills . #t)))
+                 (cons 'config
+                   (list (cons 'tools '())
+                     (cons 'provider "google")
+                     (cons 'config-dir (path->string (path-temp-dir)))
+                   ) ;list
+                 ) ;cons
+                 (cons 'prompt "structured")
+                 (cons 'on-finish
+                   (lambda (msgs)
+                     (runner "fallback prompt"
+                       (lambda (msgs2) '((status . ok)
+                                         (report . "fallback-report")))
+                     ) ;runner
+                   ) ;lambda
+                 ) ;cons
+               ) ;list
+             ) ;let
+           ) ;lambda
+         ) ;make-extension-command-def
        ) ;command
       ) ;
   (pi-tui-run-extension-command! command "" '() '() sfile chan)
   (let ((events (drain chan)))
     (check-true
-      (let loop ((rest events))
+      (let loop
+        ((rest events))
         (cond ((null? rest) #f)
               ((and (eq? (car (car rest)) 'extension_command_report)
-                 (equal? (cadr (car rest)) "fallback-report"))
+                 (equal? (cadr (car rest)) "fallback-report")
+               ) ;and
                #t
               ) ;
               (else (loop (cdr rest)))

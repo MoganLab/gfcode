@@ -37,7 +37,8 @@
 (check-set-mode! 'report-failed)
 
 (define (drain chan)
-  (let loop ((acc '()))
+  (let loop
+    ((acc '()))
     (let ((ev (chan-try-recv! chan #f)))
       (if ev (loop (cons ev acc)) (reverse acc))
     ) ;let
@@ -53,10 +54,14 @@
 
 ;; 1. 注册命令（带斜杠名）：job 用不带斜杠名也可解析执行
 (let ((chan (make-chan 16)))
-  (register-command! (default-extension-registry) (make-no-files-command "/ext-job-probe"))
-  (pi-worker-run-extension-command-job!
-    (list 'extension_command "ext-job-probe" "")
-    '() '() (vector #f) chan
+  (register-command! (default-extension-registry)
+    (make-no-files-command "/ext-job-probe")
+  ) ;register-command!
+  (pi-worker-run-extension-command-job! (list 'extension_command "ext-job-probe" "")
+    '()
+    '()
+    (vector #f)
+    chan
     (lambda () #f)
   ) ;pi-worker-run-extension-command-job!
   (let ((events (drain chan)))
@@ -67,9 +72,11 @@
 
 ;; 2. 未知命令：投递 extension_command_error 与 agent_settled
 (let ((chan (make-chan 16)))
-  (pi-worker-run-extension-command-job!
-    (list 'extension_command "definitely-not-registered-xyz" "")
-    '() '() (vector #f) chan
+  (pi-worker-run-extension-command-job! (list 'extension_command "definitely-not-registered-xyz" "")
+    '()
+    '()
+    (vector #f)
+    chan
     (lambda () #f)
   ) ;pi-worker-run-extension-command-job!
   (let ((events (drain chan)))

@@ -35,10 +35,11 @@
 (let* ((vterm (make-virtual-terminal :width 80 :height 24))
        (submitted #f)
        (app (make-pi-app :terminal vterm :handler (lambda (a m) (set! submitted m))))
-       (command (make-extension-command-def "/probe"
-                  "probe"
-                  (lambda (args ctx) '((status . no-files)))
-                ) ;make-extension-command-def
+       (command
+         (make-extension-command-def "/probe"
+           "probe"
+           (lambda (args ctx) '((status . no-files)))
+         ) ;make-extension-command-def
        ) ;command
       ) ;
   (pi-app-submit-extension-command! app command "--staged")

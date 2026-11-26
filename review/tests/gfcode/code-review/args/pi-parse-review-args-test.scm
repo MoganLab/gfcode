@@ -14,9 +14,6 @@
 ;; ----
 ;; alist
 ;; 包含 files、ref、staged 和 error 字段。显式文件保持输入顺序。
-;;
-;; 错误行为
-;; --------
 ;; 不抛出参数异常；未知选项或缺少 --ref 值时在 error 字段返回诊断文本。
 
 (import (liii check) (gfcode code-review args))

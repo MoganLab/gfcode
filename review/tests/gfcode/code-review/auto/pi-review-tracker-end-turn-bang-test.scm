@@ -29,7 +29,8 @@
   (pi-review-tracker-end-turn! tracker 7)
   (let ((snapshot (pi-review-tracker-take-edits! tracker)))
     (check (cdr (assoc 'turnIndex snapshot)) => 7)
-    (check (map (lambda (f) (cdr (assoc 'path f))) (cdr (assoc 'files snapshot)))
+    (check
+      (map (lambda (f) (cdr (assoc 'path f))) (cdr (assoc 'files snapshot)))
       =>
       '("a.scm")
     ) ;check

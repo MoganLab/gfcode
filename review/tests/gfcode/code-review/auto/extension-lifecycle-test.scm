@@ -35,10 +35,15 @@
 (let ((api (make-extension-api)))
   (pi-load-extension (source-path) api)
   ;; 后续 ST3/ST4/ST5 的行为规格；当前提交用于固定目标。
-  (check (cdr (assoc 'status
-               ((extension-command-def-handler (find-extension-command api "/review")) "--bad" '())
-             ) ;assoc
-         ) ;cdr
+  (check
+    (cdr
+      (assoc 'status
+       ((extension-command-def-handler (find-extension-command api "/review"))
+        "--bad"
+        '()
+       ) ;
+      ) ;assoc
+    ) ;cdr
     =>
     'error
   ) ;check
