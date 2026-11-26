@@ -17,6 +17,7 @@
   (begin
 
     (define (extension api . opt-context)
+      (define tracker (make-pi-review-edit-tracker))
       ;; 1. 注册 flags
       (register-flag! api
         (make-extension-flag-def "--code-review" "Review diff" :key 'code-review)
@@ -79,13 +80,30 @@
         ) ;make-extension-flow-def
       ) ;register-flow!
 
-      ;; 5. 注册 prompt injector
+      ;; 5. 自动审查生命周期：tool_execution_end 只记成功编辑，
+      ;; turn_end 固化快照，下一次 agent 请求前注入一次并清空
+      (pi-on! api 'tool_execution_end
+        (lambda (payload) (pi-review-track-tool-result! tracker payload))
+      ) ;pi-on!
+      (pi-on! api 'turn_end
+        (lambda (payload)
+          (pi-review-tracker-end-turn! tracker
+            (let ((entry (and (pair? payload) (assq 'turn payload))))
+              (if entry (cdr entry) 0)
+            ) ;let
+          ) ;pi-review-tracker-end-turn!
+        ) ;lambda
+      ) ;pi-on!
+
+      ;; 6. 注册 prompt injector：消费上一 turn 的编辑快照（一次性）
       (register-prompt-injector! api
         (lambda (tool-calls)
-          (let ((block (pi-build-review-injection (pi-edited-files-from-tool-calls tool-calls)))
-               ) ;
+          (let* ((snapshot (pi-review-tracker-take-edits! tracker))
+                 (files (and snapshot (cdr (assoc 'files snapshot))))
+                 (block (and files (pi-build-review-injection files)))
+                ) ;
             (if block (string-trim-both block) #f)
-          ) ;let
+          ) ;let*
         ) ;lambda
       ) ;register-prompt-injector!
 

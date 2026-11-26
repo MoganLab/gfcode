@@ -12,7 +12,10 @@
     (liii pi ai message)
     (gfcode code-review language)
   ) ;import
-  (export pi-build-review-injection pi-edited-files-from-tool-calls)
+  (export pi-build-review-injection pi-edited-files-from-tool-calls
+    make-pi-review-edit-tracker pi-review-tracker? pi-review-track-tool-result!
+    pi-review-tracker-end-turn! pi-review-tracker-take-edits!
+  ) ;export
   (begin
 
     (define (%field key entry default)
@@ -114,6 +117,57 @@
           (list (list (cons 'path path) (cons 'language (pi-detect-language path))))
         ) ;append
       ) ;if
+    ) ;define
+
+    (define-record-type <pi-review-edit-tracker>
+      (%make-review-edit-tracker current snapshot)
+      pi-review-tracker?
+      (current %tracker-current %tracker-current-set!)
+      (snapshot %tracker-snapshot %tracker-snapshot-set!)
+    ) ;define-record-type
+
+    (define (make-pi-review-edit-tracker)
+      (%make-review-edit-tracker '() #f)
+    ) ;define
+
+    ;; 工具执行结束事件：只接受成功的 write/edit，路径取自执行参数；
+    ;; 未知语言文件保留（language 为 #f），与 pi-edited-files-from-tool-calls 一致
+    (define (pi-review-track-tool-result! tracker payload)
+      (let* ((name (%field 'name payload ""))
+             (failed (%field 'isError payload #f))
+             (input (%field 'input payload '()))
+             (path (and (or (string=? name "write") (string=? name "edit"))
+                     (not failed)
+                     (pair? input)
+                     (or (pi-arg-ref input "path" #f) (pi-arg-ref input "file_path" #f))
+                   ) ;and
+             ) ;path
+            ) ;
+        (when (and (string? path) (not (string-null? (string-trim-both path))))
+          (%tracker-current-set! tracker (%push-edited (%tracker-current tracker) path))
+        ) ;when
+      ) ;let*
+    ) ;define
+
+    ;; turn 结束：把本轮累积编辑固化为快照；无编辑时清空旧快照
+    (define (pi-review-tracker-end-turn! tracker turn-index)
+      (let ((files (%tracker-current tracker)))
+        (%tracker-snapshot-set! tracker
+          (if (null? files)
+            #f
+            (list (cons 'files files) (cons 'turnIndex turn-index))
+          ) ;if
+        ) ;%tracker-snapshot-set!
+        (%tracker-current-set! tracker '())
+      ) ;let
+    ) ;define
+
+    ;; 读取并清空快照：同一批编辑只注入一次
+    (define (pi-review-tracker-take-edits! tracker)
+      (let ((snapshot (%tracker-snapshot tracker)))
+        (%tracker-snapshot-set! tracker #f)
+        snapshot
+      ) ;let
     ) ;define
 
     (define (pi-edited-files-from-tool-calls tool-calls)
