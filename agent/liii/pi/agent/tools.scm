@@ -213,6 +213,16 @@
               (cons 'isError is-err?)
             ) ;list
           ) ;reg-emit
+          ;; 执行结束事件：供 code-review 等扩展追踪成功的 write/edit；
+          ;; 与 tool_result（执行前可拦截）不同，这里携带最终成功/失败状态
+          (reg-emit 'tool_execution_end
+            (list (cons 'id id)
+              (cons 'name name)
+              (cons 'input effective-args)
+              (cons 'result (pi-extract-tool-result-text raw-res))
+              (cons 'isError is-err?)
+            ) ;list
+          ) ;reg-emit
         ) ;when
         (when (procedure? emit)
           (emit 'tool_execution_end id name raw-res is-err? duration-ms)

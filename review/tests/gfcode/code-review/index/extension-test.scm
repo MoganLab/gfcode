@@ -42,7 +42,7 @@
   (check (eq? (cdr (assq 'status res)) 'ok) => #t)
   (check (equal? (cdr (assq 'value res)) "code-review-loaded") => #t)
   (check (extension-flag-def? (find-extension-flag api "--code-review")) => #t)
-  (check (extension-flag-def? (find-extension-flag api "--auto-review")) => #t)
+  (check (find-extension-flag api "--auto-review") => #f)
   (check (extension-flag-def? (find-extension-flag api "--staged")) => #t)
   (check (extension-flag-def? (find-extension-flag api "--ref")) => #t)
   (check (extension-command-def? (find-extension-command api "/review")) => #t)

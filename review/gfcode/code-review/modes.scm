@@ -10,41 +10,75 @@
     (liii string)
     (liii list)
     (liii pi code cli args)
+    (liii pi code cli args query)
+    (liii pi code config)
     (liii pi agent tools)
     (liii pi ai message)
     (liii pi code modes output)
     (liii pi code modes flow)
+    (liii pi code modes verbose)
     (gfcode code-review files)
     (gfcode code-review prompt)
     (gfcode code-review parse)
     (gfcode code-review format)
   ) ;import
-  (export run-code-review-flow)
+  (export pi-prepare-code-review pi-code-review-parsed pi-code-review-config
+    pi-code-review-response run-code-review-flow
+  ) ;export
   (begin
 
     (define %review-system-prompt
       "You are a code reviewer operating inside pi. You have no tools: do not call, request, or simulate tool calls. All file contents to review are provided in the user message. Return only the JSON findings object requested there."
     ) ;define
 
-    (define (%review-parsed parsed)
+    (define* (pi-prepare-code-review parsed
+               cfg
+               (collector pi-collect-changed-files)
+               (file-records pi-review-file-records)
+             ) ;pi-prepare-code-review
+      (let* ((file-args (pi-args-ref parsed 'messages))
+             (explicit (and (pair? file-args) file-args))
+             (collected (collector
+                          :ref     (or (pi-args-ref parsed 'review-ref) "HEAD")
+                          :staged  (pi-args-ref parsed 'staged)
+                          :files   explicit
+                          :timeout (pi-resolve-timeout parsed cfg)
+                        ) ;collector
+             ) ;collected
+             (paths (cdr (assoc 'paths collected)))
+             (notice (cdr (assoc 'message collected)))
+            ) ;
+        (if (null? paths)
+          (list (cons 'status 'no-files) (cons 'notice notice))
+          (let ((records (file-records paths)))
+            (list (cons 'status 'ok)
+              (cons 'paths paths)
+              (cons 'records records)
+              (cons 'prompt (pi-build-review-prompt records))
+              (cons 'notice notice)
+            ) ;list
+          ) ;let
+        ) ;if
+      ) ;let*
+    ) ;define*
+
+    (define (pi-code-review-parsed parsed)
       (if (pi-args-ref parsed 'system-prompt)
         parsed
-        (cons (cons 'system-prompt %review-system-prompt)
-          (filter
-            (lambda (pair) (not (and (pair? pair) (eq? (car pair) 'system-prompt))))
-            parsed
-          ) ;filter
-        ) ;cons
+        (pi-args-set parsed 'system-prompt %review-system-prompt)
       ) ;if
     ) ;define
 
-    (define (%review-config cfg)
-      (cons (cons 'tools '())
-        (filter
-          (lambda (pair) (not (eq? (car pair) 'tools)))
-          cfg
-        ) ;filter
-      ) ;cons
+    (define (pi-code-review-config cfg)
+      ;; CLI 实际传入 pi-config record；pi-cfg-set 同时兼容 record 与 alist，
+      ;; 保留 provider、模型、认证等其余配置，只清空审查会话的工具列表。
+      (pi-cfg-set cfg 'tools '())
+    ) ;define
+
+    (define (%field alist key)
+      (let ((pair (assoc key alist)))
+        (if pair (cdr pair) '())
+      ) ;let
     ) ;define
 
     (define (%normalize-blocks content)
@@ -102,67 +136,102 @@
       ) ;let
     ) ;define
 
-    (define (%print-review-result res-msgs)
+    (define (pi-code-review-response res-msgs)
       (let* ((last-msg (and (pair? res-msgs) (car (reverse res-msgs))))
              (stop-reason (%message-field "stopReason" 'stopReason last-msg #f))
              (err-msg (%message-field "errorMessage" 'errorMessage last-msg #f))
             ) ;
         (cond
          ((or (equal? stop-reason "error") (equal? stop-reason "aborted"))
-          (display-stderr (or err-msg (string-append "Request " stop-reason)))
-          1
+          (list (cons 'status 'error)
+            (cons 'message (or err-msg (string-append "Request " stop-reason)))
+          ) ;list
          ) ;
          ((equal? stop-reason "length")
-          (display-stderr "Response was truncated: the model reached its output token limit."
-          ) ;display-stderr
-          1
+          (list (cons 'status 'error)
+            (cons 'message
+              "Response was truncated: the model reached its output token limit."
+            ) ;cons
+          ) ;list
          ) ;
          (else
            (let ((findings (pi-parse-review-findings (%last-assistant-text res-msgs))))
-             (display (pi-format-review-findings findings))
-             (newline)
-             0
+             (list (cons 'status 'ok) (cons 'report (pi-format-review-findings findings)))
            ) ;let
          ) ;else
         ) ;cond
       ) ;let*
     ) ;define
 
+    (define (%print-review-result res-msgs)
+      (let ((result (pi-code-review-response res-msgs)))
+        (if (eq? (cdr (assoc 'status result)) 'error)
+          (begin
+            (display-stderr (cdr (assoc 'message result)))
+            1
+          ) ;begin
+          (begin
+            (display (cdr (assoc 'report result)))
+            (newline)
+            0
+          ) ;begin
+        ) ;if
+      ) ;let
+    ) ;define
+
     (define (run-code-review-flow parsed cfg mode)
-      (let* ((file-args (pi-args-ref parsed 'messages))
-             (explicit (and (pair? file-args) file-args))
-             (collected (pi-collect-changed-files
-                          :ref     (or (pi-args-ref parsed 'review-ref) "HEAD")
-                          :staged  (pi-args-ref parsed 'staged)
-                          :files   explicit
-                          :timeout (pi-resolve-timeout parsed cfg)
-                        ) ;pi-collect-changed-files
-             ) ;collected
-             (paths (cdr (assoc 'paths collected)))
-             (notice (cdr (assoc 'message collected)))
-            ) ;
-        (if (null? paths)
+      (let ((request (pi-prepare-code-review parsed cfg)))
+        (if (eq? (cdr (assoc 'status request)) 'no-files)
           (let ((msg "No changed files found. Specify file paths or make some changes first."))
             (if (eq? mode 'json) (display-stderr msg) (begin (display msg) (newline)))
             0
           ) ;let
-          (begin
+          (let ((notice (cdr (assoc 'notice request))))
             (when notice
               (display-stderr notice)
             ) ;when
-            (let* ((records (pi-review-file-records paths))
-                   (prompt (pi-build-review-prompt records))
-                   (rcfg (%review-config cfg))
-                   (review-parsed (%review-parsed parsed))
-                  ) ;
+            (let ((rcfg (pi-code-review-config cfg))
+                  (review-parsed (pi-code-review-parsed parsed))
+                  (prompt (cdr (assoc 'prompt request)))
+                 ) ;
               (if (eq? mode 'json)
                 (run-session-flow review-parsed rcfg prompt emit-json-event (lambda _ 0))
-                (run-session-flow review-parsed rcfg prompt #f %print-review-result)
+                ;; 直接结构化审查失败（模型 error/aborted/输出截断）时，
+                ;; 降级为只读 fallback 提示词重试一次；仍失败才报错退出。
+                ;; verbose 模式下实时展示会话事件（含原始 JSON 输出），
+                ;; 结算后再打印格式化报告；其余模式保持静默只出报告。
+                (let* ((emit (if (eq? mode 'verbose) (make-verbose-emitter) #f))
+                       (result (run-session-flow review-parsed rcfg prompt emit pi-code-review-response)
+                       ) ;result
+                      ) ;
+                  (if (eq? (cdr (assoc 'status result)) 'error)
+                    (begin
+                      (display-stderr (string-append "Structured review failed: "
+                                        (cdr (assoc 'message result))
+                                        "; retrying with fallback prompt."
+                                      ) ;string-append
+                      ) ;display-stderr
+                      (%print-review-result
+                        (run-session-flow review-parsed
+                          rcfg
+                          (pi-build-fallback-prompt (cdr (assoc 'records request)))
+                          #f
+                          identity
+                        ) ;run-session-flow
+                      ) ;%print-review-result
+                    ) ;begin
+                    (begin
+                      (display (cdr (assoc 'report result)))
+                      (newline)
+                      0
+                    ) ;begin
+                  ) ;if
+                ) ;let*
               ) ;if
-            ) ;let*
-          ) ;begin
+            ) ;let
+          ) ;let
         ) ;if
-      ) ;let*
+      ) ;let
     ) ;define
 
   ) ;begin

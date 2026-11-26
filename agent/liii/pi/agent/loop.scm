@@ -179,6 +179,8 @@
       ;; 同步桥接到扩展事件系统：payload 携带 final-msgs 供扩展统计 usage
       (let ((ext-emit (%ext-emit config)))
         (when ext-emit
+          ;; turn_end：供 code-review 等扩展把本轮编辑固化为快照（先于 agent_end）
+          (ext-emit 'turn_end (list (cons 'turn (pi-cfg-ref config 'turn-index 0))))
           (ext-emit 'agent_end (list (cons 'messages final-msgs)))
         ) ;when
       ) ;let
@@ -397,9 +399,18 @@
              (pi-emit-agent-error (%make-max-turns-error) msgs emit config)
             ) ;
             (else
-              (let* ((decision (%run-agent-turn config msgs compaction emit
-                                 timeout request-fn system-prompt turn max-turns
-                                 deadline-sec session-timeout last-tool-calls
+              (let* ((decision (%run-agent-turn (pi-cfg-set config 'turn-index turn)
+                                 msgs
+                                 compaction
+                                 emit
+                                 timeout
+                                 request-fn
+                                 system-prompt
+                                 turn
+                                 max-turns
+                                 deadline-sec
+                                 session-timeout
+                                 last-tool-calls
                                ) ;%run-agent-turn
                      ) ;decision
                      (d-msgs (cdr (assq 'msgs decision)))
