@@ -1,8 +1,17 @@
-;; (%diff-visual-lines rows expanded? width) lays out validated logical rows.
-;; 语法: (%diff-visual-lines rows expanded? width)
-;; 参数: 合法逻辑行、展开状态及正文列数。
-;; 返回值: 带受控前景的视觉行；外部数据先经 %diff-rows? 校验。
-;; (%diff-rows? value) rejects unsafe text, unknown styles and split UTF-8.
+;; %diff-visual-lines
+;; 将已校验的逻辑行折叠、着色并按显示宽度折行。
+;;
+;; 语法
+;; ----
+;; (%diff-visual-lines rows expanded? width)
+;;
+;; 参数
+;; ----
+;; rows 为通过 %diff-rows? 校验的逻辑行，expanded? 为展开状态，width 为正文列数。
+;;
+;; 返回值
+;; ----
+;; 带受控 ANSI 前景色的视觉行列表。
 (import (scheme base)
   (liii check)
   (liii tui text-width)

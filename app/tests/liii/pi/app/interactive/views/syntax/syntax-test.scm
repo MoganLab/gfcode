@@ -1,8 +1,17 @@
-;; (%make-diff-parser loader parse) returns a worker-local raw string -> lines
-;; 语法: (%make-diff-parser loader parse)
-;; 参数: 无参定义加载器与接受文本、定义的解析过程。
-;; 返回值: 字符串到结构化行的过程；失败返回 #f。
-;; Worker-local procedure. Failed definitions and over-budget input return #f without parsing.
+;; %make-diff-parser
+;; 创建在当前 worker 内缓存语法定义的 Diff 解析器。
+;;
+;; 语法
+;; ----
+;; (%make-diff-parser loader parse)
+;;
+;; 参数
+;; ----
+;; loader 是无参定义加载器，parse 接受清理后的文本和语法定义。
+;;
+;; 返回值
+;; ----
+;; 接受原始字符串并返回结构化行的过程；超出预算或加载、解析失败时返回 #f。
 (import (scheme base)
   (liii check)
   (only (liii base) byte-vector->string)

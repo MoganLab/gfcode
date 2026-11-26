@@ -1,8 +1,17 @@
-;; (pi-app-poll-events! app) pumps latest diff revisions without blocking.
-;; 语法: (pi-app-poll-events! app)
-;; 参数: app 为虚拟终端实例。
-;; 返回值: 忽略；检查缓存和通道副作用，无效事件不改变视图。
-;; Saturation, stale and malformed events leave the original card intact.
+;; pi-app-poll-events!
+;; 非阻塞地提交当前版本的高亮请求并处理结果。
+;;
+;; 语法
+;; ----
+;; (pi-app-poll-events! app)
+;;
+;; 参数
+;; ----
+;; app：使用虚拟终端的应用实例。
+;;
+;; 返回值
+;; ----
+;; 忽略；通过通道与卡片缓存观察结果，过期或畸形事件不改变视图。
 (import (scheme base)
   (liii check)
   (liii go)
@@ -90,4 +99,5 @@
 (check (rows 80) => after)
 (emit)
 (check (chan-try-recv! jobs #f) => #f)
+
 (check-report)
