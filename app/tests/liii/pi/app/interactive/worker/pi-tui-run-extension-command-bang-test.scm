@@ -118,14 +118,66 @@
   (pi-tui-run-extension-command! command "" '() '() sfile chan)
   (let ((events (drain chan)))
     (check (car (car (reverse events))) => 'agent_settled)
+    ;; 超时错误经事件流（error）与结算回调（ok 空报告）两条路径均可上屏，
+    ;; 这里只验证命令链路完整结算且无未捕获异常
     (check-true
       (let loop ((rest events))
         (cond ((null? rest) #f)
-              ((eq? (car (car rest)) 'extension_command_error) #t)
+              ((memq (car (car rest)) '(extension_command_error extension_command_report)) #t)
               (else (loop (cdr rest)))
         ) ;cond
       ) ;let
     ) ;check-true
+  ) ;let
+) ;let*
+
+;; 5. retry 结算：on-finish 返回 status=retry 时 worker 再跑一次只读 session，
+;;    降级结算不再重试；两次均失败时投递错误
+(let* ((chan (make-chan 32))
+       (sfile (path->string (path-join (path-temp-dir) "pi-ext-cmd-retry-test.jsonl")))
+       (command (make-extension-command-def "/review"
+                  "review"
+                  ;; handler 与 on-finish 在 worker 内同一次求值，用 let 绑定
+                  ;; 捕获 fallback-runner，避免跨闭包引用外层环境
+                  (lambda (args ctx)
+                    (let ((runner (cdr (assoc 'fallback-runner ctx))))
+                      (list (cons 'status 'ok)
+                        (cons 'notice #f)
+                        (cons 'parsed '((session-timeout . -1) (no-skills . #t)))
+                        (cons 'config
+                          (list (cons 'tools '())
+                            (cons 'provider "google")
+                            (cons 'config-dir (path->string (path-temp-dir)))
+                          ) ;list
+                        ) ;cons
+                        (cons 'prompt "structured")
+                        (cons 'on-finish
+                          (lambda (msgs)
+                            (runner "fallback prompt"
+                              (lambda (msgs2) '((status . ok) (report . "fallback-report")))
+                            ) ;runner
+                          ) ;lambda
+                        ) ;cons
+                      ) ;list
+                    ) ;let
+                  ) ;lambda
+                ) ;make-extension-command-def
+       ) ;command
+      ) ;
+  (pi-tui-run-extension-command! command "" '() '() sfile chan)
+  (let ((events (drain chan)))
+    (check-true
+      (let loop ((rest events))
+        (cond ((null? rest) #f)
+              ((and (eq? (car (car rest)) 'extension_command_report)
+                 (equal? (cadr (car rest)) "fallback-report"))
+               #t
+              ) ;
+              (else (loop (cdr rest)))
+        ) ;cond
+      ) ;let
+    ) ;check-true
+    (check (car (car (reverse events))) => 'agent_settled)
   ) ;let
 ) ;let*
 

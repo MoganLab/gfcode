@@ -9,6 +9,7 @@
     (liii pi code cli args)
     (gfcode code-review auto)
     (gfcode code-review args)
+    (gfcode code-review prompt)
     (gfcode code-review modes)
   ) ;import
   (export pi-code-review-command)
@@ -41,7 +42,28 @@
               (append request
                 (list (cons 'parsed (pi-code-review-parsed parsed))
                   (cons 'config (pi-code-review-config config))
-                  (cons 'on-finish pi-code-review-response)
+                  ;; 直接结构化审查失败时降级为只读 fallback 提示词重试一次；
+                  ;; fallback 也不可用（worker 无此字段）时回退原结果
+                  (cons 'on-finish
+                    (lambda (msgs)
+                      (let ((result (pi-code-review-response msgs)))
+                        (if (eq? (cdr (assoc 'status result)) 'error)
+                          (let ((retry (cdr (or (assoc 'fallback-runner ctx) '(#f
+                                                                               . #f)))))
+                            (if (procedure? retry)
+                              ;; 降级会话保持只读；提示词由 fallback 构造器生成，
+                              ;; 结算仍用统一响应解析（不再重试）
+                              (retry (pi-build-fallback-prompt (cdr (assoc 'records request)))
+                                pi-code-review-response
+                              ) ;retry
+                              result
+                            ) ;if
+                          ) ;let
+                          result
+                        ) ;if
+                      ) ;let
+                    ) ;lambda
+                  ) ;cons
                   ;; 独立审查会话在抑制窗口内执行：首轮 injector 不消费
                   ;; 历史编辑快照；dynamic-wind 保证异常/中止后也恢复
                   (cons 'run-isolated

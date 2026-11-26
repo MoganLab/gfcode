@@ -201,7 +201,33 @@
                  ) ;
               (if (eq? mode 'json)
                 (run-session-flow review-parsed rcfg prompt emit-json-event (lambda _ 0))
-                (run-session-flow review-parsed rcfg prompt #f %print-review-result)
+                ;; 直接结构化审查失败（模型 error/aborted/输出截断）时，
+                ;; 降级为只读 fallback 提示词重试一次；仍失败才报错退出
+                (let ((result (run-session-flow review-parsed rcfg prompt #f pi-code-review-response))
+                     ) ;
+                  (if (eq? (cdr (assoc 'status result)) 'error)
+                    (begin
+                      (display-stderr (string-append "Structured review failed: "
+                                        (cdr (assoc 'message result))
+                                        "; retrying with fallback prompt."
+                                      ) ;string-append
+                      ) ;display-stderr
+                      (%print-review-result
+                        (run-session-flow review-parsed
+                          rcfg
+                          (pi-build-fallback-prompt (cdr (assoc 'records request)))
+                          #f
+                          identity
+                        ) ;run-session-flow
+                      ) ;%print-review-result
+                    ) ;begin
+                    (begin
+                      (display (cdr (assoc 'report result)))
+                      (newline)
+                      0
+                    ) ;begin
+                  ) ;if
+                ) ;let
               ) ;if
             ) ;let
           ) ;let

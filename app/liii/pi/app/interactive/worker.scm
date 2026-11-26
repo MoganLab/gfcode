@@ -202,6 +202,20 @@
                         ) ;cons
                       ) ;list
                  ) ;ctx
+                 ;; fallback-runner 在 handler 调用前就位：命令结算回调可请求
+                 ;; 一次降级重试（返回 status=retry + 新 prompt/on-finish）
+                 (ctx (append ctx
+                        (list (cons 'fallback-runner
+                                (lambda (prompt on-finish)
+                                  (list (cons 'status 'retry)
+                                    (cons 'prompt prompt)
+                                    (cons 'on-finish on-finish)
+                                  ) ;list
+                                ) ;lambda
+                              ) ;cons
+                        ) ;list
+                      ) ;append
+                 ) ;ctx
                  (result (handler args ctx))
                  (status (and (pair? result) (assq 'status result) (cdr (assq 'status result))))
                 ) ;
@@ -222,11 +236,13 @@
               (pi-tui-send-event! event-chan (list 'extension_command_notice (cdr (assoc 'message result))))
              ) ;
              (else
-               (when (cdr (assoc 'notice result))
-                 (pi-tui-send-event! event-chan
-                   (list 'tps_report (cdr (assoc 'notice result)))
-                 ) ;pi-tui-send-event!
-               ) ;when
+               (let ((notice-entry (assq 'notice result)))
+                 (when (and notice-entry (cdr notice-entry))
+                   (pi-tui-send-event! event-chan
+                     (list 'tps_report (cdr notice-entry))
+                   ) ;pi-tui-send-event!
+                 ) ;when
+               ) ;let
                (let ((response ((cdr (assoc 'run-isolated ctx))
                                  (lambda ()
                                    (run-session-flow (cdr (assoc 'parsed result))
@@ -242,14 +258,42 @@
                                ) ;run-isolated
                      ) ;response
                     ) ;
-                 (if (eq? (cdr (assoc 'status response)) 'error)
-                   (pi-tui-send-event! event-chan
-                     (list 'extension_command_error (cdr (assoc 'message response)))
-                   ) ;pi-tui-send-event!
-                   (pi-tui-send-event! event-chan
-                     (list 'extension_command_report (cdr (assoc 'report response)))
-                   ) ;pi-tui-send-event!
-                 ) ;if
+                 ;; 命令结算回调可请求一次降级重试（status=retry）：
+                 ;; 用命令提供的新 prompt/on-finish 再跑一次只读 session；
+                 ;; 重试结算不再接受 retry，避免循环
+                 (let ((final
+                         (if (eq? (cdr (assoc 'status response)) 'retry)
+                           (begin
+                             (pi-tui-send-event! event-chan
+                               (list 'tps_report "Structured review failed; retrying with fallback prompt.")
+                             ) ;pi-tui-send-event!
+                             ((cdr (assoc 'run-isolated ctx))
+                               (lambda ()
+                                 (run-session-flow (cdr (assoc 'parsed result))
+                                   (cdr (assoc 'config result))
+                                   (cdr (assoc 'prompt response))
+                                   (make-tui-emit event-chan)
+                                   (cdr (assoc 'on-finish response))
+                                   sfile
+                                   '()
+                                   #f
+                                 ) ;run-session-flow
+                               ) ;lambda
+                             ) ;run-isolated
+                           ) ;begin
+                           response
+                         ) ;if
+                       ) ;final
+                      ) ;
+                   (if (eq? (cdr (assoc 'status final)) 'error)
+                     (pi-tui-send-event! event-chan
+                       (list 'extension_command_error (cdr (assoc 'message final)))
+                     ) ;pi-tui-send-event!
+                     (pi-tui-send-event! event-chan
+                       (list 'extension_command_report (cdr (assoc 'report final)))
+                     ) ;pi-tui-send-event!
+                   ) ;if
+                 ) ;let
                ) ;let
              ) ;else
             ) ;cond
