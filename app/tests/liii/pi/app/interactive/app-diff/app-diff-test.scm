@@ -113,6 +113,20 @@
 (check-true (shows? "+fresh"))
 (emit '(turn_diff_summary 3 (("late-summary.txt" 1 0))))
 (check-true (shows? "late-summary.txt +1 -0"))
+(let ((screen (string-join (pi-app-transcript-lines app) "\n"))
+      (counts "\x1b;[38;2;190;242;200m+1\x1b;[39m \x1b;[38;2;255;190;190m-0\x1b;[39m")
+     ) ;
+  (check-true (string-contains? screen (string-append "sample.txt\x1b;[39m " counts))
+  ) ;check-true
+  (check-true (string-contains? screen
+                "\x1b;[1m\x1b;[38;2;222;224;225mTurn changes\x1b;[22m\x1b;[39m"
+              ) ;string-contains?
+  ) ;check-true
+  (check-true (string-contains? screen
+                (string-append "\x1b;[38;2;167;152;215mlate-summary.txt\x1b;[39m " counts)
+              ) ;string-contains?
+  ) ;check-true
+) ;let
 
 ;; Start-less completion also supports an early result.
 (emit '(run_started 4)

@@ -137,10 +137,6 @@
       ) ;let
     ) ;define
 
-    (define (%tool-diff-counts added removed)
-      (string-append "+" (number->string added) " -" (number->string removed))
-    ) ;define
-
     ;; 与上游每秒刷新一致：Working 动画可更频繁重绘，但时间只按秒推进
     (define (%tool-elapsed-text started)
       (let ((elapsed
@@ -285,15 +281,13 @@
       (let* ((bg (%tool-bg status))
              (content-width (max 1 (- width 2)))
              (base-segs (format-tool-call-segments tool-name args))
-             (segs
-               (if counts
-                 (append base-segs (list (cons 'muted (string-append " " counts))))
-                 base-segs
-               ) ;if
-             ) ;segs
+             (title (string-append (%style-segments base-segs)
+                      (if counts (string-append " " counts) "")
+                    ) ;string-append
+             ) ;title
              (title-rows
                (map (lambda (line) (apply-card-bg (string-append " " line) width bg ""))
-                 (wrap-text (%style-segments segs) content-width)
+                 (wrap-text title content-width)
                ) ;map
              ) ;title-rows
              (visual (%diff-card-rows view expanded? width bg))

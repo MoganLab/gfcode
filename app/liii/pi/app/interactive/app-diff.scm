@@ -12,6 +12,7 @@
     (liii pi app interactive state)
     (liii pi app interactive renderers)
     (liii pi app interactive tool-diff)
+    (liii pi app interactive views theme)
     (liii pi app interactive views tool-card)
     (liii pi app interactive status-card)
   ) ;import
@@ -65,12 +66,16 @@
           (%app-diff-run-summary-set! run 'shown)
           (unless (null? entries)
             (let ((box (make-container)))
-              (container-add! box (make-status-card "Turn changes"))
+              (container-add! box
+                (make-status-card (string-append %fg-title "Turn changes" %bold-reset))
+              ) ;container-add!
               (for-each
                 (lambda (entry)
                   (let ((path (%clean-tool-display-text (car entry))))
                     (container-add! box
-                      (make-status-card (string-append (string-replace path "\n" " ")
+                      (make-status-card (string-append %fg-accent
+                                          (string-replace path "\n" " ")
+                                          %fg-reset
                                           " "
                                           (%tool-diff-counts (cadr entry) (caddr entry))
                                         ) ;string-append

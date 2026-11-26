@@ -12,8 +12,8 @@
   (begin
     (define %diff-theme-revision 1)
     (define palette
-      (list (cons "Added" "\x1b;[38;2;190;242;200m")
-        (cons "Removed" "\x1b;[38;2;255;190;190m")
+      (list (cons "Added" %fg-added)
+        (cons "Removed" %fg-removed)
         (cons "Header" "\x1b;[38;2;140;210;220m")
         (cons "File" %fg-accent)
         (cons "Normal" %fg-output)
