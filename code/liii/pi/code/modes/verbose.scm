@@ -13,10 +13,11 @@
     (liii json)
     (liii pi code event)
     (liii pi ai message)
+    (liii pi ai time)
     (liii pi code modes output)
   ) ;import
   (export display-agent-event display-verbose-event make-verbose-emitter
-    handle-verbose-result
+    handle-verbose-result verbose-thinking-ping-due?
   ) ;export
   (begin
 
@@ -67,14 +68,81 @@
       ) ;let
     ) ;define
 
+    ;; turn-box 结构: (轮次 消息缓冲 是否已打印过本条消息的行 思考状态盒)
+    ;; 思考状态盒为 vector #(active? start-ms last-ping-ms)，由 ensure 惰性补齐
     (define (ensure-message-slots turn-box)
-      ;; turn-box 结构: (轮次 消息缓冲 是否已打印过本条消息的行)
       (when (null? (cdr turn-box))
-        (set-cdr! turn-box (list "" #f))
+        (set-cdr! turn-box (list "" #f #f))
       ) ;when
       (when (null? (cddr turn-box))
-        (set-cdr! (cdr turn-box) (list #f))
+        (set-cdr! (cdr turn-box) (list #f #f))
       ) ;when
+      (when (null? (cdddr turn-box))
+        (set-cdr! (cddr turn-box) (list (vector #f 0 0)))
+      ) ;when
+    ) ;define
+
+    ;; 思考进度行间隔（毫秒）：正在思考中每 60s 提示一次
+    (define %thinking-ping-interval-ms 60000)
+
+    (define (verbose-thinking-ping-due? elapsed-ms)
+      (>= elapsed-ms %thinking-ping-interval-ms)
+    ) ;define
+
+    (define (%format-elapsed-ms ms)
+      (string-append (number->string (floor (/ ms 1000))) "s")
+    ) ;define
+
+    (define (%thinking-box turn-box)
+      (cadddr turn-box)
+    ) ;define
+
+    (define (%handle-thinking-start! turn-box port)
+      (let ((tb (%thinking-box turn-box)))
+        (when (vector? tb)
+          (vector-set! tb 0 #t)
+          (vector-set! tb 1 (pi-current-monotonic-millis))
+          (vector-set! tb 2 (pi-current-monotonic-millis))
+        ) ;when
+      ) ;let
+      (display "🧠 开始思考…\n" port)
+    ) ;define
+
+    (define (%handle-thinking-delta! turn-box port)
+      (let ((tb (%thinking-box turn-box)))
+        ;; 不显示具体思考内容；仅按间隔提示仍在思考
+        (when (and (vector? tb) (vector-ref tb 0))
+          (let* ((now (pi-current-monotonic-millis)) (since-last (- now (vector-ref tb 2))))
+            (when (verbose-thinking-ping-due? since-last)
+              (vector-set! tb 2 now)
+              (let ((elapsed (- now (vector-ref tb 1))))
+                (display (string-append "🧠 仍在思考…（已 "
+                           (%format-elapsed-ms elapsed)
+                           "）\n"
+                         ) ;string-append
+                  port
+                ) ;display
+              ) ;let
+            ) ;when
+          ) ;let*
+        ) ;when
+      ) ;let
+    ) ;define
+
+    (define (%handle-thinking-end! turn-box port)
+      (let ((tb (%thinking-box turn-box)))
+        (when (and (vector? tb) (vector-ref tb 0))
+          (let ((elapsed (- (pi-current-monotonic-millis) (vector-ref tb 1))))
+            (vector-set! tb 0 #f)
+            (display (string-append "🧠 思考完成（用时 "
+                       (%format-elapsed-ms elapsed)
+                       "）\n"
+                     ) ;string-append
+              port
+            ) ;display
+          ) ;let
+        ) ;when
+      ) ;let
     ) ;define
 
     (define (display-message-line turn-box line port)
@@ -121,6 +189,13 @@
       (set-car! turn-box (+ (car turn-box) 1))
       (set-car! (cdr turn-box) "")
       (set-car! (cddr turn-box) #f)
+      (let ((tb (%thinking-box turn-box)))
+        (when (vector? tb)
+          (vector-set! tb 0 #f)
+          (vector-set! tb 1 0)
+          (vector-set! tb 2 0)
+        ) ;when
+      ) ;let
       ;; 第 2 轮起在 💡 上方补一行空行，与第 1 轮前的空行视觉一致
       (when (> (car turn-box) 1)
         (display "\n" port)
@@ -175,11 +250,18 @@
     (define (%handle-message-update! ev turn-box port)
       (let* ((msg-ev (%prop-ref ev 'assistantMessageEvent "assistantMessageEvent" '()))
              (ev-type (%prop-string msg-ev 'type "type" ""))
-             (delta (if (string=? ev-type "text_delta") (%prop-string msg-ev 'delta "delta" "") "")
-             ) ;delta
             ) ;
-        (set-car! (cdr turn-box) (string-append (cadr turn-box) delta))
-        (flush-message-lines turn-box port)
+        (cond ((string=? ev-type "thinking_start") (%handle-thinking-start! turn-box port))
+              ((string=? ev-type "thinking_delta") (%handle-thinking-delta! turn-box port))
+              ((string=? ev-type "thinking_end") (%handle-thinking-end! turn-box port))
+              ((string=? ev-type "text_delta")
+               (let ((delta (%prop-string msg-ev 'delta "delta" "")))
+                 (set-car! (cdr turn-box) (string-append (cadr turn-box) delta))
+                 (flush-message-lines turn-box port)
+               ) ;let
+              ) ;
+              (else #f)
+        ) ;cond
       ) ;let*
     ) ;define
 
@@ -189,6 +271,13 @@
              (stop-reason (%prop-string msg 'stopReason "stopReason" ""))
              (err-msg (%prop-string msg 'errorMessage "errorMessage" ""))
             ) ;
+        ;; 流式思考未正常结束（如请求被截断/中断）时兜底收尾，
+        ;; 避免思考状态悬挂到下一轮
+        (let ((tb (%thinking-box turn-box)))
+          (when (and (vector? tb) (vector-ref tb 0))
+            (%handle-thinking-end! turn-box port)
+          ) ;when
+        ) ;let
         (when (and (string=? role "assistant")
                 (or (string=? stop-reason "error") (string=? stop-reason "aborted"))
               ) ;and
@@ -215,11 +304,12 @@
       (flush-message-tail turn-box port)
     ) ;define
 
-    (define* (display-agent-event ev
-               (line "")
-               (turn-box (list 0 "" #f))
-               (port (current-output-port))
-             ) ;display-agent-event
+    (define*
+      (display-agent-event ev
+        (line "")
+        (turn-box (list 0 "" #f (vector #f 0 0)))
+        (port (current-output-port))
+      ) ;display-agent-event
       (let ((actual-ev
               (cond ((pi-event? ev) (pi-event->json ev))
                     ((string? ev) (catch #t (lambda () (string->json ev)) (lambda _ #f)))
@@ -254,7 +344,7 @@
     ) ;define*
 
     (define* (make-verbose-emitter (port #f))
-      (let ((turn-box (list 0 "" #f)))
+      (let ((turn-box (list 0 "" #f (vector #f 0 0))))
         (lambda (ev-type . args)
           (let ((ev (pi-build-json-event ev-type args)) (p (or port (current-output-port))))
             (when ev
