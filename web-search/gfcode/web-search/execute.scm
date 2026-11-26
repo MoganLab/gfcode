@@ -288,7 +288,7 @@
                (proxy-alist (pi-resolve-search-proxy-alist proxy-url))
                (timeout (pi-keyword-value :timeout opts 600))
                (query (pi-arg-ref args "query"))
-               (urls (pi-arg-ref args "urls" '()))
+               (urls (pi-normalize-web-search-urls (pi-arg-ref args "urls" '())))
               ) ;
           (if (equal? provider "deepseek")
             ;; DeepSeek 后端：独立 Search / Fetch API
