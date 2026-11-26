@@ -61,10 +61,11 @@ jobs:
           with open(path, encoding="utf-8") as f:
               content = f.read()
 
-          pattern = r'("version":\s*")[^"]*(")'
+          # 限定在 package 对象内，避免误改文件中更早出现的其他 version 字段。
+          pattern = r'("package"\s*:\s*\{[^{}]*?"version"\s*:\s*")[^"]*(")'
           updated, count = re.subn(pattern, r'\g<1>' + version + r'\g<2>', content, count=1)
           if count != 1:
-              sys.exit("gfproject.json 中未找到 version 字段")
+              sys.exit("gfproject.json 中未找到 package.version 字段")
 
           with open(path, "w", encoding="utf-8") as f:
               f.write(updated)
@@ -95,6 +96,14 @@ jobs:
         run: |
           VERSION="${{ steps.check.outputs.new_version }}"
           TAG="v${VERSION}"
+
+          # 只给包含实际代码变更的 main 提交打 Tag；单纯的版本号提交不发布。
+          # 使用拉取后的远端 main，而不是尚未 rebase 的本地 HEAD。
+          if git log -1 --format=%s "origin/${{ github.ref_name }}" | grep -q '^chore: bump version to '; then
+            echo "main 最新提交仅用于更新版本号，跳过发布"
+            exit 0
+          fi
+
           # fetch-depth: 0 已拉全量历史；fetch tags 确保远端已有同名 tag 时不重复推送
           git fetch origin --tags
           if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
