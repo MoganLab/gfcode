@@ -204,6 +204,7 @@
       "attribute": "Strong Text",
       "line-end-context": "#pop",
       "rules": [
+        { "type": "DetectChar", "attribute": "Link", "context": "link-text", "char": "[" },
         { "type": "StringDetect", "attribute": "Strong Text", "context": "#pop", "String": "**" }
       ]
     },
@@ -211,6 +212,7 @@
       "attribute": "Strong Text",
       "line-end-context": "#pop",
       "rules": [
+        { "type": "DetectChar", "attribute": "Link", "context": "link-text", "char": "[" },
         { "type": "StringDetect", "attribute": "Strong Text", "context": "#pop", "String": "__" }
       ]
     },
@@ -246,6 +248,7 @@
       "attribute": "Link",
       "line-end-context": "#pop",
       "rules": [
+        { "type": "DetectChar", "attribute": "Link", "context": "link-text", "char": "[" },
         { "type": "StringDetect", "attribute": "Link", "context": "#pop!link-url", "String": "](" },
         { "type": "DetectChar", "attribute": "Link", "context": "#pop", "char": "]" }
       ]

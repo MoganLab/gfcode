@@ -6,6 +6,7 @@
     (liii string)
     (liii highlight definition)
     (liii highlight highlighter)
+    (liii pi app interactive views markdown-table)
     (liii pi code utils shell)
   ) ;import
   (begin
@@ -76,9 +77,20 @@
         (cond ((> (current-jiffy) deadline) #f)
               ((null? ls) (reverse out))
               (else
-                (let-values (((spans next) (highlight-line (car ls) state definition)))
-                  (loop (cdr ls) next (cons (cons (car ls) (pack spans)) out))
-                ) ;let-values
+                (let* ((layout (car ls)) (text (layout-text layout)))
+                  (let-values (((spans next) (highlight-line text state definition)))
+                    (let* ((styles (pack spans))
+                           (marked
+                             (if (and (layout-table? layout) (pair? styles))
+                               (cons (list (caar styles) (cadar styles) "TableBorder") (cdr styles))
+                               styles
+                             ) ;if
+                           ) ;marked
+                          ) ;
+                      (loop (cdr ls) next (cons (cons text marked) out))
+                    ) ;let*
+                  ) ;let-values
+                ) ;let*
               ) ;else
         ) ;cond
       ) ;let
@@ -101,7 +113,7 @@
                       ) ;when
                       definition
                     ) ;begin
-                    (highlight-lines lines definition deadline)
+                    (highlight-lines (markdown-layout-lines lines) definition deadline)
                   ) ;and
                 ) ;let
               ) ;and

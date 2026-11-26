@@ -28,10 +28,32 @@
 
     ;; 把当前选区的屏幕文本复制到剪贴板（OSC 52 + 原生剪贴板）并闪烁 Copied!。
     ;; 返回 #t 表示发生了复制，需要重绘。
+    (define (copy-frame-text app frame)
+      (let* ((sel (pi-app-selection app))
+             (end (selection-end sel))
+             (width (car (terminal-size (pi-app-term app))))
+            ) ;
+        ;; Selecting through the last visible column includes the off-screen
+        ;; suffix of a logical table row, not a truncated Markdown cell.
+        (selection-extract-text frame
+          (selection-start sel)
+          (if
+            (and (>= (car end) (- width 1))
+              (<= 0 (cdr end))
+              (< (cdr end) (length frame))
+              (> (display-width (list-ref frame (cdr end))) width)
+            ) ;and
+            (cons (display-width (list-ref frame (cdr end))) (cdr end))
+            end
+          ) ;if
+        ) ;selection-extract-text
+      ) ;let*
+    ) ;define
+
     (define (pi-app-copy-selection! app)
       (and (pi-app-selection-active? app)
         (let-values (((frame _) (pi-app-frame-lines app)))
-          (let ((text (selection-extract-text frame (pi-app-selection app))))
+          (let ((text (copy-frame-text app frame)))
             (and (string? text)
               (> (string-length text) 0)
               (begin
