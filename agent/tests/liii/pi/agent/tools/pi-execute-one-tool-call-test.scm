@@ -29,7 +29,9 @@
 
 ;; 1. 执行普通工具：验证事件发射与结果消息构造
 (let* ((evs '())
-       (mock-emit (lambda (ev-type . args) (set! evs (cons (cons ev-type args) evs))))
+       (mock-emit
+         (lambda (ev-type . args) (set! evs (cons (cons ev-type args) evs)))
+       ) ;mock-emit
        (mock-exec (lambda (name args . opts) (pi-tool-result "hello" #f)))
        (cfg (list (cons 'execute-tool-call mock-exec)))
        (call '((id . "call_1") (name . "toolA") (arguments)))
@@ -39,8 +41,7 @@
   (check (pi-tool-result-message-role msg) => "toolResult")
   (check (pi-tool-result-message-tool-call-id msg) => "call_1")
   (check (pi-tool-result-message-tool-name msg) => "toolA")
-  (check
-    (pi-text-block-text (car (pi-tool-result-message-content msg)))
+  (check (pi-text-block-text (car (pi-tool-result-message-content msg)))
     =>
     "hello"
   ) ;check
@@ -63,8 +64,7 @@
        (msg (pi-execute-one-tool-call call #f 10 cfg))
       ) ;
   (check-true (pi-tool-result-message? msg))
-  (check
-    (pi-text-block-text (car (pi-tool-result-message-content msg)))
+  (check (pi-text-block-text (car (pi-tool-result-message-content msg)))
     =>
     "config-ok"
   ) ;check
