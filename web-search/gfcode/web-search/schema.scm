@@ -6,7 +6,10 @@
 
 (define-library (gfcode web-search schema)
   (import (scheme base) (liii error) (liii string) (liii pi code core tools read))
-  (export pi-web-search-schema pi-validate-web-search-args)
+  (export pi-web-search-schema
+    pi-validate-web-search-args
+    pi-normalize-web-search-urls
+  ) ;export
   (begin
 
     (define (%web-search-prop type desc)
@@ -32,6 +35,15 @@
       ) ;list
     ) ;define
 
+    ;; string->json 把 JSON 数组解析为 vector，而手写 alist 参数常用 list；
+    ;; 两种表示都合法，统一规范化为 list，避免间歇性的 urls 类型错误。
+    (define (pi-normalize-web-search-urls urls)
+      (cond ((vector? urls) (vector->list urls))
+            ((list? urls) urls)
+            (else urls)
+      ) ;cond
+    ) ;define
+
     (define (%all-strings? items)
       (cond ((null? items) #t)
             ((string? (car items)) (%all-strings? (cdr items)))
@@ -40,7 +52,9 @@
     ) ;define
 
     (define (pi-validate-web-search-args args)
-      (let ((query (pi-arg-ref args "query" #f)) (urls (pi-arg-ref args "urls" #f)))
+      (let ((query (pi-arg-ref args "query" #f))
+            (urls (pi-normalize-web-search-urls (pi-arg-ref args "urls" #f)))
+           ) ;
         (cond ((not (string? query)) (type-error "web_search: query must be a string"))
               ((string-null? (string-trim-both query))
                (value-error "web_search: query must not be empty")

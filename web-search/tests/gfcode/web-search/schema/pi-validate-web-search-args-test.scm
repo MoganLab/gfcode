@@ -34,6 +34,19 @@
   #t
 ) ;check
 
+;; JSON 数组经 string->json 解析后是 vector，同样合法（含空数组）
+(check (pi-validate-web-search-args '(("query" . "goldfish scheme")
+                                      ("urls" . #("https://example.com")))
+       ) ;pi-validate-web-search-args
+  =>
+  #t
+) ;check
+(check (pi-validate-web-search-args '(("query" . "goldfish scheme")
+                                      ("urls" . #())))
+  =>
+  #t
+) ;check
+
 ;; 恰好 20 个 URL 合法
 (check
   (pi-validate-web-search-args
@@ -72,12 +85,22 @@
 (check-catch 'type-error
   (pi-validate-web-search-args '(("query" . "q") ("urls" "ok" 42)))
 ) ;check-catch
+(check-catch 'type-error
+  (pi-validate-web-search-args '(("query" . "q") ("urls" . #("ok" 42))))
+) ;check-catch
 
-;; urls 超过 20 项
+;; urls 超过 20 项（list 与 vector 两种表示）
 (check-catch 'value-error
   (pi-validate-web-search-args
     (list (cons "query" "q")
       (cons "urls" (map (lambda (i) (number->string i)) (iota 21)))
+    ) ;list
+  ) ;pi-validate-web-search-args
+) ;check-catch
+(check-catch 'value-error
+  (pi-validate-web-search-args
+    (list (cons "query" "q")
+      (cons "urls" (list->vector (map (lambda (i) (number->string i)) (iota 21))))
     ) ;list
   ) ;pi-validate-web-search-args
 ) ;check-catch
