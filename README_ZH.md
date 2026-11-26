@@ -23,13 +23,13 @@ scoop install goldfish
 然后安装最新版 gfcode：
 
 ```bash
-gf get -g https://github.com/MoganLab/gfcode.git --ref @latest --force
+gf get -g https://github.com/MoganLab/gfcode.git --force
 ```
 
 通过 HTTP 代理安装（以端口 `7890` 为例）：
 
 ```bash
-HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 gf get -g https://github.com/MoganLab/gfcode.git --ref @latest --force
+HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 gf get -g https://github.com/MoganLab/gfcode.git --force
 ```
 
 验证：

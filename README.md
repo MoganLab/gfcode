@@ -23,13 +23,13 @@ scoop install goldfish
 Then install the latest gfcode version:
 
 ```bash
-gf get -g https://github.com/MoganLab/gfcode.git --ref @latest --force
+gf get -g https://github.com/MoganLab/gfcode.git --force
 ```
 
 Using an HTTP proxy (port `7890` in this example):
 
 ```bash
-HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 gf get -g https://github.com/MoganLab/gfcode.git --ref @latest --force
+HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 gf get -g https://github.com/MoganLab/gfcode.git --force
 ```
 
 Verify:
