@@ -14,10 +14,7 @@
 ;; ----
 ;; alist 配置或 pi-config 副本；不修改输入。
 
-(import (liii check)
-  (liii pi code config)
-  (gfcode code-review request)
-) ;import
+(import (liii check) (liii pi code config) (gfcode code-review request))
 
 (check-set-mode! 'report-failed)
 
