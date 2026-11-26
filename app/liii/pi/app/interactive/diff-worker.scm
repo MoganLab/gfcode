@@ -3,15 +3,16 @@
 
 (define-library (liii pi app interactive diff-worker)
   ;; All procedures reached by go must be visible in its separate session.
-  (export %pi-display-worker %diff-record-file! %diff-job! %diff-compute
-    %diff-summary %make-diff-turn %diff-turn-id %diff-turn-done %diff-turn-files
-    %diff-turn-control %diff-turn-control-set! %diff-turn-count
+  (export %pi-display-worker %display-loop %diff-record-file! %diff-job!
+    %diff-compute %diff-summary %make-diff-turn %diff-turn-id %diff-turn-done
+    %diff-turn-files %diff-turn-control %diff-turn-control-set! %diff-turn-count
     %diff-turn-count-set! %diff-finish-turn %make-diff-file %diff-file-key
     %diff-file-path %diff-file-before %diff-file-after %diff-file-after-set!
     %diff-publish!
   ) ;export
   (import (scheme base)
     (liii go)
+    (liii pi app interactive views syntax)
     (liii pi app interactive tool-diff)
     (only (liii unicode) utf8-replace-invalid)
   ) ;import
@@ -147,6 +148,10 @@
     ) ;define
 
     (define (%pi-display-worker jobs events)
+      (%display-loop jobs events (%worker-parser))
+    ) ;define
+
+    (define (%display-loop jobs events parse)
       (let loop
         ((turn #f))
         (unless (chan-closed? jobs)
@@ -184,7 +189,16 @@
                      (loop active)
                    ) ;let
                   ) ;
-                  ;; Reserved for additional display work types.
+                  ((and (eq? (car job) 'diff_highlight_job) (= (length job) 5))
+                   (let ((lines (parse (list-ref job 4))))
+                     (unless (chan-closed? jobs)
+                       (%diff-publish! events
+                         (list 'diff_highlight_result (cadr job) (caddr job) (cadddr job) lines)
+                       ) ;%diff-publish!
+                     ) ;unless
+                   ) ;let
+                   (loop current)
+                  ) ;
                   (else (loop current))
             ) ;cond
           ) ;let*

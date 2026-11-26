@@ -3,7 +3,7 @@
 
 (define-library (liii pi app interactive app-diff)
   (export %pi-app-handle-diff-event! %pi-app-apply-diff! %pi-app-settle-diff!
-    %pi-app-reset-diff!
+    %pi-app-reset-diff! %pi-app-current-diff-id
   ) ;export
   (import (scheme base)
     (liii string)
@@ -12,6 +12,7 @@
     (liii pi app interactive state)
     (liii pi app interactive renderers)
     (liii pi app interactive tool-diff)
+    (liii pi app interactive views theme)
     (liii pi app interactive views tool-card)
     (liii pi app interactive status-card)
   ) ;import
@@ -24,6 +25,12 @@
       (settled? %app-diff-run-settled? %app-diff-run-settled-set!)
       (summary %app-diff-run-summary %app-diff-run-summary-set!)
     ) ;define-record-type
+
+    (define (%pi-app-current-diff-id app)
+      (let ((run (%pi-app-diff-run app)))
+        (and run (%app-diff-run-id run))
+      ) ;let
+    ) ;define
 
     (define (%pi-app-reset-diff! app)
       ;; Dispatch retires the old live index even if the optional run marker
@@ -59,12 +66,16 @@
           (%app-diff-run-summary-set! run 'shown)
           (unless (null? entries)
             (let ((box (make-container)))
-              (container-add! box (make-status-card "Turn changes"))
+              (container-add! box
+                (make-status-card (string-append %fg-title "Turn changes" %bold-reset))
+              ) ;container-add!
               (for-each
                 (lambda (entry)
                   (let ((path (%clean-tool-display-text (car entry))))
                     (container-add! box
-                      (make-status-card (string-append (string-replace path "\n" " ")
+                      (make-status-card (string-append %fg-accent
+                                          (string-replace path "\n" " ")
+                                          %fg-reset
                                           " "
                                           (%tool-diff-counts (cadr entry) (caddr entry))
                                         ) ;string-append

@@ -8,7 +8,8 @@
   (export make-tool-card tool-card? tool-card-component? tool-card-expanded?
     tool-card-set-expanded! tool-card-set-output! tool-card-set-complete!
     tool-card-set-started-at! tool-card-started-at tool-card-pending-bash?
-    %tool-now-ms %tool-card-apply-diff! %tool-diff-counts
+    %tool-card-live-view %tool-card-raw-diff %tool-now-ms %tool-card-apply-diff!
+    %tool-diff-counts
   ) ;export
   (import (scheme base)
     (scheme time)
@@ -18,6 +19,8 @@
     (liii tui text-width)
     (liii pi app interactive renderers)
     (liii pi app interactive views cache)
+    (liii pi app interactive views highlight-view)
+    (liii pi app interactive views ansi-lines)
     (liii pi app interactive views theme)
     (liii pi app interactive views wrap)
   ) ;import
@@ -27,7 +30,7 @@
     (define-record-type <tool-card>
       (%make-tool-card tool-name args status result expanded? started-at
         ended-at duration-ms render-cache card-render-cache diff-status
-        diff-text added-lines removed-lines
+        diff-text added-lines removed-lines highlight-view
       ) ;%make-tool-card
       tool-card?
       (tool-name %tool-card-name)
@@ -43,9 +46,23 @@
       (card-render-cache %tool-card-card-render-cache)
       (diff-status %tool-card-diff-status %tool-card-diff-status-set!)
       (diff-text %tool-card-diff-text %tool-card-diff-text-set!)
+      (highlight-view %tool-card-view)
       (added-lines %tool-card-added-lines %tool-card-added-lines-set!)
       (removed-lines %tool-card-removed-lines %tool-card-removed-lines-set!)
     ) ;define-record-type
+
+    (define (%tool-card-live-view card)
+      (let ((st (component-data card)))
+        (and (eq? (%tool-card-status st) 'success)
+          (eq? (%tool-card-diff-status st) 'ready)
+          (string? (%tool-card-diff-text st))
+          (%tool-card-view st)
+        ) ;and
+      ) ;let
+    ) ;define
+    (define (%tool-card-raw-diff card)
+      (%tool-card-diff-text (component-data card))
+    ) ;define
 
     (define (%tool-now-ms)
       (* 1000.0 (/ (current-jiffy) (jiffies-per-second)))
@@ -108,6 +125,9 @@
          ((not (eq? (%tool-card-status st) 'success)) 'ignored)
          (added (%tool-card-diff-status-set! st 'ready)
            (%tool-card-diff-text-set! st text)
+           (when (string? text)
+             (%highlight-reset! (%tool-card-view st))
+           ) ;when
            (%tool-card-added-lines-set! st added)
            (%tool-card-removed-lines-set! st removed)
            'changed
@@ -115,10 +135,6 @@
          (else (%tool-card-diff-status-set! st 'skipped) 'ignored)
         ) ;cond
       ) ;let
-    ) ;define
-
-    (define (%tool-diff-counts added removed)
-      (string-append "+" (number->string added) " -" (number->string removed))
     ) ;define
 
     ;; 与上游每秒刷新一致：Working 动画可更频繁重绘，但时间只按秒推进
@@ -259,22 +275,23 @@
     ;; 上下各一行背景空行；pending/绿/红背景把命令与输出整个包住；
     ;; 标题先分段着色再折行，超宽时保持分段样式（issue #1484）；
     ;; 展开态不受预览行数限制，折叠态按工具取预览行数（Ctrl+O 全局切换）
-    (define (render-tool-card-lines tool-name args status result width expanded? counts)
+    (define (render-tool-card-lines tool-name args status result width expanded?
+              counts view
+            ) ;render-tool-card-lines
       (let* ((bg (%tool-bg status))
              (content-width (max 1 (- width 2)))
              (base-segs (format-tool-call-segments tool-name args))
-             (segs
-               (if counts
-                 (append base-segs (list (cons 'muted (string-append " " counts))))
-                 base-segs
-               ) ;if
-             ) ;segs
+             (title (string-append (%style-segments base-segs)
+                      (if counts (string-append " " counts) "")
+                    ) ;string-append
+             ) ;title
              (title-rows
                (map (lambda (line) (apply-card-bg (string-append " " line) width bg ""))
-                 (wrap-text (%style-segments segs) content-width)
+                 (wrap-text title content-width)
                ) ;map
              ) ;title-rows
-             (res-lines (if result
+             (visual (%diff-card-rows view expanded? width bg))
+             (res-lines (if (and (not visual) result)
                           (format-tool-result-lines tool-name
                             result
                             :max-lines (%tool-preview-lines tool-name status)
@@ -284,21 +301,24 @@
                         ) ;if
              ) ;res-lines
              (out-rows
-               (if (null? res-lines)
-                 '()
-                 (cons (apply-card-bg "" width bg %fg-output)
-                   ;; 超宽输出按内容宽度折行（左右各留 1 列），
-                   ;; 避免 alt-screen 截断吞掉错误详情；折叠态的
-                   ;; max-lines 限制作用于逻辑行，折行发生在渲染层
-                   (%card-body-lines (string-join res-lines "\n")
-                     width
-                     1
-                     1
-                     (lambda (line)
-                       (list (apply-card-bg (string-append " " %fg-output line) width bg ""))
-                     ) ;lambda
-                   ) ;%card-body-lines
-                 ) ;cons
+               (if visual
+                 visual
+                 (if (null? res-lines)
+                   '()
+                   (cons (apply-card-bg "" width bg %fg-output)
+                     ;; 超宽输出按内容宽度折行（左右各留 1 列），
+                     ;; 避免 alt-screen 截断吞掉错误详情；折叠态的
+                     ;; max-lines 限制作用于逻辑行，折行发生在渲染层
+                     (%card-body-lines (string-join res-lines "\n")
+                       width
+                       1
+                       1
+                       (lambda (line)
+                         (list (apply-card-bg (string-append " " %fg-output line) width bg ""))
+                       ) ;lambda
+                     ) ;%card-body-lines
+                   ) ;cons
+                 ) ;if
                ) ;if
              ) ;out-rows
              (pad-rows (list (apply-card-bg "" width bg %fg-output)))
@@ -315,6 +335,9 @@
         width
         (%tool-card-expanded? st)
         timer
+        %diff-theme-revision
+        (%highlight-revision (%tool-card-view st))
+        (%highlight-status (%tool-card-view st))
         (%tool-card-diff-status st)
         (%tool-card-diff-text st)
         (%tool-card-added-lines st)
@@ -345,6 +368,7 @@
                         (and (eq? (%tool-card-diff-status st) 'ready)
                           (%tool-diff-counts (%tool-card-added-lines st) (%tool-card-removed-lines st))
                         ) ;and
+                        (%tool-card-view st)
                       ) ;render-tool-card-lines
                     ) ;else
               ) ;cond
@@ -382,6 +406,7 @@
                    #f
                    #f
                    #f
+                   (%new-highlight-view)
                  ) ;%make-tool-card
              ) ;st
              (card

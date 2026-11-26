@@ -25,6 +25,7 @@
     (liii pi app interactive working)
     (liii pi app interactive app-bash)
     (liii pi app interactive app-diff)
+    (liii pi app interactive app-highlight)
     (liii pi app interactive bash)
     (liii pi app interactive app-name)
     (liii pi app interactive app-queue)
@@ -316,6 +317,7 @@
             ;; Kimi Code OAuth 设备码登录：device_code 上屏、done 落盘/报错
             ((kimi_oauth_device_code) (pi-app-handle-oauth-device-code! app ev))
             ((kimi_oauth_done) (pi-app-handle-oauth-done! app ev))
+            ((diff_highlight_result) (%pi-app-handle-highlight! app ev))
             ((run_started diff_result turn_diff_summary)
              (%pi-app-handle-diff-event! app ev)
             ) ;
@@ -427,6 +429,7 @@
         (when has-event
           (pi-app-render! app)
         ) ;when
+        (%pi-app-pump-highlight! app)
       ) ;let
     ) ;define
 
