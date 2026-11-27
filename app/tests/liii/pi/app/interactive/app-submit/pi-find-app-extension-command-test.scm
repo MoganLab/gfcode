@@ -25,11 +25,10 @@
 (check-set-mode! 'report-failed)
 
 (let ((registry (make-extension-registry))
-      (command
-        (make-extension-command-def "/probe-find"
-          "probe"
-          (lambda (args ctx) (make-review-no-files #f #f))
-        ) ;make-extension-command-def
+      (command (make-extension-command-def "/probe-find"
+                 "probe"
+                 (lambda (args ctx) (make-review-no-files #f #f))
+               ) ;make-extension-command-def
       ) ;command
      ) ;
   (register-command! registry command)

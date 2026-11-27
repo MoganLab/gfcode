@@ -38,10 +38,7 @@
     (define (%on-finish ctx request)
       (lambda (msgs)
         (let ((result (pi-code-review-response msgs)))
-          (if (review-error? result)
-            (%fallback-result ctx request result)
-            result
-          ) ;if
+          (if (review-error? result) (%fallback-result ctx request result) result)
         ) ;let
       ) ;lambda
     ) ;define
@@ -77,15 +74,15 @@
                 ) ;
             (if (review-no-files? request)
               (make-review-no-files %no-files-message #f)
-              (make-review-session-request
-                (pi-code-review-parsed parsed)
+              (make-review-session-request (pi-code-review-parsed parsed)
                 (pi-code-review-config config)
                 (review-session-request-prompt request)
                 (%on-finish ctx request)
                 %run-isolated
                 (review-session-request-notice request)
                 (review-session-request-records request)
-                (review-session-request-paths request))
+                (review-session-request-paths request)
+              ) ;make-review-session-request
             ) ;if
           ) ;let*
         ) ;if

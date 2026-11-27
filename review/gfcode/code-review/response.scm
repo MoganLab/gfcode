@@ -89,12 +89,11 @@
             ) ;
         (cond
          ((or (equal? stop-reason "error") (equal? stop-reason "aborted"))
-          (make-review-error
-            (or err-msg (string-append "Request " stop-reason)))
+          (make-review-error (or err-msg (string-append "Request " stop-reason)))
          ) ;
          ((equal? stop-reason "length")
-          (make-review-error
-            "Response was truncated: the model reached its output token limit.")
+          (make-review-error "Response was truncated: the model reached its output token limit."
+          ) ;make-review-error
          ) ;
          (else
            (let ((findings (pi-parse-review-findings (%last-assistant-text res-msgs))))

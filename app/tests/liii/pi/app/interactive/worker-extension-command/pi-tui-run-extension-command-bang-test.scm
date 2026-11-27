@@ -50,11 +50,10 @@
 
 ;; 1. no-files handler：投递 notice 与 agent_settled
 (let* ((chan (make-chan 16))
-       (command
-         (make-extension-command-def "/probe"
-           "probe"
-           (lambda (args ctx) (make-review-no-files "nothing to review" #f))
-         ) ;make-extension-command-def
+       (command (make-extension-command-def "/probe"
+                  "probe"
+                  (lambda (args ctx) (make-review-no-files "nothing to review" #f))
+                ) ;make-extension-command-def
        ) ;command
       ) ;
   (pi-tui-run-extension-command! command "" '() '() #f chan)
@@ -99,15 +98,19 @@
          (make-extension-command-def "/review"
            "review"
            (lambda (args ctx)
-             (make-review-session-request
-               '((session-timeout . -1) (no-skills . #t))
+             (make-review-session-request '((session-timeout . -1)
+                                            (no-skills . #t))
                (list (cons 'tools '())
                  (cons 'provider "google")
                  (cons 'config-dir (path->string (path-temp-dir)))
                ) ;list
                "review this"
                (lambda (msgs) (make-review-ok "report-text"))
-               #f #f '() '())
+               #f
+               #f
+               '()
+               '()
+             ) ;make-review-session-request
            ) ;lambda
          ) ;make-extension-command-def
        ) ;command
@@ -140,19 +143,21 @@
            ;; 捕获 fallback-runner，避免跨闭包引用外层环境
            (lambda (args ctx)
              (let ((runner (cdr (assoc 'fallback-runner ctx))))
-               (make-review-session-request
-                 '((session-timeout . -1) (no-skills . #t))
+               (make-review-session-request '((session-timeout . -1)
+                                              (no-skills . #t))
                  (list (cons 'tools '())
                    (cons 'provider "google")
                    (cons 'config-dir (path->string (path-temp-dir)))
                  ) ;list
                  "structured"
                  (lambda (msgs)
-                   (runner "fallback prompt"
-                     (lambda (msgs2) (make-review-ok "fallback-report"))
-                   ) ;runner
+                   (runner "fallback prompt" (lambda (msgs2) (make-review-ok "fallback-report")))
                  ) ;lambda
-                 #f #f '() '())
+                 #f
+                 #f
+                 '()
+                 '()
+               ) ;make-review-session-request
              ) ;let
            ) ;lambda
          ) ;make-extension-command-def

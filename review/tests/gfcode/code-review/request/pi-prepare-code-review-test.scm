@@ -24,9 +24,11 @@
 ;;
 ;; 没有变更文件时不调用 file-records，返回 no-files。
 
-(import (liii check) (liii string)
+(import (liii check)
+  (liii string)
   (gfcode code-review request)
-  (gfcode code-review result))
+  (gfcode code-review result)
+) ;import
 
 (check-set-mode! 'report-failed)
 

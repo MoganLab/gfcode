@@ -47,13 +47,12 @@
                         "; retrying with fallback prompt."
                       ) ;string-append
       ) ;display-stderr
-      (%print-review-result
-        (run-session-flow review-parsed
-          rcfg
-          (pi-build-fallback-prompt (review-session-request-records request))
-          #f
-          identity
-        ) ;run-session-flow
+      (%print-review-result (run-session-flow review-parsed
+                              rcfg
+                              (pi-build-fallback-prompt (review-session-request-records request))
+                              #f
+                              identity
+                            ) ;run-session-flow
       ) ;%print-review-result
     ) ;define
 
