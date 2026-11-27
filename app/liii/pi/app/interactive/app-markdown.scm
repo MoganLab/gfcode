@@ -1,10 +1,13 @@
 ;; Copyright (C) 2026 The Goldfish Scheme Authors. MIT License.
 (define-library (liii pi app interactive app-markdown)
-  (export %markdown-reset! %markdown-dirty! %markdown-pump!)
+  (export %markdown-reset! %markdown-dirty! %markdown-pump!
+    %markdown-block-display?
+  ) ;export
   (import (scheme base)
     (liii go)
     (liii tui)
     (only (liii tui component) component-data)
+    (liii pi code utils shell)
     (liii pi app interactive state)
     (liii pi app interactive views assistant)
     (liii pi app interactive views markdown)
@@ -32,23 +35,24 @@
       ) ;unless
       (let* ((w (%pi-app-markdown app)) (pending (live w)))
         (unless (memq card pending)
-          ;; Retain card references, not copies of each delta. On overload
-          ;; omit the oldest optional live decoration, never the text itself.
-          (live-set! w
-            (cons card
-              (if (< (length pending) 16) pending (reverse (cdr (reverse pending))))
-            ) ;cons
-          ) ;live-set!
+          ;; A final block is no longer optional decoration: dropping its
+          ;; card here would leave part of the response permanently hidden.
+          (live-set! w (cons card pending))
         ) ;unless
       ) ;let*
     ) ;define
+    (define (%markdown-block-display? app)
+      (and (not (%pi-app-handler app))
+        (not (chan-closed? (%pi-app-display-jobs app)))
+      ) ;and
+    ) ;define
+
     (define (eligible? card)
       (and (assistant-card-component? card)
         (not (%assistant-ready? (component-data card)))
-        (<= (string-length (assistant-card-text card)) %markdown-max-bytes)
       ) ;and
     ) ;define
-    (define (submit! jobs w card)
+    (define (submit! jobs w card live?)
       (let ((st (component-data card)))
         (and (chan-try-send! jobs
                (list 'markdown_job
@@ -56,10 +60,17 @@
                  (%assistant-revision st)
                  (assistant-card-text card)
                  (reply w)
+                 (not live?)
                ) ;list
              ) ;chan-try-send!
           (begin
-            (active-set! w st)
+            (active-set! w
+              (list st
+                (%assistant-revision st)
+                (sanitize-display-text (assistant-card-text card))
+                #f
+              ) ;list
+            ) ;active-set!
             #t
           ) ;begin
         ) ;and
@@ -69,16 +80,36 @@
       (let ((w (%pi-app-markdown app)) (jobs (%pi-app-display-jobs app)))
         (and w
           (not (chan-closed? jobs))
-          (let* ((st (active w))
-                 (res (and st (chan-try-recv! (reply w) #f)))
-                 (changed? (and res
-                             (= (car res) (%assistant-id st))
-                             (%assistant-finish! st (cadr res) (caddr res))
-                           ) ;and
+          (let* ((active-job (active w))
+                 (st (and active-job (car active-job)))
+                 (received (and st (not (list-ref active-job 3)) (chan-try-recv! (reply w) #f)))
+                 (res (or (and active-job (list-ref active-job 3)) received))
+                 (blocks (and res
+                           (= (car res) (%assistant-id st))
+                           (= (cadr res) (cadr active-job))
+                           (caddr res)
+                         ) ;and
+                 ) ;blocks
+                 (changed?
+                   (cond ((pair? blocks)
+                          (apply %assistant-prefix! st (cadr res) (caddr active-job) (car blocks))
+                         ) ;
+                         ((and res (not blocks)) (%assistant-finish! st (cadr res) #f))
+                         (else #f)
+                   ) ;cond
                  ) ;changed?
                 ) ;
             (when res
-              (active-set! w #f)
+              (if (and (pair? blocks) (pair? (cdr blocks)))
+                (active-set! w
+                  (list st
+                    (cadr active-job)
+                    (caddr active-job)
+                    (list (car res) (cadr res) (cdr blocks))
+                  ) ;list
+                ) ;active-set!
+                (active-set! w #f)
+              ) ;if
             ) ;when
             ;; At most one result applied and one snapshot issued per UI poll.
             ;; Skip at most 16 non-assistant history cards in a poll.
@@ -87,7 +118,11 @@
               (when (and (> budget 0) (not (active w)))
                 (let* ((live? (pair? (live w))) (rest (if live? (live w) (history w))))
                   (when
-                    (and (pair? rest) (or (not (eligible? (car rest))) (submit! jobs w (car rest))))
+                    (and (pair? rest)
+                      (or (not (eligible? (car rest)))
+                        (submit! jobs w (car rest) (eq? (car rest) (pi-app-assistant-card app)))
+                      ) ;or
+                    ) ;and
                     ((if live? live-set! history-set!) w (cdr rest))
                     (loop (- budget 1))
                   ) ;when

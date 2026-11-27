@@ -33,7 +33,7 @@
     (liii highlight code-block)
   ) ;import
   (export make-highlight-state highlight-state? highlight-state-stack
-    initial-highlight-state highlight-line highlight-text
+    initial-highlight-state highlight-line highlight-text highlight-line-events
   ) ;export
   (begin
 
@@ -96,11 +96,14 @@
              (if (rule-look-ahead? r)
                ;; lookAhead 规则：不前进 offset，只切换上下文
                (loop offset next-stack spans)
-               ;; 正常规则：前进 offset 并记录 span
-               (loop new-offset
-                 next-stack
-                 (cons (list offset len (rule-attribute r) cur-def) spans)
-               ) ;loop
+               ;; 正常规则：前进 offset 并记录 span（及可选结构事件）
+               (begin
+                 (%record-rule-event r offset new-offset)
+                 (loop new-offset
+                   next-stack
+                   (cons (list offset len (rule-attribute r) cur-def) spans)
+                 ) ;loop
+               ) ;begin
              ) ;if
            ) ;let
          ) ;else
@@ -183,6 +186,7 @@
                             ) ;if
                 ) ;next-stack
                ) ;
+            (%record-special-event "fenced-code-close" 0 (string-length text) '())
             (values (list (list 0 (string-length text) "Fenced Code"))
               (make-highlight-state next-stack)
             ) ;values
@@ -245,10 +249,13 @@
                       ) ;
                   (if (rule-look-ahead? r)
                     (loop offset next-stack spans)
-                    (loop new-offset
-                      next-stack
-                      (cons (list offset len (rule-attribute r) host-def) spans)
-                    ) ;loop
+                    (begin
+                      (%record-rule-event r offset new-offset)
+                      (loop new-offset
+                        next-stack
+                        (cons (list offset len (rule-attribute r) host-def) spans)
+                      ) ;loop
+                    ) ;begin
                   ) ;if
                 ) ;let*
                 (try-host (cdr rs))
@@ -330,8 +337,52 @@
                ) ;if
              ) ;spans
             ) ;
+        (%record-special-event "fenced-code-open"
+          0
+          (string-length text)
+          (if norm-lang (list (cons 'language norm-lang)) '())
+        ) ;%record-special-event
         (values spans (make-highlight-state next-stack))
       ) ;let*
+    ) ;define
+
+    ;; 事件收集器：#f 表示不收集（默认，零开销）；
+    ;; 否则为可变盒 (list)，命中带 event 的规则时追加 (event-name start end meta)。
+    (define *rule-event-collector* #f)
+
+    ;; 引擎特殊结构（如 fenced code）的事件：非规则驱动，携带动态元数据。
+    (define (%record-special-event name start end meta)
+      (if *rule-event-collector*
+        (set-car! *rule-event-collector*
+          (cons (list name start end meta) (car *rule-event-collector*))
+        ) ;set-car!
+      ) ;if
+    ) ;define
+
+    (define (%record-rule-event r offset new-offset)
+      (if (and *rule-event-collector* (rule-event r))
+        (set-car! *rule-event-collector*
+          (cons (list (rule-event r) offset new-offset '()) (car *rule-event-collector*))
+        ) ;set-car!
+      ) ;if
+    ) ;define
+
+    ;; 高亮单行并收集结构事件。
+    ;; 返回：(values spans next-state events)
+    ;; events 形式：'((event-name start-offset end-offset metadata) ...)，按发生顺序。
+    ;; metadata 为 alist（如 fenced code 的 language），规则事件为空列表。
+    (define (highlight-line-events text state def)
+      (let ((box (list '())))
+        (let-values (((spans next-state)
+                      (dynamic-wind (lambda () (set! *rule-event-collector* box))
+                        (lambda () (highlight-line text state def))
+                        (lambda () (set! *rule-event-collector* #f))
+                      ) ;dynamic-wind
+                     ) ;
+                    ) ;
+          (values spans next-state (reverse (car box)))
+        ) ;let-values
+      ) ;let
     ) ;define
 
     ;; 高亮单行

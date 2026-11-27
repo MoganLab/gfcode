@@ -65,18 +65,18 @@
         { "type": "StringDetect", "attribute": "Horizontal Rule", "context": "horizontal-rule", "String": "---", "first-non-space": true },
         { "type": "StringDetect", "attribute": "Horizontal Rule", "context": "horizontal-rule", "String": "***", "first-non-space": true },
         { "type": "StringDetect", "attribute": "Horizontal Rule", "context": "horizontal-rule", "String": "___", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H6", "context": "header-6", "String": "###### ", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H5", "context": "header-5", "String": "##### ", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H4", "context": "header-4", "String": "#### ", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H3", "context": "header-3", "String": "### ", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H2", "context": "header-2", "String": "## ", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H1", "context": "header-1", "String": "# ", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H6", "context": "header-6", "String": "######", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H5", "context": "header-5", "String": "#####", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H4", "context": "header-4", "String": "####", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H3", "context": "header-3", "String": "###", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H2", "context": "header-2", "String": "##", "first-non-space": true },
-        { "type": "StringDetect", "attribute": "Header H1", "context": "header-1", "String": "#", "first-non-space": true },
+        { "type": "StringDetect", "attribute": "Header H6", "context": "header-6", "String": "###### ", "first-non-space": true, "event": "heading-6-open" },
+        { "type": "StringDetect", "attribute": "Header H5", "context": "header-5", "String": "##### ", "first-non-space": true, "event": "heading-5-open" },
+        { "type": "StringDetect", "attribute": "Header H4", "context": "header-4", "String": "#### ", "first-non-space": true, "event": "heading-4-open" },
+        { "type": "StringDetect", "attribute": "Header H3", "context": "header-3", "String": "### ", "first-non-space": true, "event": "heading-3-open" },
+        { "type": "StringDetect", "attribute": "Header H2", "context": "header-2", "String": "## ", "first-non-space": true, "event": "heading-2-open" },
+        { "type": "StringDetect", "attribute": "Header H1", "context": "header-1", "String": "# ", "first-non-space": true, "event": "heading-1-open" },
+        { "type": "StringDetect", "attribute": "Header H6", "context": "header-6", "String": "######", "first-non-space": true, "event": "heading-6-open" },
+        { "type": "StringDetect", "attribute": "Header H5", "context": "header-5", "String": "#####", "first-non-space": true, "event": "heading-5-open" },
+        { "type": "StringDetect", "attribute": "Header H4", "context": "header-4", "String": "####", "first-non-space": true, "event": "heading-4-open" },
+        { "type": "StringDetect", "attribute": "Header H3", "context": "header-3", "String": "###", "first-non-space": true, "event": "heading-3-open" },
+        { "type": "StringDetect", "attribute": "Header H2", "context": "header-2", "String": "##", "first-non-space": true, "event": "heading-2-open" },
+        { "type": "StringDetect", "attribute": "Header H1", "context": "header-1", "String": "#", "first-non-space": true, "event": "heading-1-open" },
         { "type": "DetectChar", "attribute": "Blockquote", "context": "blockquote", "char": ">", "first-non-space": true },
         { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "- [ ] ", "first-non-space": true },
         { "type": "StringDetect", "attribute": "List", "context": "#stay", "String": "- [x] ", "first-non-space": true },
@@ -267,5 +267,53 @@
         { "type": "AnyChar", "attribute": "Normal", "context": "#pop", "String": " \t\r\n>)],\"", "look-ahead": true }
       ]
     }
+  },
+  "segments": {
+    "version": 1,
+    "default": "text",
+    "root-scope": "top-level",
+    "engine-events": ["fenced-code-open", "fenced-code-close"],
+    "line-blocks": {
+      "blank-separator": true,
+      "leading-blank-block": false,
+      "definitions": [
+        {
+          "role": "list-item",
+          "start": { "kind": "unordered", "chars": "-+*", "max-indent": 3 },
+          "end": "next-block"
+        },
+        {
+          "role": "list-item",
+          "start": { "kind": "ordered", "terminators": ".)", "max-indent": 3 },
+          "end": "next-block"
+        },
+        {
+          "role": "code-block",
+          "start": { "kind": "fence", "chars": "`~", "minimum": 3, "max-indent": 3 },
+          "end": { "kind": "fence", "chars": "`~", "minimum": 3, "max-indent": 3 },
+          "children": {
+            "language": "info-string",
+            "recursive": true,
+            "aliases": {
+              "scheme": ["scheme", "scm", "ss"],
+              "cpp": ["cpp", "c++", "cxx", "cc", "hpp", "hxx", "hh"],
+              "c": ["c", "h"],
+              "javascript": ["javascript", "js", "mjs", "cjs", "node"],
+              "bash": ["bash", "sh", "shell", "zsh"],
+              "markdown": ["markdown", "md"]
+            }
+          }
+        }
+      ]
+    },
+    "structures": [
+      { "name": "heading-1", "role": "heading", "scope": "line", "begin": "heading-1-open", "metadata": { "level": 1 } },
+      { "name": "heading-2", "role": "heading", "scope": "line", "begin": "heading-2-open", "metadata": { "level": 2 } },
+      { "name": "heading-3", "role": "heading", "scope": "line", "begin": "heading-3-open", "metadata": { "level": 3 } },
+      { "name": "heading-4", "role": "heading", "scope": "line", "begin": "heading-4-open", "metadata": { "level": 4 } },
+      { "name": "heading-5", "role": "heading", "scope": "line", "begin": "heading-5-open", "metadata": { "level": 5 } },
+      { "name": "heading-6", "role": "heading", "scope": "line", "begin": "heading-6-open", "metadata": { "level": 6 } },
+      { "name": "fenced-code", "role": "code-block", "scope": "delimited", "begin": "fenced-code-open", "end": "fenced-code-close", "include-begin": true, "include-end": true, "on-eof": "emit-unclosed" }
+    ]
   }
 }

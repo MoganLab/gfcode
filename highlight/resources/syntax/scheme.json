@@ -61,8 +61,8 @@
         { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords" },
         { "type": "keyword", "attribute": "Operator", "context": "#stay", "String": "operators" },
         { "type": "Int", "attribute": "DecVal", "context": "#stay" },
-        { "type": "DetectChar", "attribute": "Normal", "context": "Level1", "char": "(" },
-        { "type": "DetectChar", "attribute": "Normal", "context": "#pop", "char": ")" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "Level1", "char": "(", "event": "list-open" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#pop", "char": ")", "event": "list-close" },
         { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "{}[]" },
         { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
       ]
@@ -82,8 +82,8 @@
         { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "keywords" },
         { "type": "keyword", "attribute": "Operator", "context": "#stay", "String": "operators" },
         { "type": "Int", "attribute": "DecVal", "context": "#stay" },
-        { "type": "DetectChar", "attribute": "Normal", "context": "Level1", "char": "(" },
-        { "type": "DetectChar", "attribute": "Normal", "context": "#pop", "char": ")" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "Level1", "char": "(", "event": "list-open" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#pop", "char": ")", "event": "list-close" },
         { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "{}[]" },
         { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
       ]
@@ -125,5 +125,13 @@
         { "type": "DetectIdentifier", "attribute": "Char", "context": "#pop" }
       ]
     }
+  },
+  "segments": {
+    "version": 1,
+    "default": "text",
+    "root-scope": "top-level",
+    "structures": [
+      { "name": "list", "role": "list", "scope": "nested", "begin": "list-open", "end": "list-close", "children": ["list"], "on-eof": "emit-unclosed" }
+    ]
   }
 }
