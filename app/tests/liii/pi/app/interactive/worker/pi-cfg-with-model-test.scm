@@ -42,7 +42,7 @@
 ) ;path-write-text
 
 (let* ((env (list (cons "PI_CODING_AGENT_DIR" TMP-AGENT-DIR)))
-       (parsed (parse-pi-args '()))
+       (parsed (parse-pi-args '("--provider" "google")))
        (cfg (resolve-pi-config parsed env))
       ) ;
   ;; 跨 provider 切换：
@@ -82,10 +82,10 @@
   (path-write-text (path->string (path-join (path agent-dir) (path "providers.json")))
     "[\"google\", \"zai-coding-cn\"]"
   ) ;path-write-text
-  (let* ((cfg (resolve-pi-config (parse-pi-args '()) env))
+  (let* ((cfg (resolve-pi-config (parse-pi-args '("--provider" "google")) env))
          (api-before (pi-cfg-ref cfg 'provider-api))
         ) ;
-    ;; 默认 provider 为 google
+    ;; 显式从 google 开始
     (check (pi-cfg-ref cfg 'provider) => "google")
     (check api-before => "google-generative-ai")
     ;; 切到 openai-completions 协议的 provider

@@ -11,6 +11,7 @@
     (liii json)
     (liii list)
     (liii string)
+    (liii pi ai models defaults)
     (liii pi ai config retry)
   ) ;import
   (export pi-settings pi-settings? pi-settings-default-provider
@@ -23,8 +24,8 @@
   (begin
 
     (define*-record-type <pi-settings>
-      (pi-settings (default-provider "google")
-        (default-model "gemini-3.8-flash")
+      (pi-settings (default-provider PI_DEFAULT_PROVIDER)
+        (default-model (pi-provider-default-model default-provider))
         (default-thinking-level #f)
         (http-proxy #f)
         (retry (pi-retry-config))
@@ -98,7 +99,8 @@
           ) ;unless
           (if (null? obj)
             (pi-settings)
-            (let* ((raw-proxy (json-ref-string obj "httpProxy" ""))
+            (let* ((provider (json-ref-string obj "defaultProvider" PI_DEFAULT_PROVIDER))
+                   (raw-proxy (json-ref-string obj "httpProxy" ""))
                    (clean-proxy
                      (and (not (string-null? (string-trim-both raw-proxy))) raw-proxy)
                    ) ;clean-proxy
@@ -113,8 +115,8 @@
                           ) ;if
                    ) ;retry
                   ) ;
-              (pi-settings (json-ref-string obj "defaultProvider" "google")
-                (json-ref-string obj "defaultModel" "gemini-3.8-flash")
+              (pi-settings provider
+                (json-ref-string obj "defaultModel" (pi-provider-default-model provider))
                 default-thinking
                 clean-proxy
                 retry

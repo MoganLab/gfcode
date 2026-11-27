@@ -78,8 +78,8 @@
   (check (assoc "defaultTools" j) => #f)
   (check (assoc "sessionDir" j) => #f)
   (check (assoc "modelThinkingLevels" j) => #f)
-  (check (pi-settings-default-provider rt) => "google")
-  (check (pi-settings-default-model rt) => "gemini-3.8-flash")
+  (check (pi-settings-default-provider rt) => "deepseek")
+  (check (pi-settings-default-model rt) => "deepseek-flash")
   (check (pi-settings-enable-skill-commands rt) => #t)
 ) ;let*
 

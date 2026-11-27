@@ -51,8 +51,12 @@
 
 ;; 缺省值回退
 (let-values (((p m) (pi-resolve-default-target (pi-settings))))
-  (check p => "google")
-  (check m => "gemini-3.8-flash")
+  (check p => "deepseek")
+  (check m => "deepseek-flash")
+) ;let-values
+
+(let-values (((p m) (pi-resolve-default-target (pi-settings #f #f))))
+  (check (list p m) => '("deepseek" "deepseek-flash"))
 ) ;let-values
 
 (check-report)

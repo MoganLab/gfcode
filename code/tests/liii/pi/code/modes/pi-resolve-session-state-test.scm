@@ -66,6 +66,11 @@
   "{\"google\":{\"type\":\"api_key\",\"key\":\"fixture-google-key\"},\"minimax-cn\":{\"type\":\"api_key\",\"key\":\"fixture-minimax-key\"}}"
 ) ;path-write-text
 
+;; 这组恢复用例以用户已保存的 Google 偏好为对照，不依赖全局缺省值。
+(path-write-text (path->string (path-join TMP-AGENT-DIR "settings.json"))
+  "{\"defaultProvider\":\"google\",\"defaultModel\":\"gemini-3.8-flash\"}"
+) ;path-write-text
+
 (define ENV (list (cons "PI_CODING_AGENT_DIR" TMP-AGENT-DIR)))
 
 (define (base-cfg)

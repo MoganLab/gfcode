@@ -63,13 +63,13 @@
        (lines (component-render ft 80))
        (line2 (list-ref lines 1))
       ) ;
-  (check-true (string-contains? line2 "(google) gemini-3.8-flash"))
+  (check-true (string-contains? line2 "(deepseek) deepseek-flash"))
   (check-false (string-contains? line2 "•"))
 ) ;let*
 
 ;; 显式传入 #f 时回退默认值
 (let* ((ft (make-pi-footer :provider #f :model #f)) (lines (component-render ft 80)))
-  (check-true (string-contains? (list-ref lines 1) "(google) gemini-3.8-flash"))
+  (check-true (string-contains? (list-ref lines 1) "(deepseek) deepseek-flash"))
 ) ;let*
 
 (check-report)

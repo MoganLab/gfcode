@@ -108,4 +108,28 @@
   (check (pi-model-metadata-matched? m) => #f)
 ) ;let
 
+;; 两种 DeepSeek 协议共用 provider；Anthropic 专用的环境变量不能污染 Flash。
+(let* ((store
+         '(("deepseek"
+            ("models"
+             (("id" . "deepseek-flash")
+              ("api" . "openai-completions")
+              ("baseUrl" . "https://api.deepseek.com"))
+             (("id" . "deepseek-v4-pro")
+              ("baseUrl" . "https://api.deepseek.com")))))
+       ) ;store
+       (env '(("ANTHROPIC_BASE_URL" . "https://api.deepseek.com/anthropic")))
+      ) ;
+  (check (pi-model-metadata-base-url (pi-resolve-model-metadata "deepseek" "deepseek-flash" store env)
+         ) ;pi-model-metadata-base-url
+    =>
+    "https://api.deepseek.com"
+  ) ;check
+  (check (pi-model-metadata-base-url (pi-resolve-model-metadata "deepseek" "deepseek-v4-pro" store '())
+         ) ;pi-model-metadata-base-url
+    =>
+    "https://api.deepseek.com/anthropic"
+  ) ;check
+) ;let*
+
 (check-report)

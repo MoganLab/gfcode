@@ -61,8 +61,9 @@
   ;; 旧 2 元素 job 格式向后兼容：仅覆盖 thinking
   (let ((cfg* (%worker-job-cfg cfg (list "hi" "high"))))
     (check (pi-cfg-ref cfg* 'thinking-level) => "high")
-    (check (pi-cfg-ref cfg* 'provider) => "google")
-    (check (pi-cfg-ref cfg* 'model-id) => (pi-cfg-ref cfg 'model-id))
+    (check (pi-cfg-ref cfg* 'provider) => "deepseek")
+    (check (pi-cfg-ref cfg* 'model-id) => "deepseek-flash")
+    (check (pi-cfg-ref cfg* 'provider-api) => "openai-completions")
   ) ;let
 ) ;let*
 

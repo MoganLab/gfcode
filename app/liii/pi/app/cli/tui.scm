@@ -12,6 +12,7 @@
     (liii pi code cli args)
     (liii pi code config)
     (liii pi code session-state)
+    (only (liii pi ai models defaults) PI_DEFAULT_PROVIDER)
     (liii pi ai models)
     (liii pi ai config settings)
     (liii pi ai config model-metadata)
@@ -33,8 +34,8 @@
     ;; 由默认级别 medium 兜底）；model-thinking-levels 为 per-model 覆盖表
     ;; 供 make-pi-app 使用（models 为已激活模型列表，供 /model 选择器）
     (define (%pi-tui-footer-fields cfg)
-      (let* ((provider (pi-cfg-ref cfg 'provider "google"))
-             (model-id (pi-cfg-ref cfg 'model-id "gemini-3.8-flash"))
+      (let* ((provider (pi-cfg-ref cfg 'provider PI_DEFAULT_PROVIDER))
+             (model-id (pi-cfg-ref cfg 'model-id (pi-provider-default-model provider)))
              (tl (pi-cfg-ref cfg 'thinking-level "off"))
              (supports (pi-cfg-ref cfg 'supports-thinking #t))
              (settings (pi-cfg-ref cfg 'settings))
@@ -89,22 +90,24 @@
         (lambda args
           ;; 配置解析失败时的兜底：思考级别用默认级别 medium（对齐上游
           ;; DEFAULT_THINKING_LEVEL），而不是 off；default-tl 留 #f 表示未配置
-          (list (or (pi-args-ref parsed 'provider) "google")
-            (or (pi-args-ref parsed 'model) "gemini-3.8-flash")
-            (or (pi-args-ref parsed 'thinking-level) "medium")
-            #t
-            #f
-            (gf-get-config-dir)
-            '()
-            #f
-            #f
-            '()
-            #f
-            #t
-            (and (string? (pi-args-ref parsed 'thinking-level))
-              (not (string-null? (string-trim-both (pi-args-ref parsed 'thinking-level))))
-            ) ;and
-          ) ;list
+          (let ((provider (or (pi-args-ref parsed 'provider) PI_DEFAULT_PROVIDER)))
+            (list provider
+              (or (pi-args-ref parsed 'model) (pi-provider-default-model provider))
+              (or (pi-args-ref parsed 'thinking-level) "medium")
+              #t
+              #f
+              (gf-get-config-dir)
+              '()
+              #f
+              #f
+              '()
+              #f
+              #t
+              (and (string? (pi-args-ref parsed 'thinking-level))
+                (not (string-null? (string-trim-both (pi-args-ref parsed 'thinking-level))))
+              ) ;and
+            ) ;list
+          ) ;let
         ) ;lambda
       ) ;catch
     ) ;define

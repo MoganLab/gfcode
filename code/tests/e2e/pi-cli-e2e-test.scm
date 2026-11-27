@@ -303,12 +303,40 @@
             (check-true (not (string-contains? out "First prompt received")))
           ) ;let*
 
-          ;; 15. 显式 --provider 必须同时显式指定 --model；重定向输出不含 ANSI
-          (let* ((cmd (list GF_BIN "pi" "--provider" "deepseek" "--print" "Hello"))
+          ;; 仅指定 DeepSeek 或完全不指定模型时，空配置应发出 OpenAI 请求。
+          (let ((env (append test-env
+                       (list (cons "GF_PI_MODEL" "")
+                         (cons "PI_CODING_AGENT_DIR" %tmp-empty-dir)
+                         (cons "DEEPSEEK_API_KEY" "stub-flash")
+                         (cons "DEEPSEEK_BASE_URL" base-url)
+                       ) ;list
+                     ) ;append
+                ) ;env
+               ) ;
+            (for-each
+              (lambda (args)
+                (let ((res (safe-exec (append (list GF_BIN "pi") args '("--no-session"
+                                                                        "--print"
+                                                                        "Hello"))
+                             env
+                             10000
+                           ) ;safe-exec
+                      ) ;res
+                     ) ;
+                  (check (car res) => 0)
+                  (check-true (string-contains? (cadr res) "PlainOK:stub-flash"))
+                ) ;let
+              ) ;lambda
+              '(() ("--provider" "deepseek"))
+            ) ;for-each
+          ) ;let
+
+          ;; 15. 其它 provider 保留原参数校验；重定向输出不含 ANSI
+          (let* ((cmd (list GF_BIN "pi" "--provider" "google" "--print" "Hello"))
                  (res (safe-exec cmd test-env 10000))
                  (code (car res))
                  (err (caddr res))
-                 (expected "Error: --provider requires --model (for example: --provider deepseek --model <pattern>)"
+                 (expected "Error: --provider requires --model (for example: --provider google --model <pattern>)"
                  ) ;expected
                 ) ;
             (check code => 1)
@@ -318,11 +346,11 @@
 
           ;; 16. FORCE_COLOR=1 时参数错误整条显示为红色
           (let* ((color-env (append test-env '(("FORCE_COLOR" . "1"))))
-                 (cmd (list GF_BIN "pi" "--provider" "deepseek" "--print" "Hello"))
+                 (cmd (list GF_BIN "pi" "--provider" "google" "--print" "Hello"))
                  (res (safe-exec cmd color-env 10000))
                  (code (car res))
                  (err (caddr res))
-                 (expected "\x1b;[31mError: --provider requires --model (for example: --provider deepseek --model <pattern>)\x1b;[39m"
+                 (expected "\x1b;[31mError: --provider requires --model (for example: --provider google --model <pattern>)\x1b;[39m"
                  ) ;expected
                 ) ;
             (check code => 1)

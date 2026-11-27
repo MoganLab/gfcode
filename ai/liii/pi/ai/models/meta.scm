@@ -57,14 +57,20 @@
       ) ;let
     ) ;define
 
-    (define (%apply-meta-env-overrides base-url context-window max-tokens opt-env provider)
+    (define (%apply-meta-env-overrides base-url context-window max-tokens
+              opt-env provider ds-anthropic?
+            ) ;%apply-meta-env-overrides
       (let* ((env-url
                (or
                  (and (string? provider)
                    (string=? provider "deepseek")
                    (or (lookup-env-var "DEEPSEEK_BASE_URL" opt-env)
                      (let ((ant-url (lookup-env-var "ANTHROPIC_BASE_URL" opt-env)))
-                       (and (string? ant-url) (string-contains? ant-url "deepseek") ant-url)
+                       (and ds-anthropic?
+                         (string? ant-url)
+                         (string-contains? ant-url "deepseek")
+                         ant-url
+                       ) ;and
                      ) ;let
                    ) ;or
                  ) ;and
@@ -137,12 +143,22 @@
                  ) ;and
                ) ;or
              ) ;m
+             (ds-anthropic?
+               (and is-ds?
+                 (equal? (%dict-ref m
+                           "api"
+                           (%dict-ref (%dict-ref models-store p-str '()) "api" "anthropic-messages")
+                         ) ;%dict-ref
+                   "anthropic-messages"
+                 ) ;equal?
+               ) ;and
+             ) ;ds-anthropic?
              (raw-url (if m (%dict-ref m "baseUrl" def-url) def-url))
              (norm-url
                (cond ((and is-kimi? (%url=? raw-url "https://api.kimi.com/coding"))
                       "https://api.kimi.com/coding/v1"
                      ) ;
-                     ((and is-ds? (%url=? raw-url "https://api.deepseek.com"))
+                     ((and ds-anthropic? (%url=? raw-url "https://api.deepseek.com"))
                       "https://api.deepseek.com/anthropic"
                      ) ;
                      (else raw-url)
@@ -173,7 +189,10 @@
              (cw (if m (%dict-ref m "contextWindow" def-cw) def-cw))
              (mt (if m (%dict-ref m "maxTokens" def-mt) def-mt))
             ) ;
-        (let-values (((f-url f-cw f-mt) (%apply-meta-env-overrides norm-url cw mt opt-env p-str)))
+        (let-values (((f-url f-cw f-mt)
+                      (%apply-meta-env-overrides norm-url cw mt opt-env p-str ds-anthropic?)
+                     ) ;
+                    ) ;
           (pi-model-metadata model-id
             (if m (%dict-ref m "name" model-id) model-id)
             p-str

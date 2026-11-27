@@ -82,6 +82,16 @@
   (check (file-exists? (path->string aio-model-file)) => #f)
 ) ;let
 
+;; 新默认模型在两个白名单均未启用时只追加目标项，再次启动不写盘。
+(let ((ds (path->string (path-join MODELS "deepseek.json"))))
+  (path-write-text ds "{\"models\":[\"deepseek-v4-pro\"]}")
+  (check (pi-auto-activate-default-model! DIR (pi-settings)) => #t)
+  (check (pi-load-providers-whitelist DIR) => '("kimi-coding" "deepseek"))
+  (check (string-contains (path-read-text ds) "\"deepseek-flash\"") => #t)
+  (check (string-contains (path-read-text ds) "\"deepseek-v4-pro\"") => #t)
+  (check (pi-auto-activate-default-model! DIR (pi-settings)) => #f)
+) ;let
+
 (rmtree DIR #t)
 
 (check-report)

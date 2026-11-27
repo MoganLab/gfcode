@@ -13,6 +13,7 @@
     pi-footer-context-window pi-footer-set-active-node! pi-footer-active-node
   ) ;export
   (import (scheme base)
+    (liii pi ai models defaults)
     (liii string)
     (liii os)
     (liii path)
@@ -175,8 +176,9 @@
       (let* ((home (or (%keyword-value :home args #f) (%default-home)))
              (cwd (%keyword-value :cwd args (getcwd)))
              (branch (%keyword-value :branch args #f))
-             (provider (or (%keyword-value :provider args #f) "google"))
-             (model (or (%keyword-value :model args #f) "gemini-3.8-flash"))
+             (provider (or (%keyword-value :provider args #f) PI_DEFAULT_PROVIDER))
+             (model (or (%keyword-value :model args #f) (pi-provider-default-model provider))
+             ) ;model
              (stats-opt (%keyword-value :stats args #f))
              (context-opt (%keyword-value :context-info args #f))
              (context-window (or (%keyword-value :context-window args #f) 1000000))

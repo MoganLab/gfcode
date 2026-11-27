@@ -223,13 +223,11 @@
        (cfg (resolve-pi-config args env))
       ) ;
   (check (pi-cfg-ref cfg 'provider) => "deepseek")
-  (check (pi-cfg-ref cfg 'model-id) => "deepseek-v4-pro")
+  (check (pi-cfg-ref cfg 'model-id) => "deepseek-flash")
+  (check (pi-cfg-ref cfg 'provider-api) => "openai-completions")
   (check (pi-cfg-ref cfg 'api-key) => "ds-key-xyz-789")
   (let ((meta (pi-cfg-ref cfg 'model-meta)))
-    (check (pi-model-metadata-base-url meta)
-      =>
-      "https://api.deepseek.com/anthropic"
-    ) ;check
+    (check (pi-model-metadata-base-url meta) => "https://api.deepseek.com")
     (check (pi-model-metadata-context-window meta) => 1000000)
     (check (pi-model-metadata-max-tokens meta) => 384000)
   ) ;let
@@ -328,14 +326,17 @@
   (check (pi-cfg-ref cfg 'thinking-level) => "off")
 ) ;let*
 
-;; 无 settings、无 CLI 时回退默认级别 medium（对齐上游 DEFAULT_THINKING_LEVEL）
+;; 无 settings、无 CLI 时使用 DeepSeek Flash；medium 收敛为该模型支持的 high。
 (let* ((args (parse-pi-args '()))
        (env `(("PI_CODING_AGENT_DIR" . ,CONFIG_EMPTY_DIR)
               ("ANTHROPIC_AUTH_TOKEN" . "test-key"))
        ) ;env
        (cfg (resolve-pi-config args env))
       ) ;
-  (check (pi-cfg-ref cfg 'thinking-level) => "medium")
+  (check (pi-cfg-ref cfg 'provider) => "deepseek")
+  (check (pi-cfg-ref cfg 'model-id) => "deepseek-flash")
+  (check (pi-cfg-ref cfg 'provider-api) => "openai-completions")
+  (check (pi-cfg-ref cfg 'thinking-level) => "high")
 ) ;let*
 
 ;; 13.1 per-model 覆盖（settings.modelThinkingLevels）优先于全局默认，且被 CLI 压过

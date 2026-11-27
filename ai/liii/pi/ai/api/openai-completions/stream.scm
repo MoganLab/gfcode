@@ -54,7 +54,6 @@
             (else "none")
       ) ;cond
     ) ;define
-
     (define (%log-oauth-401 provider attempt api-key next)
       (pi-log-error! (string-append "[oauth-401] provider="
                        (or provider "")
@@ -421,7 +420,12 @@
              ) ;tool-decls
              (prompt-cache-key (openai-resolve-prompt-cache-key base-url (pi-cfg-ref config 'session-id))
              ) ;prompt-cache-key
-             (openai-msgs (openai-build-messages messages system-instruction))
+             (model-entry (openai-resolve-model-entry (pi-cfg-ref config 'models-store '())
+                            (pi-cfg-ref config 'provider)
+                            model-id
+                          ) ;openai-resolve-model-entry
+             ) ;model-entry
+             (openai-msgs (openai-build-messages messages system-instruction model-entry))
              (req-body (openai-build-request-body model-id
                          openai-msgs
                          #t
@@ -429,10 +433,7 @@
                          max-tokens
                          prompt-cache-key
                          (pi-cfg-ref config 'thinking-level)
-                         (openai-resolve-model-entry (pi-cfg-ref config 'models-store '())
-                           (pi-cfg-ref config 'provider)
-                           model-id
-                         ) ;openai-resolve-model-entry
+                         model-entry
                        ) ;openai-build-request-body
              ) ;req-body
              (req-json-str (json->string req-body))

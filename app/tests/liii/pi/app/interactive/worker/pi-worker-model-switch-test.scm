@@ -47,7 +47,7 @@
 
 (define (make-cfg)
   (let* ((env (list (cons "PI_CODING_AGENT_DIR" TMP-AGENT-DIR)))
-         (parsed (parse-pi-args '()))
+         (parsed (parse-pi-args '("--provider" "google")))
          (cfg (resolve-pi-config parsed env))
         ) ;
     (values cfg parsed)

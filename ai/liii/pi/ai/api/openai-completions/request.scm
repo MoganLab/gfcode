@@ -306,7 +306,7 @@
                     ((prompt-cache-key)
                      (openai-resolve-prompt-cache-key base-url (pi-cfg-ref config 'session-id))
                     ) ;
-                    ((openai-msgs) (openai-build-messages messages system-instruction))
+                    ((openai-msgs) (openai-build-messages messages system-instruction model-entry))
                     ((req-body)
                      (openai-build-request-body model-id openai-msgs #f
                        tool-decls max-tokens prompt-cache-key thinking-level
