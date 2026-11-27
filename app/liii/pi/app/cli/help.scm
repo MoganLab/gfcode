@@ -170,16 +170,12 @@
     ;; 扩展注册项帮助段：从 registry 动态生成，外部插件（如 simplify）
     ;; 注册的 flags / commands 自动出现在 --help 中。
     ;; 硬编码在基础帮助里的 flag（如 --code-review）不重复展示。
-    (define %documented-flags
-      '("--code-review" "--staged" "--ref" "--auto-review")
-    ) ;define
+    (define %documented-flags '("--code-review" "--staged" "--ref"
+                                "--auto-review"))
 
     (define (%pad-right s width)
       (let ((len (string-length s)))
-        (if (>= len width)
-          s
-          (string-append s (make-string (- width len) #\space))
-        ) ;if
+        (if (>= len width) s (string-append s (make-string (- width len) #\space)))
       ) ;let
     ) ;define
 
@@ -207,9 +203,7 @@
     (define (%extension-help-lines reg)
       (let* ((flags
                (filter
-                 (lambda (f)
-                   (not (member (extension-flag-def-flag f) %documented-flags))
-                 ) ;lambda
+                 (lambda (f) (not (member (extension-flag-def-flag f) %documented-flags)))
                  (extension-registry-flags-list reg)
                ) ;filter
              ) ;flags
@@ -218,26 +212,27 @@
             ) ;
         (if (and (null? flags) (null? cmds))
           ""
-          (string-append
-            "Extensions:\n"
+          (string-append "Extensions:\n"
             (apply string-append
               (append
-                (map (lambda (f)
-                       (string-append "  "
-                         (%pad-right (extension-flag-def-flag f) 30)
-                         (extension-flag-def-description f)
-                         "\n"
-                       ) ;string-append
-                     ) ;lambda
+                (map
+                  (lambda (f)
+                    (string-append "  "
+                      (%pad-right (extension-flag-def-flag f) 30)
+                      (extension-flag-def-description f)
+                      "\n"
+                    ) ;string-append
+                  ) ;lambda
                   flags
                 ) ;map
-                (map (lambda (c)
-                       (string-append "  "
-                         (%pad-right (%command-display-name c) 30)
-                         (extension-command-def-description c)
-                         "\n"
-                       ) ;string-append
-                     ) ;lambda
+                (map
+                  (lambda (c)
+                    (string-append "  "
+                      (%pad-right (%command-display-name c) 30)
+                      (extension-command-def-description c)
+                      "\n"
+                    ) ;string-append
+                  ) ;lambda
                   cmds
                 ) ;map
               ) ;append
