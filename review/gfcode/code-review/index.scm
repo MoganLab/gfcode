@@ -43,7 +43,7 @@
                     ) ;make-extension-command-def
                   ) ;register-command!
                 ) ;lambda
-        '("/review" "review" "/code-review" "code-review")
+        '("/review" "review")
       ) ;for-each
 
       ;; 3. 注册 validator
