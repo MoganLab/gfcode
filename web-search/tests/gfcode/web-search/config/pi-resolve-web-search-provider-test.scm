@@ -22,7 +22,8 @@
 ;; 返回值
 ;; ----
 ;; string?
-;; 生效的 provider 名称。
+;; 生效的 provider 名称：缺省及不支持的值统一回退 deepseek，只有明确
+;; 解析为 google 时才使用 Gemini grounding。
 
 (import (liii check) (gfcode web-search config))
 
@@ -37,6 +38,8 @@
   =>
   "google"
 ) ;check
+;; 显式 google 始终是受支持分支
+(check (pi-resolve-web-search-provider '() "google" #f) => "google")
 ;; ws-config（web-search.json，全局覆盖：任何会话 provider 都生效）
 (check (pi-resolve-web-search-provider '()
          #f
@@ -59,23 +62,32 @@
   =>
   "google"
 ) ;check
-;; ws-config 里不认识的 provider 回退 google
+;; ws-config 里不认识的 provider 回退 deepseek
 (check (pi-resolve-web-search-provider '()
          #f
          (make-pi-web-search-config "openai" #f #f #f)
        ) ;pi-resolve-web-search-provider
   =>
-  "google"
+  "deepseek"
 ) ;check
 ;; config 的 web-search-provider 字段
 (check (pi-resolve-web-search-provider '((web-search-provider . "deepseek")) #f #f)
   =>
   "deepseek"
 ) ;check
+;; config 的 web-search-provider 为 google 仍走 google
+(check (pi-resolve-web-search-provider '((web-search-provider . "google")) #f #f)
+  =>
+  "google"
+) ;check
 ;; config 的 provider 字段
 (check (pi-resolve-web-search-provider '((provider . "deepseek")) #f #f)
   =>
   "deepseek"
+) ;check
+(check (pi-resolve-web-search-provider '((provider . "google")) #f #f)
+  =>
+  "google"
 ) ;check
 ;; 环境变量
 (check (pi-resolve-web-search-provider '()
@@ -86,11 +98,24 @@
   =>
   "deepseek"
 ) ;check
-;; 默认 google
-(check (pi-resolve-web-search-provider '() #f #f) => "google")
-(check (pi-resolve-web-search-provider '((provider . "anthropic")) #f #f)
+(check (pi-resolve-web-search-provider '()
+         #f
+         #f
+         '(("GF_PI_WEB_SEARCH_PROVIDER" . "google"))
+       ) ;pi-resolve-web-search-provider
   =>
   "google"
+) ;check
+;; 默认 deepseek：空配置
+(check (pi-resolve-web-search-provider '() #f #f) => "deepseek")
+;; 不认识的 provider 回退 deepseek
+(check (pi-resolve-web-search-provider '((provider . "anthropic")) #f #f)
+  =>
+  "deepseek"
+) ;check
+(check (pi-resolve-web-search-provider '((provider . "kimi-coding")) #f #f)
+  =>
+  "deepseek"
 ) ;check
 
 (check-report)

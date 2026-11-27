@@ -25,6 +25,7 @@
   (liii os)
   (liii sys)
   (liii subprocess)
+  (liii pi ai config runtime)
   (liii pi code core extensions)
   (gfcode web-search execute)
   (liii pi code core tools)
@@ -96,7 +97,75 @@
       ) ;check-true
     ) ;let
     (check (length (cdr (assoc 'sources res))) => 1)
+    ;; 显式 :model-id 原样进入 details.model
+    (check
+      (cdr (assoc 'model (cdr (assoc 'details res))))
+      =>
+      "web-search-basic"
+    ) ;check
   ) ;let
+
+  ;; 3b. Google 模型回退：不传 :model-id 时缺省为 gemini-2.5-flash
+  (let ((res (pi-execute-web-search '(("query" . "goldfish scheme"))
+               :provider "google"
+               :config   '()
+               :env      '(("PI_CODING_AGENT_DIR" . "/nonexistent-gf1414"))
+               :base-url base-url
+               :api-key  "test-google-key"
+               :timeout  10
+             ) ;pi-execute-web-search
+        ) ;res
+       ) ;
+    (check-false (cdr (assoc 'isError res)))
+    (check
+      (cdr (assoc 'model (cdr (assoc 'details res))))
+      =>
+      "gemini-2.5-flash"
+    ) ;check
+  ) ;let
+
+  ;; 3c. 跨 provider 隔离：会话是 deepseek/deepseek-v4-pro，但显式选择 google，
+  ;;     Google 搜索使用自己的缺省 gemini-2.5-flash，不继承 deepseek-v4-pro
+  (let ((res (pi-execute-web-search '(("query" . "goldfish scheme"))
+               :provider "google"
+               :config '((provider . "deepseek") (model-id . "deepseek-v4-pro"))
+               :env    '(("PI_CODING_AGENT_DIR" . "/nonexistent-gf1414"))
+               :base-url base-url
+               :api-key  "test-google-key"
+               :timeout  10
+             ) ;pi-execute-web-search
+        ) ;res
+       ) ;
+    (check-false (cdr (assoc 'isError res)))
+    (check
+      (cdr (assoc 'model (cdr (assoc 'details res))))
+      =>
+      "gemini-2.5-flash"
+    ) ;check
+  ) ;let
+
+  ;; 没有搜索覆盖时，运行时配置记录同时决定 Google 路由、key 和模型。
+  (let* ((cfg (make-pi-config
+                :provider "Google"
+                :model-id "web-search-urls"
+                :api-key  "test-google-key"
+              ) ;make-pi-config
+         ) ;cfg
+         (res (pi-execute-web-search '(("query" . "compare goldfish"))
+                :env      '(("PI_CODING_AGENT_DIR" . "/nonexistent-gf1414"))
+                :config   cfg
+                :base-url base-url
+                :timeout  10
+              ) ;pi-execute-web-search
+         ) ;res
+        ) ;
+    (check-true (string-contains? (cdr (assoc 'text res)) "prompt_has_urls="))
+    (check
+      (cdr (assoc 'model (cdr (assoc 'details res))))
+      =>
+      "web-search-urls"
+    ) ;check
+  ) ;let*
 
   ;; 4. 带 URLs 的调用测试
   (let ((res (pi-execute-web-search '(("query" . "compare goldfish")

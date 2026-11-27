@@ -157,7 +157,7 @@
 
     (define (pi-format-web-search-result text grounding-data . opts)
       (let* ((clean-text (if (string? text) text ""))
-             (model-id (pi-keyword-value :model-id opts "gemini-2.5-flash"))
+             (model-id (pi-keyword-value :model-id opts "deepseek-flash"))
              (max-lines (pi-keyword-value :max-lines opts PI_DEFAULT_MAX_LINES))
              (max-bytes (pi-keyword-value :max-bytes opts PI_DEFAULT_MAX_BYTES))
              (opt-sources (pi-keyword-value :sources opts #f))
