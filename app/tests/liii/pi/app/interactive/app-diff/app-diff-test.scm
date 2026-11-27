@@ -85,10 +85,10 @@
 (check-true (shows? "Write failed!"))
 (check-false (shows? "+false-success"))
 
-(emit '(turn_diff_summary 1 (("sample.txt" 2 0))))
+(emit '(turn_diff_summary 1 (("sample.txt" 2 0) ("other.txt" 3 2))))
 (check-false (shows? "Turn changes"))
 (emit '(assistant_text "Final answer") '(agent_settled #f))
-(check-true (shows? "Turn changes"))
+(check-true (shows? "Turn changes +5 -2"))
 (check-true
   (string-contains? (car (string-split (transcript) "Turn changes"))
     "Final answer"
@@ -119,7 +119,9 @@
   (check-true (string-contains? screen (string-append "sample.txt\x1b;[39m " counts))
   ) ;check-true
   (check-true (string-contains? screen
-                "\x1b;[1m\x1b;[38;2;222;224;225mTurn changes\x1b;[22m\x1b;[39m"
+                (string-append "\x1b;[1m\x1b;[38;2;222;224;225mTurn changes\x1b;[22m\x1b;[39m "
+                  counts
+                ) ;string-append
               ) ;string-contains?
   ) ;check-true
   (check-true (string-contains? screen

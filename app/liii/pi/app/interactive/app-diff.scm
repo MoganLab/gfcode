@@ -67,7 +67,14 @@
           (unless (null? entries)
             (let ((box (make-container)))
               (container-add! box
-                (make-status-card (string-append %fg-title "Turn changes" %bold-reset))
+                (make-status-card
+                  (string-append %fg-title
+                    "Turn changes"
+                    %bold-reset
+                    " "
+                    (%tool-diff-counts (apply + (map cadr entries)) (apply + (map caddr entries)))
+                  ) ;string-append
+                ) ;make-status-card
               ) ;container-add!
               (for-each
                 (lambda (entry)
