@@ -12,6 +12,7 @@
 (define-library (gfcode code-review flow)
   (import (scheme base)
     (scheme write)
+    (liii base)
     (liii string)
     (liii pi code modes flow)
     (liii pi code modes output)
