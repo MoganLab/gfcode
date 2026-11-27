@@ -8,16 +8,19 @@
   (import (scheme base)
     (scheme char)
     (liii string)
+    (liii list)
     (liii path)
     (liii os)
     (liii subprocess)
     (liii error)
     (liii either)
+    (liii shutil)
     (liii pi code core tools read)
     (liii pi code core failure)
   ) ;import
   (export pi-parse-git-extension-name pi-valid-extension-name?
     pi-resolve-install-target pi-git-clone-extension pi-install-extension
+    pi-resolve-link-source pi-link-extension
   ) ;export
   (begin
 
@@ -98,18 +101,132 @@
       ) ;let*
     ) ;define
 
+    ;; 链接目标 = 安装目标去掉 .scm 后缀（单文件目标为 <name>.scm，
+    ;; 链接目标为同名目录 <name>）。
+    (define (%link-target name opts)
+      (let* ((target (apply pi-resolve-install-target name opts))
+             (len (string-length target))
+            ) ;
+        (substring target 0 (- len 4))
+      ) ;let*
+    ) ;define
+
+    ;; 解析本地扩展目录，返回 (cons name source-dir)。
+    ;; 优先级：包目录 gfcode/<name>/index.scm > 单文件 <name>.scm。
+    (define (pi-resolve-link-source dir)
+      (let ((p (path dir)))
+        (unless (and (path-exists? p) (path-dir? p))
+          (value-error (string-append "Link source is not a directory: " (path->string p))
+          ) ;value-error
+        ) ;unless
+        (let* ((pkg-root (path-join p "gfcode")) (pkg-name (%find-package-name pkg-root)))
+          (if pkg-name
+            (cons pkg-name (path->string (path-resolve (path-join pkg-root pkg-name))))
+            (let ((single (%find-single-file p)))
+              (if single
+                (cons single (path->string (path-resolve p)))
+                (value-error (string-append "No extension found in "
+                               (path->string p)
+                               ": expected gfcode/<name>/index.scm or <name>.scm"
+                             ) ;string-append
+                ) ;value-error
+              ) ;if
+            ) ;let
+          ) ;if
+        ) ;let*
+      ) ;let
+    ) ;define
+
+    (define (%find-package-name pkg-root)
+      (if (and (path-exists? pkg-root) (path-dir? pkg-root))
+        (let loop
+          ((names (vector->list (path-list pkg-root))))
+          (cond ((null? names) #f)
+                ((%package-entry? pkg-root (car names)) (car names))
+                (else (loop (cdr names)))
+          ) ;cond
+        ) ;let
+        #f
+      ) ;if
+    ) ;define
+
+    (define (%package-entry? pkg-root name)
+      (and (pi-valid-extension-name? name)
+        (let ((entry (path-join pkg-root name "index.scm")))
+          (and (path-exists? entry) (path-file? entry))
+        ) ;let
+      ) ;and
+    ) ;define
+
+    (define (%find-single-file p)
+      (let loop
+        ((names (vector->list (path-list p))))
+        (cond ((null? names) #f)
+              ((%single-entry? (car names))
+               (substring (car names) 0 (- (string-length (car names)) 4))
+              ) ;
+              (else (loop (cdr names)))
+        ) ;cond
+      ) ;let
+    ) ;define
+
+    (define (%single-entry? name)
+      (and (string-ends? name ".scm")
+        (not (string=? name "index.scm"))
+        (pi-valid-extension-name? (substring name 0 (- (string-length name) 4)))
+      ) ;and
+    ) ;define
+
+    ;; 建目录链接：Windows 用 mklink /J（junction，免管理员/开发者模式），
+    ;; Unix 用 ln -s。Windows 必须用原生反斜杠路径：mklink 会把正斜杠
+    ;; 路径段（如 /Users）误判为命令行开关。
+    (define (%make-dir-link src dst)
+      (let* ((src-str (path->string (path-resolve (path src))))
+             (dst-str (path->string (path-resolve (path dst))))
+             (cmd (if (os-windows?)
+                    (list "cmd" "/c" "mklink" "/J" dst-str src-str)
+                    (list "ln" "-s" src-str dst-str)
+                  ) ;if
+             ) ;cmd
+            ) ;
+        (let ((res (run-either cmd :timeout 30 :stdout 'capture :stderr 'capture)))
+          (unless (either-right? res)
+            (error 'install-error
+              (string-append "Failed to link extension: "
+                (pi-command-failure-detail (to-left res))
+              ) ;string-append
+            ) ;error
+          ) ;unless
+        ) ;let
+      ) ;let*
+    ) ;define
+
+    ;; 把本地扩展目录链接到用户级 ~/.gf/gfcode/<name> 或项目级
+    ;; {cwd}/.gf/gfcode/<name>（:local? #t），供开发联调。
+    ;; 返回链接目标路径字符串；目标已存在时报错。
+    (define (pi-link-extension dir . opts)
+      (let* ((resolved (pi-resolve-link-source dir))
+             (name (car resolved))
+             (src (cdr resolved))
+             (target (%link-target name opts))
+            ) ;
+        (when (path-exists? (path target))
+          (value-error (string-append "Link target already exists: " target))
+        ) ;when
+        (unless (path-exists? (path-parent (path target)))
+          (path-mkdir (path-parent (path target)) :parents #t :exist-ok #t)
+        ) ;unless
+        (%make-dir-link src target)
+        target
+      ) ;let*
+    ) ;define
+
+    ;; 注意：不可手写递归 rmdir 清理——Windows 下会穿透 junction/symlink
+    ;; 删除链接目标的真实文件。rmtree 对链接只删链接本身。
     (define (%rmdir-rec d)
       (let ((p (if (path? d) d (path d))))
-        (when (path-dir? p)
-          (for-each
-            (lambda (e)
-              (let ((full (path-join p e)))
-                (if (path-dir? full) (%rmdir-rec full) (remove (path->string full)))
-              ) ;let
-            ) ;lambda
-            (vector->list (path-list p))
-          ) ;for-each
-          (rmdir (path->string p))
+        (when (path-exists? p)
+          (if (path-dir? p) (rmtree (path->string p) #t) (remove (path->string p)))
         ) ;when
       ) ;let
     ) ;define
