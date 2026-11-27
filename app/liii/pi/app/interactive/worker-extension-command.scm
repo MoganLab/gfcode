@@ -15,6 +15,7 @@
     (liii pi code core extensions)
     (liii pi code modes flow)
     (liii pi app interactive worker-emit)
+    (liii pi code core extension-result)
   ) ;import
   (begin
 
@@ -31,40 +32,41 @@
                    ) ;list
                  ) ;ctx
                  ;; fallback-runner 在 handler 调用前就位：命令结算回调可请求
-                 ;; 一次降级重试（返回 status=retry + 新 prompt/on-finish）
+                 ;; 一次降级重试（返回 review-retry + 新 prompt/on-finish）
                  (ctx
                    (append ctx
-                     (list
-                       (cons 'fallback-runner
-                         (lambda (prompt on-finish)
-                           (list (cons 'status 'retry) (cons 'prompt prompt) (cons 'on-finish on-finish))
-                         ) ;lambda
-                       ) ;cons
+                     (list (cons 'fallback-runner
+                             (lambda (prompt on-finish) (make-review-retry prompt on-finish))
+                           ) ;cons
                      ) ;list
                    ) ;append
                  ) ;ctx
                  (result (handler args ctx))
-                 (status (and (pair? result) (assq 'status result) (cdr (assq 'status result))))
                 ) ;
             (cond
-             ((or (eq? status 'error) (not status))
+             ((review-error? result)
               (pi-tui-send-event! event-chan
-                (list 'extension_command_error
-                  (if status
-                    (cdr (assoc 'message result))
-                    (string-append "Command returned no session request: "
-                      (extension-command-def-name command)
-                    ) ;string-append
-                  ) ;if
-                ) ;list
+                (list 'extension_command_error (review-error-message result))
               ) ;pi-tui-send-event!
              ) ;
-             ((eq? status 'no-files)
+             ((review-no-files? result)
               (pi-tui-send-event! event-chan
-                (list 'extension_command_notice (cdr (assoc 'message result)))
+                (list 'extension_command_notice (review-no-files-message result))
               ) ;pi-tui-send-event!
              ) ;
-             (else (%run-extension-session result ctx sfile event-chan))
+             ((review-session-request? result)
+              (%run-extension-session result ctx sfile event-chan)
+             ) ;
+             ;; handler 返回非 review-result（旧占位字符串/#f/异常值）：报错
+             (else
+               (pi-tui-send-event! event-chan
+                 (list 'extension_command_error
+                   (string-append "Command returned no session request: "
+                     (extension-command-def-name command)
+                   ) ;string-append
+                 ) ;list
+               ) ;pi-tui-send-event!
+             ) ;else
             ) ;cond
           ) ;let*
         ) ;lambda
@@ -79,34 +81,34 @@
       (pi-tui-send-event! event-chan '(agent_settled #f))
     ) ;define
 
-    ;; 执行命令返回的会话请求；结算回调可请求一次降级重试（status=retry）：
+    ;; 执行命令返回的会话请求；结算回调可请求一次降级重试（review-retry）：
     ;; 用命令提供的新 prompt/on-finish 再跑一次只读 session；
     ;; 重试结算不再接受 retry，避免循环
     (define (%run-extension-session result ctx sfile event-chan)
-      (let ((notice-entry (assq 'notice result)))
-        (when (and notice-entry (cdr notice-entry))
-          (pi-tui-send-event! event-chan (list 'tps_report (cdr notice-entry)))
+      (let ((notice (review-session-request-notice result)))
+        (when notice
+          (pi-tui-send-event! event-chan (list 'tps_report notice))
         ) ;when
       ) ;let
       (let ((response (%run-in-window result
                         ctx
-                        (cdr (assoc 'prompt result))
-                        (cdr (assoc 'on-finish result))
+                        (review-session-request-prompt result)
+                        (review-session-request-on-finish result)
                         sfile
                         event-chan
                       ) ;%run-in-window
             ) ;response
            ) ;
         (let ((final
-                (if (eq? (cdr (assoc 'status response)) 'retry)
+                (if (review-retry? response)
                   (begin
                     (pi-tui-send-event! event-chan
                       (list 'tps_report "Structured review failed; retrying with fallback prompt.")
                     ) ;pi-tui-send-event!
                     (%run-in-window result
                       ctx
-                      (cdr (assoc 'prompt response))
-                      (cdr (assoc 'on-finish response))
+                      (review-retry-prompt response)
+                      (review-retry-on-finish response)
                       sfile
                       event-chan
                     ) ;%run-in-window
@@ -115,14 +117,19 @@
                 ) ;if
               ) ;final
              ) ;
-          (if (eq? (cdr (assoc 'status final)) 'error)
+          (cond
+           ((review-error? final)
             (pi-tui-send-event! event-chan
-              (list 'extension_command_error (cdr (assoc 'message final)))
+              (list 'extension_command_error (review-error-message final))
             ) ;pi-tui-send-event!
+           ) ;
+           ((review-ok? final)
             (pi-tui-send-event! event-chan
-              (list 'extension_command_report (cdr (assoc 'report final)))
+              (list 'extension_command_report (review-ok-report final))
             ) ;pi-tui-send-event!
-          ) ;if
+           ) ;
+           ;; 结算返回非预期类型（如 retry 再重试）：不报告，仅结算
+          ) ;cond
         ) ;let
       ) ;let
     ) ;define
@@ -130,8 +137,8 @@
     (define (%run-in-window result ctx prompt on-finish sfile event-chan)
      ((cdr (assoc 'run-isolated ctx))
       (lambda ()
-        (run-session-flow (cdr (assoc 'parsed result))
-          (cdr (assoc 'config result))
+        (run-session-flow (review-session-request-parsed result)
+          (review-session-request-config result)
           prompt
           (make-tui-emit event-chan)
           on-finish
