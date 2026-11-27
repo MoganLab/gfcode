@@ -27,6 +27,8 @@
 ;; 事件通道收到 extension_command_error / extension_command_notice /
 ;; extension_command_report，随后必发 agent_settled。
 ;; handler 抛出异常或返回非 session 请求时投递可读错误，不中断 worker。
+;; session 请求携带 run-isolated 过程时，会话在该隔离窗口内执行
+;; （进入/退出各调用一次，异常与降级重试同样受窗口保护）。
 
 (import (scheme base)
   (liii check)
@@ -178,6 +180,46 @@
         ) ;cond
       ) ;let
     ) ;check-true
+    (check (car (car (reverse events))) => 'agent_settled)
+  ) ;let
+) ;let*
+
+;; 6. session 请求携带 run-isolated 窗口：会话必须在窗口内执行，
+;;    进入/退出各一次（含 fallback 重试），不再被 ctx 缺省窗口吞掉
+(let* ((chan (make-chan 32))
+       (enter-count 0)
+       (exit-count 0)
+       (command
+         (make-extension-command-def "/isolated"
+           "isolated"
+           (lambda (args ctx)
+             (make-review-session-request '((session-timeout . -1)
+                                            (no-skills . #t))
+               (list (cons 'tools '())
+                 (cons 'provider "google")
+                 (cons 'config-dir (path->string (path-temp-dir)))
+               ) ;list
+               "review this"
+               (lambda (msgs) (make-review-ok "isolated-report"))
+               (lambda (thunk)
+                 (dynamic-wind (lambda () (set! enter-count (+ enter-count 1)))
+                   thunk
+                   (lambda () (set! exit-count (+ exit-count 1)))
+                 ) ;dynamic-wind
+               ) ;lambda
+               #f
+               '()
+               '()
+             ) ;make-review-session-request
+           ) ;lambda
+         ) ;make-extension-command-def
+       ) ;command
+      ) ;
+  (pi-tui-run-extension-command! command "" '() '() #f chan)
+  (let ((events (drain chan)))
+    ;; 隔离窗口进入/退出各恰好一次
+    (check enter-count => 1)
+    (check exit-count => 1)
     (check (car (car (reverse events))) => 'agent_settled)
   ) ;let
 ) ;let*

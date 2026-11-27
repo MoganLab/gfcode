@@ -135,19 +135,28 @@
     ) ;define
 
     (define (%run-in-window result ctx prompt on-finish sfile event-chan)
-     ((cdr (assoc 'run-isolated ctx))
-      (lambda ()
-        (run-session-flow (review-session-request-parsed result)
-          (review-session-request-config result)
-          prompt
-          (make-tui-emit event-chan)
-          on-finish
-          sfile
-          '()
-          #f
-        ) ;run-session-flow
-      ) ;lambda
-     ) ;
+      ;; 优先使用请求携带的隔离窗口（如 code-review 抑制自动注入），
+      ;; 其次 ctx 提供的窗口，缺省直接执行
+      (let ((isolate
+              (or (review-session-request-run-isolated result)
+                (and (assoc 'run-isolated ctx) (cdr (assoc 'run-isolated ctx)))
+                (lambda (thunk) (thunk))
+              ) ;or
+            ) ;isolate
+           ) ;
+        (isolate (lambda ()
+                   (run-session-flow (review-session-request-parsed result)
+                     (review-session-request-config result)
+                     prompt
+                     (make-tui-emit event-chan)
+                     on-finish
+                     sfile
+                     '()
+                     #f
+                   ) ;run-session-flow
+                 ) ;lambda
+        ) ;isolate
+      ) ;let
     ) ;define
 
     ;; worker 的 extension_command job 分发：从注册表解析命令并执行；
