@@ -22,7 +22,7 @@
 
 (check-set-mode! 'report-failed)
 
-;; 1. 空文本与空数据
+;; 1. 空文本与空数据（缺省模型标识为 deepseek-flash）
 (let ((res (pi-format-web-search-result "" '())))
   (check (cdr (assoc 'text res)) => "")
   (check (vector-length (cdr (assoc 'content res))) => 1)
@@ -30,6 +30,7 @@
   (let ((details (cdr (assoc 'details res))))
     (check (cdr (assoc 'grounded details)) => #f)
     (check (cdr (assoc 'resultCount details)) => 0)
+    (check (cdr (assoc 'model details)) => "deepseek-flash")
   ) ;let
 ) ;let
 
@@ -171,5 +172,21 @@
     (check-true (string-contains? txt "[1] Raw Title - https://raw.test"))
   ) ;let
 ) ;let*
+
+;; 9. 显式 :model-id 原样进入 details.model，不被缺省值覆盖
+(let ((res (pi-format-web-search-result "answer" '() :model-id "gemini-2.5-flash")))
+  (check
+    (cdr (assoc 'model (cdr (assoc 'details res))))
+    =>
+    "gemini-2.5-flash"
+  ) ;check
+) ;let
+(let ((res (pi-format-web-search-result "answer" '() :model-id "deepseek-custom")))
+  (check
+    (cdr (assoc 'model (cdr (assoc 'details res))))
+    =>
+    "deepseek-custom"
+  ) ;check
+) ;let
 
 (check-report)

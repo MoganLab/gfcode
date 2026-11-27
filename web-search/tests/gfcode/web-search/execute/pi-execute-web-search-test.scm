@@ -96,6 +96,49 @@
       ) ;check-true
     ) ;let
     (check (length (cdr (assoc 'sources res))) => 1)
+    ;; 显式 :model-id 原样进入 details.model
+    (check
+      (cdr (assoc 'model (cdr (assoc 'details res))))
+      =>
+      "web-search-basic"
+    ) ;check
+  ) ;let
+
+  ;; 3b. Google 模型回退：不传 :model-id 时缺省为 gemini-2.5-flash
+  (let ((res (pi-execute-web-search '(("query" . "goldfish scheme"))
+               :provider "google"
+               :config   '()
+               :base-url base-url
+               :api-key  "test-google-key"
+               :timeout  10
+             ) ;pi-execute-web-search
+        ) ;res
+       ) ;
+    (check-false (cdr (assoc 'isError res)))
+    (check
+      (cdr (assoc 'model (cdr (assoc 'details res))))
+      =>
+      "gemini-2.5-flash"
+    ) ;check
+  ) ;let
+
+  ;; 3c. 跨 provider 隔离：会话是 deepseek/deepseek-v4-pro，但显式选择 google，
+  ;;     Google 搜索使用自己的缺省 gemini-2.5-flash，不继承 deepseek-v4-pro
+  (let ((res (pi-execute-web-search '(("query" . "goldfish scheme"))
+               :provider "google"
+               :config '((provider . "deepseek") (model-id . "deepseek-v4-pro"))
+               :base-url base-url
+               :api-key  "test-google-key"
+               :timeout  10
+             ) ;pi-execute-web-search
+        ) ;res
+       ) ;
+    (check-false (cdr (assoc 'isError res)))
+    (check
+      (cdr (assoc 'model (cdr (assoc 'details res))))
+      =>
+      "gemini-2.5-flash"
+    ) ;check
   ) ;let
 
   ;; 4. 带 URLs 的调用测试

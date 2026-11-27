@@ -69,18 +69,53 @@
       ) ;let
     ) ;define
 
-    (define (pi-resolve-search-model-id config opt-model)
-      (cond
-       ((and (string? opt-model) (not (string-null? (string-trim-both opt-model))))
-        opt-model
-       ) ;
-       ((and (or (pi-config? config) (pair? config))
-          (string? (pi-cfg-ref config 'model-id #f))
-        ) ;and
-        (pi-cfg-ref config 'model-id #f)
-       ) ;
-       (else "gemini-2.5-flash")
-      ) ;cond
+    ;; 有效搜索 provider 专属缺省模型。
+    ;; DeepSeek 缺省 deepseek-flash，Google 缺省 gemini-2.5-flash。
+    (define (%default-search-model provider)
+      (if (equal? provider "deepseek") "deepseek-flash" "gemini-2.5-flash")
+    ) ;define
+
+    ;; 解析联网搜索使用的模型标识。provider 为有效搜索后端（deepseek/google）。
+    ;; 优先级：显式模型 > web-search.json 模型 > 匹配会话 provider 的 model-id > provider 缺省。
+    ;; 会话 provider 与搜索 provider 不一致时跳过会话 model-id，避免跨 provider 串值。
+    (define (pi-resolve-search-model-id config opt-model . opt-provider)
+      (let* ((provider (if (pair? opt-provider) (car opt-provider) #f))
+             (opt-model-str
+               (if (string? opt-model)
+                 (let ((trimmed (string-trim-both opt-model)))
+                   (if (string-null? trimmed) #f trimmed)
+                 ) ;let
+                 #f
+               ) ;if
+             ) ;opt-model-str
+             (cfg-provider
+               (and (or (pi-config? config) (pair? config))
+                 (let ((p (pi-cfg-ref config 'provider #f)))
+                   (if (string? p) (string-trim-both p) p)
+                 ) ;let
+               ) ;and
+             ) ;cfg-provider
+             (cfg-model
+               (and (or (pi-config? config) (pair? config))
+                 (let ((m (pi-cfg-ref config 'model-id #f)))
+                   (and (string? m) m)
+                 ) ;let
+               ) ;and
+             ) ;cfg-model
+             (same-provider? (and (string? provider)
+                               (string? cfg-provider)
+                               (equal? (string-trim-both provider) (string-trim-both cfg-provider))
+                             ) ;and
+             ) ;same-provider?
+            ) ;
+        (cond (opt-model-str opt-model-str)
+              ;; 未传入 provider（两参数调用）时保留原有行为：无条件使用会话 model-id
+              ((and (not provider) cfg-model) cfg-model)
+              ;; 传入 provider 后按 provider 匹配决定是否沿用会话 model-id
+              ((and same-provider? cfg-model) cfg-model)
+              (else (%default-search-model provider))
+        ) ;cond
+      ) ;let*
     ) ;define
 
     (define (%cfg-ref config key)
@@ -186,7 +221,8 @@
     ) ;define
 
     ;; 决定 web_search 用哪个后端：只有 google/deepseek 两个后端，
-    ;; 其余 provider 一律回退 google。
+    ;; 其余 provider 及缺省一律回退 deepseek；只有明确解析为 google 时
+    ;; 继续使用 Gemini grounding。
     ;; 优先级：显式 opt > web-search.json（全局覆盖） > 环境变量 > config
     (define (pi-resolve-web-search-provider config opt-provider ws-config . opt-env)
       (let* ((env (if (pair? opt-env) (car opt-env) #f))
@@ -205,12 +241,12 @@
                 ((%cfg-str config 'web-search-provider))
                 ((%env-ref-str "GF_PI_WEB_SEARCH_PROVIDER" env))
                 ((%cfg-str config 'provider))
-                (else "google")
+                (else "deepseek")
                ) ;cond
              ) ;raw
              (p (%norm-provider raw))
             ) ;
-        (if (equal? p "deepseek") "deepseek" "google")
+        (if (equal? p "google") "google" "deepseek")
       ) ;let*
     ) ;define
 

@@ -1,3 +1,4 @@
 {
-  "provider": "deepseek"
+  "provider": "deepseek",
+  "model": "deepseek-flash"
 }
