@@ -18,6 +18,7 @@
     (liii list)
     (liii string)
     (liii sort)
+    (liii pi ai models defaults)
     (liii pi ai models builtin)
     (liii pi ai providers registry)
     (liii pi ai config settings)
@@ -187,9 +188,9 @@
                                    ) ;or
                                  ) ;and
              ) ;first-is-provider?
-             (eff-p (cond (first-is-provider? first-part) (p p) (else "google")))
+             (eff-p (cond (first-is-provider? first-part) (p p) (else PI_DEFAULT_PROVIDER)))
              (eff-m
-               (cond ((not m) "gemini-3.8-flash")
+               (cond ((not m) (pi-provider-default-model eff-p))
                      (first-is-provider? (substring m (+ (string-length first-part) 1) (string-length m))
                      ) ;first-is-provider?
                      ((and p (string-starts? m (string-append p "/")))

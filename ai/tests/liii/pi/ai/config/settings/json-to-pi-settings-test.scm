@@ -52,8 +52,8 @@
 ;; 2. 空对象与空白 httpProxy：使用默认值与安全过滤
 (let ((s (json->pi-settings (string->json "{\"httpProxy\":\"   \"}"))))
   (check-true (pi-settings? s))
-  (check (pi-settings-default-provider s) => "google")
-  (check (pi-settings-default-model s) => "gemini-3.8-flash")
+  (check (pi-settings-default-provider s) => "deepseek")
+  (check (pi-settings-default-model s) => "deepseek-flash")
   (check (pi-settings-default-thinking-level s) => #f)
   (check (pi-settings-http-proxy s) => #f)
   (check-true (pi-retry-config? (pi-settings-retry s)))
@@ -72,5 +72,12 @@
 
 (check-catch 'type-error (json->pi-settings "invalid"))
 (check-catch 'type-error (json->pi-settings 123))
+
+(check
+  (pi-settings-default-model (json->pi-settings '(("defaultProvider" . "google")))
+  ) ;pi-settings-default-model
+  =>
+  "gemini-3.8-flash"
+) ;check
 
 (check-report)

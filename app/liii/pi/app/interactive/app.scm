@@ -28,6 +28,7 @@
     pi-app-has-pending-bash-tool? %tool-timer-frame-interval-ms
   ) ;export
   (import (scheme base)
+    (liii pi ai models defaults)
     (scheme file)
     (liii base)
     (liii go)
@@ -286,6 +287,8 @@
                  ) ;if
                ) ;or
              ) ;actual-tokens
+             (provider (or provider PI_DEFAULT_PROVIDER))
+             (model (or model (pi-provider-default-model provider)))
              (footer (make-pi-footer
                        :branch            branch
                        :provider          provider
@@ -339,8 +342,8 @@
                     bash-handler
                     actual-record-sink
                     session-name
-                    (or provider "google")
-                    (or model "gemini-3.8-flash")
+                    provider
+                    model
                     (or models '())
                     default-model
                     on-save-model

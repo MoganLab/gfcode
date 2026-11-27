@@ -65,8 +65,8 @@
 
 (let ((empty-settings (pi-load-settings "non/existent/dir")))
   (check-true (pi-settings? empty-settings))
-  (check (pi-settings-default-provider empty-settings) => "google")
-  (check (pi-settings-default-model empty-settings) => "gemini-3.8-flash")
+  (check (pi-settings-default-provider empty-settings) => "deepseek")
+  (check (pi-settings-default-model empty-settings) => "deepseek-flash")
   (check (pi-settings-http-proxy empty-settings) => #f)
   (check (pi-settings-default-tools empty-settings) => #f)
   ;; enableSkillCommands 未配置时默认开启

@@ -38,7 +38,27 @@
          ("contextWindow" . 1000000)
          ("maxTokens" . 384000)
          ("reasoning" . #t)
-         ("input" "text")))
+         ("input" "text"))
+        (("id" . "deepseek-flash")
+         ("name" . "DeepSeek V4.1 Flash")
+         ("api" . "openai-completions")
+         ("baseUrl" . "https://api.deepseek.com")
+         ("contextWindow" . 1000000)
+         ("maxTokens" . 384000)
+         ("reasoning" . #t)
+         ("input" "text" "image")
+         ("thinkingLevelMap"
+          ("minimal" . null)
+          ("low" . "low")
+          ("medium" . null)
+          ("high" . "high")
+          ("max" . "max"))
+         ("compat"
+          ("thinkingFormat" . "deepseek")
+          ("requiresReasoningContentOnAssistantMessages" . #t)
+          ("maxTokensField" . "max_tokens")
+          ("supportsStore" . #f)
+          ("supportsStrictMode" . #t))))
     ) ;define
 
   ) ;begin

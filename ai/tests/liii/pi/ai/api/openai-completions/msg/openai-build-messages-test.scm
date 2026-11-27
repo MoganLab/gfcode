@@ -3,7 +3,7 @@
 ;;
 ;; 语法
 ;; ----
-;; (openai-build-messages messages system-instruction)
+;; (openai-build-messages messages system-instruction [model])
 ;;
 ;; 参数
 ;; ----
@@ -149,6 +149,21 @@
       ) ;let*
     ) ;let
   ) ;let
+) ;let*
+
+;; 仅为要求回放的模型发送 reasoning_content；不泄露给其它协议端点。
+(let* ((history
+         '(((role . "assistant")
+            (content ((type . "thinking") (thinking . "step"))
+              ((type . "text") (text . "done")))))
+       ) ;history
+       (model '(("compat" ("requiresReasoningContentOnAssistantMessages" . #t))))
+       (plain (vector-ref (openai-build-messages history #f) 0))
+       (replay (vector-ref (openai-build-messages history #f model) 0))
+      ) ;
+  (check (assoc "reasoning_content" plain) => #f)
+  (check (cdr (assoc "reasoning_content" replay)) => "step")
+  (check (cdr (assoc "content" replay)) => "done")
 ) ;let*
 
 (check-report)

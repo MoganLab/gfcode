@@ -119,7 +119,7 @@
         ) ;text
        ) ;
     (check-true (string-contains? text "Thinking level: minimal"))
-    (check-true (string-contains? text "gemini-3.8-flash • minimal"))
+    (check-true (string-contains? text "deepseek-flash • minimal"))
   ) ;let
   (check received => '())
 ) ;let*

@@ -41,6 +41,8 @@
 (let* ((vt (make-virtual-terminal :width 80 :height 24))
        (app (make-pi-app :terminal vt :handler (lambda (a msg) #t)))
       ) ;
+  (check (pi-app-provider app) => "deepseek")
+  (check (pi-app-model app) => "deepseek-flash")
   (check (pi-app-chat app) => '())
 ) ;let*
 

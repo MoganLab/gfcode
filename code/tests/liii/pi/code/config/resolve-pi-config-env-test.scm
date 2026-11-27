@@ -166,10 +166,10 @@
        (env `(("PI_CODING_AGENT_DIR" . ,CONFIG_EMPTY_DIR)))
        (cfg (resolve-pi-config args env))
       ) ;
-  (check (pi-cfg-ref cfg 'provider) => "google")
-  (check (pi-cfg-ref cfg 'model-id) => "gemini-3.8-flash")
+  (check (pi-cfg-ref cfg 'provider) => "deepseek")
+  (check (pi-cfg-ref cfg 'model-id) => "deepseek-flash")
   (check (pi-cfg-ref cfg 'api-key) => #f)
-  (check (pi-cfg-ref cfg 'thinking-level) => "medium")
+  (check (pi-cfg-ref cfg 'thinking-level) => "high")
 ) ;let*
 
 ;; 6. 污染环境下解析结果不变（防回归：真实进程环境不得影响配置解析）
@@ -224,9 +224,9 @@
         ) ;with-env-vars
       ) ;cfg
      ) ;
-  (check (pi-cfg-ref cfg 'provider) => "google")
+  (check (pi-cfg-ref cfg 'provider) => "deepseek")
   (check (pi-cfg-ref cfg 'api-key) => #f)
-  (check (pi-cfg-ref cfg 'thinking-level) => "medium")
+  (check (pi-cfg-ref cfg 'thinking-level) => "high")
 ) ;let
 
 (check-report)

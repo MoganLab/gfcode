@@ -184,7 +184,14 @@
       ) ;and
     ) ;define
 
-    (define (%convert-assistant-msg msg)
+    (define (%thinking-text block)
+      (cond ((pi-thinking-block? block) (pi-thinking-block-thinking block))
+            ((equal? (%val 'type block #f) "thinking") (%val 'thinking block ""))
+            (else "")
+      ) ;cond
+    ) ;define
+
+    (define (%convert-assistant-msg msg model)
       (let* ((raw-c (if (pi-assistant-message? msg)
                       (pi-assistant-message-content msg)
                       (%val 'content msg '())
@@ -197,23 +204,28 @@
              ) ;c-list
              (text-acc (%msg-text-content (filter %assistant-text-block? c-list)))
              (tc-acc (filter (lambda (tc) tc) (map %assistant-block->tool-call c-list)))
+             (replay? (memq (%val 'requiresReasoningContentOnAssistantMessages (%val 'compat model '()) #f)
+                        '(#t true)
+                      ) ;memq
+             ) ;replay?
             ) ;
         ;; ESC abort 后可能残留空 content 的 assistant 消息（stopReason=aborted），
         ;; 空 assistant 消息会被部分 API 拒绝：返回 #f 跳过
         ;; （对齐上游 blocks 为空时 continue，允许产生连续 user 消息）
-        (cond ((and (null? tc-acc) (string-null? text-acc)) #f)
-              ((pair? tc-acc)
-               (list (cons "role" "assistant")
-                 (cons "content" text-acc)
-                 (cons "tool_calls" (list->vector tc-acc))
-               ) ;list
-              ) ;
-              (else (list (cons "role" "assistant") (cons "content" text-acc)))
-        ) ;cond
+        (and (or (pair? tc-acc) (not (string-null? text-acc)))
+          (append (list (cons "role" "assistant") (cons "content" text-acc))
+            (if replay?
+              (list (cons "reasoning_content" (apply string-append (map %thinking-text c-list)))
+              ) ;list
+              '()
+            ) ;if
+            (if (pair? tc-acc) (list (cons "tool_calls" (list->vector tc-acc))) '())
+          ) ;append
+        ) ;and
       ) ;let*
     ) ;define
 
-    (define (%convert-message msg)
+    (define (%convert-message msg model)
       (let ((role (%msg-role msg)))
         (cond
          ((equal? role "user")
@@ -224,7 +236,7 @@
             ) ;cons
           ) ;list
          ) ;
-         ((equal? role "assistant") (%convert-assistant-msg msg))
+         ((equal? role "assistant") (%convert-assistant-msg msg model))
          (else #f)
         ) ;cond
       ) ;let
@@ -323,13 +335,8 @@
                 (loop rem-rest (%append-tool-turn acc out-tool-msgs images))
               ) ;let-values
              ) ;
-             ((equal? role "user")
-              (let ((converted (%convert-message msg)))
-                (loop (cdr rest) (if converted (cons converted acc) acc))
-              ) ;let
-             ) ;
-             ((equal? role "assistant")
-              (let ((converted (%convert-message msg)))
+             ((or (equal? role "user") (equal? role "assistant"))
+              (let ((converted (%convert-message msg opt-model)))
                 (loop (cdr rest) (if converted (cons converted acc) acc))
               ) ;let
              ) ;

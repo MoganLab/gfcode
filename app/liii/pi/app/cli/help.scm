@@ -117,7 +117,7 @@
         "  -p, --print                    Print response to stdout and exit\n"
         "      --mode <mode>              Output mode: text, json, verbose (default: verbose)\n"
         "      --model <id>               Model ID to use\n"
-        "      --provider <name>          Provider to search for --model (requires --model)\n"
+        "      --provider <name>          Provider to search for --model (optional for deepseek)\n"
         "      --thinking <level>         Thinking level: off, minimal, low, medium, high, xhigh, max\n"
         "      --list-models [search]     List all models with activation status (with optional search)\n"
         "      --proxy <url>              Proxy URL (e.g. socks5h://127.0.0.1:1080)\n"

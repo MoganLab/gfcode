@@ -12,6 +12,7 @@
 
     (liii pi ai config settings)
     (liii pi ai config model-metadata)
+    (liii pi ai models defaults)
     (liii pi ai models builtin)
     (liii pi ai providers registry)
   ) ;import
@@ -53,25 +54,6 @@
         (cond ((equal? p "zai") "zai-coding-cn")
               ((equal? p "opencode-go") "opencode")
               (else p)
-        ) ;cond
-      ) ;let
-    ) ;define
-
-    (define (pi-provider-default-model provider)
-      (let ((p (%canonical-provider (if (symbol? provider) (symbol->string provider) provider))
-            ) ;p
-           ) ;
-        (cond ((equal? p "all-in-one") "coding-fast")
-              ((equal? p "anthropic") "claude-opus-5-5")
-              ((equal? p "kimi-coding") "kimi-for-coding")
-              ((equal? p "glm") "glm-5.3")
-              ((equal? p "deepseek") "deepseek-v4-pro")
-              ((or (equal? p "zai-coding-cn") (equal? p "zai")) "glm-5.3")
-              ((or (equal? p "minimax") (equal? p "minimax-cn")) "MiniMax-M3.1-Flash")
-              ((equal? p "ollama") "qwen2.5-coder:latest")
-              ((or (equal? p "opencode") (equal? p "opencode-go")) "deepseek-v4.1-flash")
-              ((equal? p "qwen-token-plan-cn") "qwen3.8-max")
-              (else "gemini-3.8-flash")
         ) ;cond
       ) ;let
     ) ;define
@@ -286,7 +268,7 @@
                (if
                  (and (string? settings-p) (not (string-null? (string-trim-both settings-p))))
                  settings-p
-                 "google"
+                 PI_DEFAULT_PROVIDER
                ) ;if
              ) ;default-p
             ) ;

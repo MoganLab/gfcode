@@ -51,8 +51,8 @@
        (ds-entry (assoc "deepseek" augmented))
        (ds-models (cdr (assoc "models" (cdr ds-entry))))
       ) ;
-  ;; deepseek 原有 1 个，补齐缺失的 2 个，共 3 个
-  (check (length ds-models) => 3)
+  ;; deepseek 原有 1 个，补齐缺失的 3 个，共 4 个
+  (check (length ds-models) => 4)
   ;; 原有的 custom 应该保持在第一项且名字不变
   (check (cdr (assoc "id" (car ds-models))) => "deepseek-v4-pro")
   (check (cdr (assoc "name" (car ds-models))) => "Custom DeepSeek V4 Pro")

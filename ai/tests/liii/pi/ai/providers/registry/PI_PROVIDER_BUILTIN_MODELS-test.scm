@@ -39,7 +39,7 @@
 
 ;; 验证各 provider 及其模型数量
 (check (length (find-provider-models "anthropic")) => 4)
-(check (length (find-provider-models "deepseek")) => 3)
+(check (length (find-provider-models "deepseek")) => 4)
 (check (length (find-provider-models "google")) => 24)
 (check (length (find-provider-models "kimi-coding")) => 5)
 (check (length (find-provider-models "minimax-cn")) => 4)
@@ -54,6 +54,7 @@
 (check-true (has-model? (find-provider-models "all-in-one") "coding-high-quality")
 ) ;check-true
 (check-true (has-model? (find-provider-models "anthropic") "claude-opus-5-5"))
+(check-true (has-model? (find-provider-models "deepseek") "deepseek-flash"))
 (check-true (has-model? (find-provider-models "deepseek") "deepseek-v4-pro"))
 (check-true (has-model? (find-provider-models "google") "gemini-3.8-flash"))
 (check-true (has-model? (find-provider-models "google") "gemini-4-hydrogen"))

@@ -75,6 +75,10 @@
       (rmtree (path->string d))
     ) ;when
     (path-mkdir (path-join d "models") :parents #t :exist-ok #t)
+    ;; 固定与下列按键序列对应的目录，避免全局默认模型的自动激活改变列表布局。
+    (path-write-text (path-join d "settings.json")
+      "{\"defaultProvider\":\"google\",\"defaultModel\":\"gemini-3.8-flash\"}"
+    ) ;path-write-text
     (path-write-text (path-join d "models" "providers.json")
       "[\"kimi-coding\",\"google\",\"minimax-cn\"]"
     ) ;path-write-text

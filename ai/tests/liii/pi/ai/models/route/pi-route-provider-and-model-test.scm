@@ -311,4 +311,10 @@
   "rafw007/qwen35-claude-coder:9b"
 ) ;check-route
 
+(let-values (((p m) (pi-route-provider-and-model #f #f '() default-catalog NO-ENV)))
+  (check (list p m) => '("deepseek" "deepseek-flash"))
+  (check (pi-provider-has-model? p m default-catalog) => #t)
+) ;let-values
+(check-route "deepseek" "deepseek-flash" "deepseek" #f default-catalog NO-ENV)
+
 (check-report)

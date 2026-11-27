@@ -243,7 +243,10 @@
             (%validate-parsed-args reg parsed initial-msg rest-msgs)
             (cond ((pi-args-ref parsed 'help) (display-pi-help) 0)
                   ((pi-args-ref parsed 'list-models) (%handle-list-models parsed))
-                  ((and (pi-args-ref parsed 'provider) (not (pi-args-ref parsed 'model)))
+                  ((and (pi-args-ref parsed 'provider)
+                     (not (equal? (pi-args-ref parsed 'provider) "deepseek"))
+                     (not (pi-args-ref parsed 'model))
+                   ) ;and
                    (error 'pi-arg-error
                      (string-append "--provider requires --model (for example: --provider "
                        (pi-args-ref parsed 'provider)

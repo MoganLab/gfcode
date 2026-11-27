@@ -37,7 +37,7 @@
   ;; 显式修改 thinking 后发布当前 provider/model 的完整最新快照
   (check (chan-try-recv! (pi-app-request-selection-chan app) #f)
     =>
-    '("google" "gemini-3.8-flash" "high" #t)
+    '("deepseek" "deepseek-flash" "high" #t)
   ) ;check
 ) ;let*
 
