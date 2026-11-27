@@ -139,6 +139,9 @@
                          (cons "GF_PI_BASE_URL" base-url)
                          (cons "GOOGLE_BASE_URL" base-url)
                          (cons "GF_PI_MODEL" "agent-web-search")
+                         ;; 锚定 Gemini grounding 后端：本用例的 stub 与断言均基于
+                         ;; Google 搜索链路，不随全局缺省 provider 切换（#54 后缺省 deepseek）
+                         (cons "GF_PI_WEB_SEARCH_PROVIDER" "google")
                          (cons "GOOGLE_SEARCH_MODEL" "web-search-basic")
                          (cons "GOOGLE_API_KEY" "test-key-search")
                          (cons "https_proxy" "")

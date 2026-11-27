@@ -2,7 +2,6 @@
 ;; Copyright (C) 2026 The Goldfish Scheme Authors
 ;;
 ;; Licensed under the MIT License
-
 (define-library (liii pi app interactive worker)
   ;; worker 线程通过重新 import 库并求值 procedure-source 执行，调用链内部函数须全部导出
   (export make-tui-emit pi-tui-agent-worker pi-tui-run-worker pi-tui-send-event!
@@ -366,6 +365,8 @@
           ) ;when
          ) ;
          ((and (pair? job) (eq? (car job) 'extension_command))
+          ;; 同样 arm：否则 ESC 无法中止，残留 aborted 标志还会误结算
+          (pi-abort-arm-chan! abort-chan)
           (pi-worker-run-extension-command-job! job
             parsed
             cfg

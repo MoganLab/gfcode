@@ -78,8 +78,9 @@
     ) ;define
 
     ;; 标记队列为 busy 状态
-    ;; 仅供测试模拟 busy 态使用；正常流程由 pi-queue-dequeue-next!
-    ;; 在消费消息时原子地转入 busy，保证“busy 必有对应消费”这一不变量
+    ;; 两个入口：测试模拟 busy 态；以及绕过 dequeue 直投 jobs-chan 的
+    ;; 扩展命令提交（pi-app-submit-extension-command!）。
+    ;; 两条路径的结算均经 agent_settled → pi-queue-finish-task! 解除
     (define (pi-queue-set-busy! q)
       (%pi-queue-status-set! q 'busy)
     ) ;define
