@@ -10,9 +10,12 @@
     (liii json)
     (liii path)
     (liii string)
+    (liii list)
     (liii sys)
     (srfi srfi-13)
     (liii gfproject tools)
+    (liii pi code core extensions types)
+    (liii pi code core extensions registry)
   ) ;import
   (export PI_HELP_TEXT display-pi-help)
   (begin
@@ -112,6 +115,8 @@
         "Usage:\n"
         "  gf pi [options] [--] [@files...] [messages...]\n"
         "  gf pi auth print-api-key --provider <provider>\n"
+        "  gf pi install [--local|-l] <git-url>       Install extension from git\n"
+        "  gf pi link [--local|-l] <dir>              Link local extension dir for development\n"
         "\n"
         "Options:\n"
         "  -p, --print                    Print response to stdout and exit\n"
@@ -162,8 +167,100 @@
     ;; 完整帮助文本：首行含版本号与开发者模式标记。
     (define PI_HELP_TEXT (%pi-help-text))
 
+    ;; 扩展注册项帮助段：从 registry 动态生成，外部插件（如 simplify）
+    ;; 注册的 flags / commands 自动出现在 --help 中。
+    ;; 硬编码在基础帮助里的 flag（如 --code-review）不重复展示。
+    (define %documented-flags
+      '("--code-review" "--staged" "--ref" "--auto-review")
+    ) ;define
+
+    (define (%pad-right s width)
+      (let ((len (string-length s)))
+        (if (>= len width)
+          s
+          (string-append s (make-string (- width len) #\space))
+        ) ;if
+      ) ;let
+    ) ;define
+
+    (define (%command-display-name c)
+      (let ((name (extension-command-def-name c)))
+        (if (string-prefix? "/" name) name (string-append "/" name))
+      ) ;let
+    ) ;define
+
+    (define (%dedup-commands cmds)
+      (let loop
+        ((rest cmds) (seen '()) (out '()))
+        (if (null? rest)
+          (reverse out)
+          (let ((name (%command-display-name (car rest))))
+            (if (member name seen)
+              (loop (cdr rest) seen out)
+              (loop (cdr rest) (cons name seen) (cons (car rest) out))
+            ) ;if
+          ) ;let
+        ) ;if
+      ) ;let
+    ) ;define
+
+    (define (%extension-help-lines reg)
+      (let* ((flags
+               (filter
+                 (lambda (f)
+                   (not (member (extension-flag-def-flag f) %documented-flags))
+                 ) ;lambda
+                 (extension-registry-flags-list reg)
+               ) ;filter
+             ) ;flags
+             ;; 同一命令可能以 "/name" 与 "name" 双名注册，按展示名去重。
+             (cmds (%dedup-commands (extension-registry-commands-list reg)))
+            ) ;
+        (if (and (null? flags) (null? cmds))
+          ""
+          (string-append
+            "Extensions:\n"
+            (apply string-append
+              (append
+                (map (lambda (f)
+                       (string-append "  "
+                         (%pad-right (extension-flag-def-flag f) 30)
+                         (extension-flag-def-description f)
+                         "\n"
+                       ) ;string-append
+                     ) ;lambda
+                  flags
+                ) ;map
+                (map (lambda (c)
+                       (string-append "  "
+                         (%pad-right (%command-display-name c) 30)
+                         (extension-command-def-description c)
+                         "\n"
+                       ) ;string-append
+                     ) ;lambda
+                  cmds
+                ) ;map
+              ) ;append
+            ) ;apply
+            "\n"
+          ) ;string-append
+        ) ;if
+      ) ;let*
+    ) ;define
+
     (define (display-pi-help)
       (display PI_HELP_TEXT)
+      (let ((reg
+              (catch #t
+                (lambda () (or (current-extension-registry) (default-extension-registry)))
+                (lambda args #f)
+              ) ;catch
+            ) ;reg
+           ) ;
+        (when reg
+          (display (%extension-help-lines reg))
+        ) ;when
+      ) ;let
     ) ;define
   ) ;begin
 ) ;define-library

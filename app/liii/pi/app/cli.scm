@@ -38,10 +38,6 @@
       ) ;if
     ) ;define
 
-    (define (help-request? args)
-      (or (equal? args '("-h")) (equal? args '("--help")))
-    ) ;define
-
     (define (main-binding name)
       (eval name (environment '(liii pi app cli impl)))
     ) ;define
@@ -51,15 +47,9 @@
     ) ;define
 
     (define (run-pi raw-args)
-      (let ((args (strip-command-prefix raw-args)))
-        (if (help-request? args)
-          (begin
-            (display-pi-help)
-            0
-          ) ;begin
-          ((main-binding 'run-pi) raw-args)
-        ) ;if
-      ) ;let
+      ;; 统一走 impl 入口：--help 也先加载扩展 registry，
+      ;; 使外部插件注册的 flags / commands 出现在帮助中。
+      ((main-binding 'run-pi) raw-args)
     ) ;define
 
     (define run-goldpi run-pi)

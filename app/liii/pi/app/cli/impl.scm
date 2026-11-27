@@ -342,6 +342,43 @@
       ) ;let
     ) ;define
 
+    ;; gf pi link [--local|-l] <本地扩展目录>：把本地扩展源码目录链接到
+    ;; 用户级 ~/.gf/gfcode/<name> 或项目级 .gf/gfcode/<name>，供开发联调。
+    (define (%handle-link-command args)
+      (let loop
+        ((rem args) (local? #f) (dir #f))
+        (cond
+         ((null? rem)
+          (if (not dir)
+            (begin
+              (display-stderr "Error: pi link requires a local extension directory\nUsage: gf pi link [--local|-l] <dir>\n"
+              ) ;display-stderr
+              1
+            ) ;begin
+            (begin
+              (let ((target (pi-link-extension dir :local? local?)))
+                (display (string-append "Linked extension to " target "\n"))
+                0
+              ) ;let
+            ) ;begin
+          ) ;if
+         ) ;
+         ((or (string=? (car rem) "--local") (string=? (car rem) "-l"))
+          (loop (cdr rem) #t dir)
+         ) ;
+         ((string-starts? (car rem) "-")
+          (display-stderr (string-append "Error: unknown link option: " (car rem) "\n"))
+          1
+         ) ;
+         ((not dir) (loop (cdr rem) local? (car rem)))
+         (else (display-stderr (string-append "Error: unexpected extra argument: " (car rem) "\n")
+               ) ;display-stderr
+           1
+         ) ;else
+        ) ;cond
+      ) ;let
+    ) ;define
+
     ;; gf pi config：ranger 风格三列配置 TUI。
     ;; 按 q 退出 = 配置完成，直接进入 pi 交互界面；Esc/Ctrl+C = 直接退出。
     (define (%handle-config-command)
@@ -363,6 +400,9 @@
             (cond
              ((and (pair? stripped) (string=? (car stripped) "install"))
               (%handle-install-command (cdr stripped))
+             ) ;
+             ((and (pair? stripped) (string=? (car stripped) "link"))
+              (%handle-link-command (cdr stripped))
              ) ;
              ((and (pair? stripped) (string=? (car stripped) "config"))
               (%handle-config-command)
