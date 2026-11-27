@@ -179,7 +179,11 @@
                             (list :on-update on-update :check-abort pi-aborted?)
                             '()
                           ) ;if
-                          (if (pair? opt-config) (list :config opt-config) '())
+                          ;; 传入 Agent 配置：既支持 alist 也支持 pi-config 对象。
+                          ;; 此前仅 (pair? opt-config) 会漏掉 pi-config 对象，导致
+                          ;; 扩展工具（如 web_search）拿不到会话 provider/model，
+                          ;; 只能落到插件自身缺省值。
+                          (if opt-config (list :config opt-config) '())
                         ) ;append
              ) ;exec-opts
              (started-at (current-jiffy))
