@@ -38,6 +38,12 @@ Verify:
 gf help | grep pi
 ```
 
+## Code Review
+
+Use `/review` in interactive mode or `gf pi --code-review` from the command line. The reviewer can use Bash to inspect changes. To edit, build, or run tests that may write files, use a temporary copy outside the original workspace that includes the changes under review. Do not copy changes back.
+
+The `write` and `edit` tools cannot target the original workspace. On Windows, both tools are disabled during review. Bash is not sandboxed: the instruction not to modify the original workspace is not a filesystem permission restriction.
+
 ## Configuration
 
 ### One-command Login
@@ -83,16 +89,16 @@ gf pi --list-models gemini  # Optional search term
 
 For non-interactive setup, configure an API key using the corresponding environment variable:
 
-| Provider | Environment variable |
-|---|---|
-| `google` | `GEMINI_API_KEY` |
-| `anthropic` | `ANTHROPIC_API_KEY` |
-| `kimi-coding` | `KIMI_API_KEY` |
-| `deepseek` | `DEEPSEEK_API_KEY` |
-| `minimax-cn` | `MINIMAX_CN_API_KEY` or `MINIMAX_API_KEY` |
-| `zai-coding-cn` | `ZAI_CODING_CN_API_KEY`, `ZAI_API_KEY`, `GLM_API_KEY`, or `ZHIPU_API_KEY` |
-| `opencode` | `OPENCODE_API_KEY` or `OPENCODE_GO_API_KEY` |
-| `qwen-token-plan-cn` | `QWEN_TOKEN_PLAN_TEAM_CN_API_KEY` or `QWEN_TOKEN_PLAN_CN_API_KEY` |
+| Provider             | Environment variable                                                      |
+| -------------------- | ------------------------------------------------------------------------- |
+| `google`             | `GEMINI_API_KEY`                                                          |
+| `anthropic`          | `ANTHROPIC_API_KEY`                                                       |
+| `kimi-coding`        | `KIMI_API_KEY`                                                            |
+| `deepseek`           | `DEEPSEEK_API_KEY`                                                        |
+| `minimax-cn`         | `MINIMAX_CN_API_KEY` or `MINIMAX_API_KEY`                                 |
+| `zai-coding-cn`      | `ZAI_CODING_CN_API_KEY`, `ZAI_API_KEY`, `GLM_API_KEY`, or `ZHIPU_API_KEY` |
+| `opencode`           | `OPENCODE_API_KEY` or `OPENCODE_GO_API_KEY`                               |
+| `qwen-token-plan-cn` | `QWEN_TOKEN_PLAN_TEAM_CN_API_KEY` or `QWEN_TOKEN_PLAN_CN_API_KEY`         |
 
 Set the environment variable before running `gf pi`.
 

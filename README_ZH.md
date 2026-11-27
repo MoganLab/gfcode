@@ -38,6 +38,12 @@ HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 gf get -g htt
 gf help | grep pi
 ```
 
+## 代码审查
+
+在交互界面输入 `/review`，或使用 `gf pi --code-review`。审查可用 Bash 查看差异；如需修改、构建或运行会写文件的测试，请在原工作区之外创建包含待审改动的临时副本，不要把改动同步回原件。
+
+`write` 和 `edit` 不允许修改原工作区；Windows 上审查会禁用这两个工具。Bash 没有文件系统隔离，不写入原工作区是给模型的指令，而不是系统强制的权限限制。
+
 ## 配置
 
 ### 一键登录
@@ -83,16 +89,16 @@ gf pi --list-models gemini  # 可选的搜索关键词
 
 非交互式配置可设置供应商对应的环境变量：
 
-| 供应商 | 环境变量 |
-|---|---|
-| `google` | `GEMINI_API_KEY` |
-| `anthropic` | `ANTHROPIC_API_KEY` |
-| `kimi-coding` | `KIMI_API_KEY` |
-| `deepseek` | `DEEPSEEK_API_KEY` |
-| `minimax-cn` | `MINIMAX_CN_API_KEY` 或 `MINIMAX_API_KEY` |
-| `zai-coding-cn` | `ZAI_CODING_CN_API_KEY`、`ZAI_API_KEY`、`GLM_API_KEY` 或 `ZHIPU_API_KEY` |
-| `opencode` | `OPENCODE_API_KEY` 或 `OPENCODE_GO_API_KEY` |
-| `qwen-token-plan-cn` | `QWEN_TOKEN_PLAN_TEAM_CN_API_KEY` 或 `QWEN_TOKEN_PLAN_CN_API_KEY` |
+| 供应商               | 环境变量                                                                 |
+| -------------------- | ------------------------------------------------------------------------ |
+| `google`             | `GEMINI_API_KEY`                                                         |
+| `anthropic`          | `ANTHROPIC_API_KEY`                                                      |
+| `kimi-coding`        | `KIMI_API_KEY`                                                           |
+| `deepseek`           | `DEEPSEEK_API_KEY`                                                       |
+| `minimax-cn`         | `MINIMAX_CN_API_KEY` 或 `MINIMAX_API_KEY`                                |
+| `zai-coding-cn`      | `ZAI_CODING_CN_API_KEY`、`ZAI_API_KEY`、`GLM_API_KEY` 或 `ZHIPU_API_KEY` |
+| `opencode`           | `OPENCODE_API_KEY` 或 `OPENCODE_GO_API_KEY`                              |
+| `qwen-token-plan-cn` | `QWEN_TOKEN_PLAN_TEAM_CN_API_KEY` 或 `QWEN_TOKEN_PLAN_CN_API_KEY`        |
 
 设置环境变量后再运行 `gf pi`。
 

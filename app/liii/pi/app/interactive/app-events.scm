@@ -380,6 +380,11 @@
             ((retry) (pi-app-add-retry-message! app (cadr ev)))
             ;; 扩展通知（经 event-chan 投递的状态行）：渲染为聊天区 dim 提示
             ((tps_report) (pi-app-add-status-message! app (cadr ev)))
+            ((extension_command_notice) (pi-app-add-status-message! app (cadr ev)))
+            ((extension_command_error)
+             (pi-app-add-tool-result! app "review" '() 'error (cadr ev))
+            ) ;
+            ((extension_command_report) (pi-app-add-assistant-text! app (cadr ev)))
             ;; worker 消费了 steering / follow-up 注入消息：
             ;; 移除待处理显示并上屏正式用户卡片（对齐上游 message_start 双动作）
             ((user_message)

@@ -16,6 +16,7 @@
     (liii pi ai message)
     (gfcode code-review parse)
     (gfcode code-review format)
+    (gfcode code-review result)
   ) ;import
   (export pi-code-review-response)
   (begin
@@ -88,20 +89,15 @@
             ) ;
         (cond
          ((or (equal? stop-reason "error") (equal? stop-reason "aborted"))
-          (list (cons 'status 'error)
-            (cons 'message (or err-msg (string-append "Request " stop-reason)))
-          ) ;list
+          (make-review-error (or err-msg (string-append "Request " stop-reason)))
          ) ;
          ((equal? stop-reason "length")
-          (list (cons 'status 'error)
-            (cons 'message
-              "Response was truncated: the model reached its output token limit."
-            ) ;cons
-          ) ;list
+          (make-review-error "Response was truncated: the model reached its output token limit."
+          ) ;make-review-error
          ) ;
          (else
            (let ((findings (pi-parse-review-findings (%last-assistant-text res-msgs))))
-             (list (cons 'status 'ok) (cons 'report (pi-format-review-findings findings)))
+             (make-review-ok (pi-format-review-findings findings))
            ) ;let
          ) ;else
         ) ;cond

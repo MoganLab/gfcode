@@ -13,9 +13,11 @@
 使用以下命令查看函数文档和测试用例：
 
 ```bash
-gf doc <函数名>
+gf doc pi-app-submit!
+gf doc pi-parse-extension-command
 ```
 
 ## 函数分类索引
 
-详见当前目录下的单元测试用例。
+- `pi-app-submit!` - 提交普通消息或分发交互命令
+- `pi-parse-extension-command` - 解析规范 slash command 名及原始参数（ST3 实现）

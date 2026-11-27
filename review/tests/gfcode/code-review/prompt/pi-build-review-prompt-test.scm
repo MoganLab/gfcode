@@ -31,7 +31,12 @@
        (p (pi-build-review-prompt files))
       ) ;
   (check-true (string-contains? p "Return your findings as JSON"))
-  (check-true (string-contains? p "do not call or request any tools"))
+  (check-true (string-contains? p "You may use bash to inspect it"))
+  (check-true (string-contains? p
+                "temporary copy of the repository outside the original workspace"
+              ) ;string-contains?
+  ) ;check-true
+  (check-true (string-contains? p "Do not copy changes back"))
   (check-true (string-contains? p "\"findings\": [{\"severity\":"))
   (check-true (string-contains? p "CRITICAL: Security vulnerabilities"))
   (check-true (string-contains? p "HIGH: Bugs"))
@@ -56,7 +61,7 @@
        (p (pi-build-review-prompt files))
       ) ;
   (check-true (string-contains? p "[truncated]"))
-  (check (< (string-length p) 6000) => #t)
+  (check (< (string-length p) 6500) => #t)
 ) ;let*
 
 ;; 空文件列表也能生成合法提示词（文件段为空）
