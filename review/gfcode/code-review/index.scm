@@ -88,11 +88,12 @@
       (pi-on! api
         'turn_end
         (lambda (payload)
-          (pi-review-tracker-end-turn! tracker
-            (let ((entry (and (pair? payload) (assq 'turn payload))))
-              (if entry (cdr entry) 0)
-            ) ;let
-          ) ;pi-review-tracker-end-turn!
+          (let ((entry (and (pair? payload) (assq 'turn payload))))
+            (if entry
+              (pi-review-tracker-end-turn! tracker (cdr entry))
+              (error 'pi-review-tracker "turn_end payload missing 'turn field" payload)
+            ) ;if
+          ) ;let
         ) ;lambda
       ) ;pi-on!
 
