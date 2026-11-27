@@ -40,10 +40,10 @@
           ) ;let
          ) ;
          ((and (or (pi-config? config) (pair? config))
-            (let ((p (pi-cfg-ref config 'provider #f)))
+            (let ((p (%norm-provider (%cfg-ref config 'provider))))
               (or (not p) (equal? p "google"))
             ) ;let
-            (let ((k (pi-cfg-ref config 'api-key #f)))
+            (let ((k (%cfg-ref config 'api-key)))
               (and (string? k) (not (string-null? (string-trim-both k))) k)
             ) ;let
           ) ;and
@@ -79,7 +79,7 @@
     ;; 优先级：显式模型 > web-search.json 模型 > 匹配会话 provider 的 model-id > provider 缺省。
     ;; 会话 provider 与搜索 provider 不一致时跳过会话 model-id，避免跨 provider 串值。
     (define (pi-resolve-search-model-id config opt-model . opt-provider)
-      (let* ((provider (if (pair? opt-provider) (car opt-provider) #f))
+      (let* ((provider (%norm-provider (if (pair? opt-provider) (car opt-provider) #f)))
              (opt-model-str
                (if (string? opt-model)
                  (let ((trimmed (string-trim-both opt-model)))
@@ -88,48 +88,25 @@
                  #f
                ) ;if
              ) ;opt-model-str
-             (cfg-provider
-               (and (or (pi-config? config) (pair? config))
-                 (let ((p (pi-cfg-ref config 'provider #f)))
-                   (if (string? p) (string-trim-both p) p)
-                 ) ;let
-               ) ;and
-             ) ;cfg-provider
-             (cfg-model
-               (and (or (pi-config? config) (pair? config))
-                 (let ((m (pi-cfg-ref config 'model-id #f)))
-                   (and (string? m) m)
-                 ) ;let
-               ) ;and
-             ) ;cfg-model
-             (same-provider? (and (string? provider)
-                               (string? cfg-provider)
-                               (equal? (string-trim-both provider) (string-trim-both cfg-provider))
-                             ) ;and
+             (cfg-provider (%norm-provider (%cfg-ref config 'provider)))
+             (cfg-model (%cfg-ref config 'model-id))
+             (same-provider? (and (string? provider) (string? cfg-provider) (equal? provider cfg-provider))
              ) ;same-provider?
             ) ;
         (cond (opt-model-str opt-model-str)
               ;; 未传入 provider（两参数调用）时保留原有行为：无条件使用会话 model-id
-              ((and (not provider) cfg-model) cfg-model)
+              ((and (not provider) (string? cfg-model)) cfg-model)
               ;; 传入 provider 后按 provider 匹配决定是否沿用会话 model-id
-              ((and same-provider? cfg-model) cfg-model)
+              ((and same-provider? (string? cfg-model)) cfg-model)
               (else (%default-search-model provider))
         ) ;cond
       ) ;let*
     ) ;define
 
     (define (%cfg-ref config key)
-      (and (pair? config)
-        (let ((p
-                (or (assoc key config)
-                  (if (symbol? key) (assoc (symbol->string key) config) #f)
-                  (if (string? key) (assoc (string->symbol key) config) #f)
-                ) ;or
-              ) ;p
-             ) ;
-          (and (pair? p) (cdr p))
-        ) ;let
-      ) ;and
+      (or (pi-cfg-ref config key #f)
+        (and (pair? config) (pi-cfg-ref config (symbol->string key) #f))
+      ) ;or
     ) ;define
 
     (define (%cfg-str config key)
@@ -264,10 +241,7 @@
     ) ;define
 
     (define (%config-wants-deepseek? config)
-      (equal? (%norm-provider (or (%cfg-str config 'web-search-provider) (%cfg-str config 'provider) "")
-              ) ;%norm-provider
-        "deepseek"
-      ) ;equal?
+      (equal? (%norm-provider (%cfg-str config 'provider)) "deepseek")
     ) ;define
 
     (define (pi-resolve-deepseek-api-key config opt-key . opt-env)

@@ -20,7 +20,7 @@
     "model": {
       "type": "string",
       "minLength": 1,
-      "description": "联网搜索使用的模型标识；缺省按 provider 区分：deepseek 为 deepseek-flash，google 为 gemini-2.5-flash"
+      "description": "Google 端点使用的模型（缺省 gemini-2.5-flash）；DeepSeek 下仅为结果 details.model 的配置标识（缺省 deepseek-flash），不传给 Search/Fetch API"
     },
     "baseUrl": {
       "type": "string",

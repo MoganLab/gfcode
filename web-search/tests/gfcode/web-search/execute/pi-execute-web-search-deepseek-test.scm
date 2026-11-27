@@ -93,6 +93,7 @@
 
   ;; 5.1 正常搜索：显式 :provider "deepseek"
   (let ((res (pi-execute-web-search '(("query" . "goldfish scheme"))
+               :env      (isolated-env)
                :provider "deepseek"
                :api-key  "ds-test-key"
                :base-url base-url
@@ -179,11 +180,12 @@
 
   ;; 5.3 空配置缺省 provider 已为 deepseek（google 场景由
   ;;     pi-web-search-execute-test.scm 显式 :provider "google" 覆盖）
-  (check (pi-resolve-web-search-provider '() #f #f) => "deepseek")
+  (check (pi-resolve-web-search-provider '() #f #f (isolated-env)) => "deepseek")
 
   ;; 5.4 带 urls：deepseek 分支用 fetch API 读取页面
   (let ((res (pi-execute-web-search '(("query" . "goldfish scheme")
                                       ("urls" "https://example.com/page1"))
+               :env      (isolated-env)
                :provider "deepseek"
                :api-key  "ds-test-key"
                :base-url base-url
@@ -223,6 +225,7 @@
 
   ;; 5.7 空结果
   (let ((res (pi-execute-web-search '(("query" . "empty results"))
+               :env      (isolated-env)
                :provider "deepseek"
                :api-key  "ds-test-key"
                :base-url base-url
@@ -265,6 +268,7 @@
                (execute-tool-call "web_search"
                  '(("query" . "goldfish scheme"))
                  :provider "deepseek"
+                 :env      (isolated-env)
                  :api-key  "ds-test-key"
                  :base-url base-url
                  :timeout  10
@@ -316,7 +320,7 @@
     ) ;check
   ) ;let*
 
-  ;; 5.11 web-search.json 显式 model=deepseek-flash 透传到 details.model
+  ;; 5.11 配置文件使用非缺省标识，stub 不接受 model 请求参数
   (let ((res
           (pi-execute-web-search '(("query" . "goldfish scheme"))
             :provider "deepseek"
@@ -335,7 +339,7 @@
     (check
       (cdr (assoc 'model (cdr (assoc 'details res))))
       =>
-      "deepseek-flash"
+      "deepseek-fixture-label"
     ) ;check
   ) ;let
 

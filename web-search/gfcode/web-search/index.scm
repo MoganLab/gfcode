@@ -21,7 +21,7 @@
     (define (extension api . opt-context)
       (register-tool! api
         (make-extension-tool-def "web_search"
-          "Search the web using Gemini Google Search grounding."
+          "Search the web using the configured search provider."
           (pi-web-search-schema)
           pi-execute-web-search
           :snippet "Search the web for up-to-date information"

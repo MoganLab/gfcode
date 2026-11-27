@@ -320,7 +320,7 @@
                 proxy-alist timeout model-id
               ) ;pi-execute-deepseek-web-search
             ) ;let*
-            ;; 默认 Google 后端：Gemini grounding API
+            ;; Google 后端：Gemini grounding API
             (let* ((api-key (if (pair? opt-env)
                               (pi-resolve-google-api-key config opt-key opt-env)
                               (pi-resolve-google-api-key config opt-key)

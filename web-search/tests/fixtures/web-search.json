@@ -1,4 +1,4 @@
 {
   "provider": "deepseek",
-  "model": "deepseek-flash"
+  "model": "deepseek-fixture-label"
 }
