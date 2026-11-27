@@ -21,9 +21,11 @@
 ;; 成功时返回 review-session-request，含 parsed、config、prompt、on-finish 供通用 worker 执行。
 ;; 未知参数不抛异常，以可读错误结果返回。
 
-(import (liii check) (liii string)
+(import (liii check)
+  (liii string)
   (gfcode code-review interactive)
-  (gfcode code-review result))
+  (gfcode code-review result)
+) ;import
 
 (check-set-mode! 'report-failed)
 
@@ -31,7 +33,7 @@
        (result
          (pi-code-review-command "--staged --ref=main a.scm"
            (list
-             (cons 'config (list (cons 'tools '("write")) (cons 'provider "google")))
+             (cons 'config (list (cons 'tools '("bash" "read")) (cons 'provider "google")))
            ) ;list
            :prepare
            (lambda (parsed cfg)
@@ -44,10 +46,9 @@
   (check (review-session-request? result) => #t)
   (check (review-session-request-prompt result) => "review")
   (check (procedure? (review-session-request-on-finish result)) => #t)
-  (check
-    (cdr (assoc 'tools (review-session-request-config result)))
+  (check (cdr (assoc 'tools (review-session-request-config result)))
     =>
-    '()
+    '("bash" "read")
   ) ;check
   (check (cdr (assoc 'messages seen)) => '("a.scm"))
   (check (cdr (assoc 'review-ref seen)) => "main")
@@ -56,13 +57,12 @@
   (check (cdr (assoc 'no-skills seen)) => #t)
 ) ;let*
 
-  (check (review-error? (pi-code-review-command "--bad" '())) => #t)
+(check (review-error? (pi-code-review-command "--bad" '())) => #t)
 
-(let ((result
-        (pi-code-review-command ""
-          '()
-          :prepare (lambda (parsed cfg) (make-review-no-files #f #f))
-        ) ;pi-code-review-command
+(let ((result (pi-code-review-command ""
+                '()
+                :prepare (lambda (parsed cfg) (make-review-no-files #f #f))
+              ) ;pi-code-review-command
       ) ;result
      ) ;
   (check (review-no-files? result) => #t)

@@ -62,9 +62,14 @@
       (string-join (map %format-file-block files) "\n\n")
     ) ;define
 
+    (define %review-workspace-guidance
+      "Do not modify the original workspace, including through bash. You may use bash to inspect it. Before making edits, building, or running tests that may write files, create a temporary copy of the repository outside the original workspace that includes the changes under review. Make changes and run those commands only in the copy. Do not copy changes back. Report what you verified and which tests ran."
+    ) ;define
+
     (define (%review-prompt-body lang-section file-blocks)
-      (string-append "Review the following files for code quality issues. All file contents are provided below; do not call or request any tools. Return your findings as JSON in this exact format:\n\n"
-        "```json\n"
+      (string-append "Review the following files for code quality issues.\n\n"
+        %review-workspace-guidance
+        "\n\nReturn your findings as JSON in this exact format:\n\n" "```json\n"
         "{\"findings\": [{\"severity\": \"CRITICAL|HIGH|MEDIUM|INFO\", \"file\": \"path\", \"line\": 42, \"category\": \"category\", \"message\": \"description\", \"suggestion\": \"fix\"}]}\n"
         "```\n\n" "Severity guide:\n"
         "- CRITICAL: Security vulnerabilities, data loss risks, crash-inducing bugs\n"
@@ -92,7 +97,8 @@
 
     (define (pi-build-fallback-prompt files)
       (string-append "Review the following recently changed files for code quality issues. Read each file, then report findings.\n\n"
-        "## Format\n\n"
+        %review-workspace-guidance
+        "\n\n## Format\n\n"
         "For each finding, state:\n"
         "- **Severity**: CRITICAL, HIGH, MEDIUM, or INFO\n"
         "- **File** and **line number**\n"
@@ -104,7 +110,7 @@
         "## Files to Review\n\n"
         (%format-file-list files)
         "\n\n"
-        "Read each file, identify issues, and report your findings. Do not modify any file."
+        "Read each file, identify issues, and report your findings."
       ) ;string-append
     ) ;define
 

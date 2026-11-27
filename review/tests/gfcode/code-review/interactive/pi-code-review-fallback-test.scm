@@ -56,55 +56,46 @@
            ) ;list
            :prepare
            (lambda (parsed cfg)
-             (make-review-session-request #f #f "structured" #f #f #f
+             (make-review-session-request #f
+               #f
+               "structured"
+               #f
+               #f
+               #f
                (list (list (cons 'path "a.scm") (cons 'language "scheme") (cons 'content "x")))
-               '())
+               '()
+             ) ;make-review-session-request
            ) ;lambda
          ) ;pi-code-review-command
        ) ;request
        (on-finish (review-session-request-on-finish request))
       ) ;
   ;; 成功：不触发 fallback
-  (check
-    (review-ok? (on-finish (ok-msgs)))
-    =>
-    #t
-  ) ;check
+  (check (review-ok? (on-finish (ok-msgs))) => #t)
   (check retried => #f)
   ;; 失败：请求一次降级，prompt 为只读 fallback 提示词
   (let ((retry (on-finish (error-msgs))))
     (check (review-retry? retry) => #t)
-    (check-true (string-contains? (review-retry-prompt retry) "Do not modify any file")
+    (check-true (string-contains? (review-retry-prompt retry)
+                  "Do not modify the original workspace"
+                ) ;string-contains?
     ) ;check-true
     (check-true (procedure? (review-retry-on-finish retry)))
     ;; 降级结算：统一响应解析，不再产生 retry
-    (check
-      (review-ok? ((review-retry-on-finish retry) (ok-msgs)))
-      =>
-      #t
-    ) ;check
-    (check
-      (review-error? ((review-retry-on-finish retry) (error-msgs)))
-      =>
-      #t
-    ) ;check
+    (check (review-ok? ((review-retry-on-finish retry) (ok-msgs))) => #t)
+    (check (review-error? ((review-retry-on-finish retry) (error-msgs))) => #t)
   ) ;let
 ) ;let*
 
 ;; 无 fallback-runner：失败原样返回错误
-(let* ((request
-         (pi-code-review-command "a.scm"
-           '((config))
-           :prepare
-           (lambda (parsed cfg)
-             (make-review-session-request #f #f "p" #f #f #f '() '())
-           ) ;lambda
-         ) ;pi-code-review-command
+(let* ((request (pi-code-review-command "a.scm"
+                  '((config))
+                  :prepare
+                  (lambda (parsed cfg) (make-review-session-request #f #f "p" #f #f #f '() '()))
+                ) ;pi-code-review-command
        ) ;request
       ) ;
-  (check
-    (review-error?
-      ((review-session-request-on-finish request) (error-msgs)))
+  (check (review-error? ((review-session-request-on-finish request) (error-msgs)))
     =>
     #t
   ) ;check
