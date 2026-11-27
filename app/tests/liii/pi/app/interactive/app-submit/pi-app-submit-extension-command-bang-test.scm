@@ -17,7 +17,8 @@
 ;; 返回值
 ;; ----
 ;; #t
-;; 空闲时向 jobs-chan 投递 (extension_command name args) 并清空编辑器；
+;; 空闲时向 jobs-chan 投递 (extension_command name args)、清空编辑器，
+;; 并将队列转入 busy（后续消息排队、ESC 可中止）；
 ;; busy 时只提示，不投递命令。
 
 (import (scheme base)
@@ -50,10 +51,15 @@
   ) ;let
   (check submitted => #f)
   (check (editor-text (pi-app-editor app)) => "")
+  ;; 直投 job 后队列必须已转入 busy（无需手动 set）：
+  ;; 否则后续消息会并发直投、ESC 无法中止、Working 动画不启动
+  (check-true (pi-queue-busy? (pi-app-queue app)))
   ;; busy：只提示，不再投递
-  (pi-queue-set-busy! (pi-app-queue app))
   (pi-app-submit-extension-command! app command "")
   (check (chan-try-recv! (pi-app-jobs-chan app) #f) => #f)
+  ;; 结算（agent_settled → finish-task）后恢复 idle，可再次提交
+  (pi-queue-finish-task! (pi-app-queue app))
+  (check-true (pi-queue-idle? (pi-app-queue app)))
 ) ;let*
 
 (check-report)

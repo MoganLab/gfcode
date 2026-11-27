@@ -30,6 +30,7 @@
     (liii pi app interactive app-bash)
     (liii pi app interactive app-events)
     (liii pi app interactive render)
+    (liii pi app interactive working)
     (liii pi code core skills format)
     (liii pi code core extensions)
   ) ;import
@@ -80,6 +81,12 @@
                     (list 'extension_command (extension-command-def-name command) args)
                     1000
                   ) ;chan-send!
+                  ;; 直投 job 不经 dequeue 的原子转 busy：这里显式转入，
+                  ;; 保证后续消息排队而非并发直投、Working 动画启动、
+                  ;; ESC 能命中 busy 门控发出中止信号；结算由 worker 的
+                  ;; agent_settled 事件经 pi-queue-finish-task! 解除
+                  (pi-queue-set-busy! (pi-app-queue app))
+                  (working-reset! (pi-app-working app))
                 ) ;lambda
                 (lambda (tag . err) (pi-app-flash! app "Failed to start extension command."))
               ) ;catch
