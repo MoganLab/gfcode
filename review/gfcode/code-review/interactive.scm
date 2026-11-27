@@ -11,6 +11,7 @@
     (gfcode code-review args)
     (gfcode code-review prompt)
     (gfcode code-review modes)
+    (gfcode code-review result)
   ) ;import
   (export pi-code-review-command)
   (begin
@@ -22,13 +23,13 @@
     ;; 结构化审查失败时降级为只读 fallback 提示词重试一次；
     ;; fallback 也不可用（worker 无此字段）时回退原结果。
     (define (%fallback-result ctx request result)
-      (let ((retry (cdr (or (assoc 'fallback-runner ctx) '(#f . #f)))))
-        (if (procedure? retry)
+      (let ((runner (cdr (or (assoc 'fallback-runner ctx) '(#f . #f)))))
+        (if (procedure? runner)
           ;; 降级会话保持只读；提示词由 fallback 构造器生成，
           ;; 结算仍用统一响应解析（不再重试）
-          (retry (pi-build-fallback-prompt (cdr (assoc 'records request)))
+          (runner (pi-build-fallback-prompt (review-session-request-records request))
             pi-code-review-response
-          ) ;retry
+          ) ;runner
           result
         ) ;if
       ) ;let
@@ -37,7 +38,7 @@
     (define (%on-finish ctx request)
       (lambda (msgs)
         (let ((result (pi-code-review-response msgs)))
-          (if (eq? (cdr (assoc 'status result)) 'error)
+          (if (review-error? result)
             (%fallback-result ctx request result)
             result
           ) ;if
@@ -62,7 +63,7 @@
              (config (cdr (or (assoc 'config ctx) '(#f))))
             ) ;
         (if error-message
-          (list (cons 'status 'error) (cons 'message error-message))
+          (make-review-error error-message)
           (let* ((parsed
                    (list (cons 'messages (cdr (assoc 'files options)))
                      (cons 'review-ref (cdr (assoc 'ref options)))
@@ -74,15 +75,17 @@
                  ) ;parsed
                  (request (prepare parsed config))
                 ) ;
-            (if (eq? (cdr (assoc 'status request)) 'no-files)
-              (list (cons 'status 'no-files) (cons 'message %no-files-message))
-              (append request
-                (list (cons 'parsed (pi-code-review-parsed parsed))
-                  (cons 'config (pi-code-review-config config))
-                  (cons 'on-finish (%on-finish ctx request))
-                  (cons 'run-isolated %run-isolated)
-                ) ;list
-              ) ;append
+            (if (review-no-files? request)
+              (make-review-no-files %no-files-message #f)
+              (make-review-session-request
+                (pi-code-review-parsed parsed)
+                (pi-code-review-config config)
+                (review-session-request-prompt request)
+                (%on-finish ctx request)
+                %run-isolated
+                (review-session-request-notice request)
+                (review-session-request-records request)
+                (review-session-request-paths request))
             ) ;if
           ) ;let*
         ) ;if

@@ -15,6 +15,7 @@
     (liii pi code config)
     (gfcode code-review files)
     (gfcode code-review prompt)
+    (gfcode code-review result)
   ) ;import
   (export pi-prepare-code-review pi-code-review-parsed pi-code-review-config)
   (begin
@@ -41,14 +42,17 @@
              (notice (cdr (assoc 'message collected)))
             ) ;
         (if (null? paths)
-          (list (cons 'status 'no-files) (cons 'notice notice))
+          (make-review-no-files #f notice)
           (let ((records (file-records paths)))
-            (list (cons 'status 'ok)
-              (cons 'paths paths)
-              (cons 'records records)
-              (cons 'prompt (pi-build-review-prompt records))
-              (cons 'notice notice)
-            ) ;list
+            (make-review-session-request
+              #f ; parsed 由调用方追加
+              #f ; config 由调用方追加
+              (pi-build-review-prompt records)
+              #f ; on-finish 由调用方追加
+              #f ; run-isolated 由调用方追加
+              notice
+              records
+              paths)
           ) ;let
         ) ;if
       ) ;let*
