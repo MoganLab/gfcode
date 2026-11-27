@@ -26,8 +26,8 @@
     (liii highlight rule-matcher)
   ) ;import
   (export make-rule rule? rule-type rule-attribute rule-context-target rule-data
-    rule-look-ahead? rule-first-non-space? rule-column parse-context-switch
-    match-rule
+    rule-look-ahead? rule-first-non-space? rule-column rule-event
+    parse-context-switch match-rule
   ) ;export
   (begin
 
@@ -50,6 +50,7 @@
     ;;   detect-spaces: #t
     ;;   detect-identifier: delimiters-string
     ;;   charset-run: (cons predicate-or-chars-string min-count)
+    ;; event: 结构事件名称（string 或 #f），命中时通知结构流，不影响高亮。
     (define*-record-type <rule>
       (make-rule type
         attribute
@@ -58,6 +59,7 @@
         (look-ahead? #f)
         (first-non-space? #f)
         (column -1)
+        (event #f)
       ) ;make-rule
       rule?
       (type rule-type)
@@ -67,6 +69,7 @@
       (look-ahead? rule-look-ahead?)
       (first-non-space? rule-first-non-space?)
       (column rule-column)
+      (event rule-event)
     ) ;define*-record-type
 
     (define (parse-pop-parens after pop-count loop)

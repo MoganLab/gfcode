@@ -46,4 +46,14 @@
   (check (component-render card 40) => '("Hello, world!" "second line" ""))
 ) ;let*
 
+;; Waiting for the next worker result must not erase the heading.
+(let* ((card (make-assistant-card "# title\n")) (st (component-data card)))
+  (%assistant-finish! st 0 '(("# title" (0 7 "Heading1")) ("")))
+  (let ((heading (car (component-render card 40))))
+    (assistant-card-append-text! card "body")
+    (check (component-render card 40) => (list heading "body" ""))
+    (check (assistant-card-text card) => "# title\nbody")
+  ) ;let
+) ;let*
+
 (check-report)

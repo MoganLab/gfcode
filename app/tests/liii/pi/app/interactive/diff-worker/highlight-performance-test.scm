@@ -41,11 +41,22 @@
 
 (define reply (make-chan 1))
 ;; Interleave both job types while the diff turn still owns its summary.
-(chan-send! jobs (list 'markdown_job 42 3 "```diff\n+修改\n```" reply) 100)
+(chan-send! jobs (list 'markdown_job 42 3 "```diff\n+修改\n```" reply #t) 100)
 (chan-send! jobs (list 'diff_highlight_job 1 "e" 1 (list-ref plain 4)) 100)
 
 (define markdown (chan-recv! reply 10000 #f))
-(check (map car (caddr markdown)) => '("```diff" "+修改" "```"))
+(check
+  (map car
+    (append
+      (list
+        (car (cadr (car (caddr markdown))))
+      ) ;list
+      (cadr (cadr (caddr markdown)))
+    ) ;append
+  ) ;map
+  =>
+  '("```diff" "+修改" "```")
+) ;check
 
 (define result (chan-recv! events 10000 #f))
 

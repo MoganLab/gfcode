@@ -51,8 +51,8 @@
       "line-end-context": "#stay",
       "rules": [
         { "type": "DetectChar", "attribute": "String", "context": "String_Value", "char": "\"" },
-        { "type": "DetectChar", "attribute": "Function", "context": "Pair", "char": "{" },
-        { "type": "DetectChar", "attribute": "Others", "context": "Array", "char": "[" },
+        { "type": "DetectChar", "attribute": "Function", "context": "Pair", "char": "{", "event": "object-open" },
+        { "type": "DetectChar", "attribute": "Others", "context": "Array", "char": "[", "event": "array-open" },
         { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
         { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "Constants" },
         { "type": "Float", "attribute": "Float", "context": "#stay" },
@@ -65,7 +65,7 @@
       "rules": [
         { "type": "DetectChar", "attribute": "DataType", "context": "String_Key", "char": "\"" },
         { "type": "DetectChar", "attribute": "Function", "context": "Value", "char": ":" },
-        { "type": "DetectChar", "attribute": "Function", "context": "#pop", "char": "}" },
+        { "type": "DetectChar", "attribute": "Function", "context": "#pop", "char": "}", "event": "object-close" },
         { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" }
       ]
     },
@@ -90,10 +90,10 @@
       "line-end-context": "#stay",
       "rules": [
         { "type": "DetectChar", "attribute": "Function", "context": "#pop", "char": "," },
-        { "type": "DetectChar", "attribute": "Function", "context": "#pop#pop", "char": "}" },
+        { "type": "DetectChar", "attribute": "Function", "context": "#pop#pop", "char": "}", "event": "object-close" },
         { "type": "DetectChar", "attribute": "String", "context": "String_Value", "char": "\"" },
-        { "type": "DetectChar", "attribute": "Function", "context": "Pair", "char": "{" },
-        { "type": "DetectChar", "attribute": "Others", "context": "Array", "char": "[" },
+        { "type": "DetectChar", "attribute": "Function", "context": "Pair", "char": "{", "event": "object-open" },
+        { "type": "DetectChar", "attribute": "Others", "context": "Array", "char": "[", "event": "array-open" },
         { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
         { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "Constants" },
         { "type": "Float", "attribute": "Float", "context": "#stay" },
@@ -121,15 +121,24 @@
       "line-end-context": "#stay",
       "rules": [
         { "type": "DetectChar", "attribute": "Others", "context": "#stay", "char": "," },
-        { "type": "DetectChar", "attribute": "Others", "context": "#pop", "char": "]" },
+        { "type": "DetectChar", "attribute": "Others", "context": "#pop", "char": "]", "event": "array-close" },
         { "type": "DetectChar", "attribute": "String", "context": "String_Value", "char": "\"" },
-        { "type": "DetectChar", "attribute": "Function", "context": "Pair", "char": "{" },
-        { "type": "DetectChar", "attribute": "Others", "context": "Array", "char": "[" },
+        { "type": "DetectChar", "attribute": "Function", "context": "Pair", "char": "{", "event": "object-open" },
+        { "type": "DetectChar", "attribute": "Others", "context": "Array", "char": "[", "event": "array-open" },
         { "type": "DetectSpaces", "attribute": "Normal", "context": "#stay" },
         { "type": "keyword", "attribute": "Keyword", "context": "#stay", "String": "Constants" },
         { "type": "Float", "attribute": "Float", "context": "#stay" },
         { "type": "Decimal", "attribute": "DecVal", "context": "#stay" }
       ]
     }
+  },
+  "segments": {
+    "version": 1,
+    "default": "text",
+    "root-scope": "value",
+    "structures": [
+      { "name": "object", "role": "object", "scope": "nested", "begin": "object-open", "end": "object-close", "children": ["object", "array"], "on-eof": "error-and-emit" },
+      { "name": "array", "role": "array", "scope": "nested", "begin": "array-open", "end": "array-close", "children": ["object", "array"], "on-eof": "error-and-emit" }
+    ]
   }
 }

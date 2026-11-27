@@ -18,10 +18,12 @@
     (liii path)
     (liii string)
     (liii tui)
+    (only (liii tui component) component-data)
     (liii pi agent queue)
     (liii pi app interactive state)
     (liii pi app interactive render)
     (liii pi app interactive views)
+    (only (liii pi app interactive views assistant) %assistant-finalize!)
     (liii pi app interactive working)
     (liii pi app interactive app-bash)
     (liii pi app interactive app-diff)
@@ -89,6 +91,12 @@
     ) ;define
 
     (define (%pi-app-close-assistant-card! app)
+      (let ((card (pi-app-assistant-card app)))
+        (when card
+          (%assistant-finalize! (component-data card))
+          (%markdown-dirty! app card)
+        ) ;when
+      ) ;let
       (%pi-app-assistant-card-set! app #f)
     ) ;define
 
@@ -101,7 +109,7 @@
               (assistant-card-append-text! card delta)
               (%markdown-dirty! app card)
             ) ;begin
-            (let ((new-card (make-assistant-card delta)))
+            (let ((new-card (make-assistant-card delta (%markdown-block-display? app))))
               (%pi-app-invalidate-scroll! app)
               (%pi-app-assistant-card-set! app new-card)
               (container-add! (%pi-app-chat app) new-card)
