@@ -152,6 +152,18 @@
       (%display-loop jobs events (%worker-parser) (%worker-markdown-parser))
     ) ;define
 
+    (define (markdown-result markdown job)
+      (let* ((id (cadr job))
+             (rev (caddr job))
+             (raw (cadddr job))
+             (result
+               (catch #t (lambda () (markdown raw id (list-ref job 5))) (lambda args #f))
+             ) ;result
+            ) ;
+        (if result (list id rev result) (list id rev #f))
+      ) ;let*
+    ) ;define
+
     (define (%display-loop jobs events parse markdown)
       (let loop
         ((turn #f))
@@ -190,11 +202,9 @@
                      (loop active)
                    ) ;let
                   ) ;
-                  ((and (eq? (car job) 'markdown_job) (= (length job) 5))
+                  ((and (eq? (car job) 'markdown_job) (= (length job) 6))
                    (unless (chan-closed? (list-ref job 4))
-                     (%diff-publish! (list-ref job 4)
-                       (list (cadr job) (caddr job) (markdown (cadddr job)))
-                     ) ;%diff-publish!
+                     (%diff-publish! (list-ref job 4) (markdown-result markdown job))
                    ) ;unless
                    (loop current)
                   ) ;

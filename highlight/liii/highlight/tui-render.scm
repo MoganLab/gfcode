@@ -23,7 +23,7 @@
     (liii highlight highlighter)
   ) ;import
   (export style->ansi-prefix render-spans-to-ansi highlight-line-to-ansi
-    highlight-text-to-ansi
+    highlight-text-to-ansi highlight-text-to-ansi-state
   ) ;export
   (begin
 
@@ -152,19 +152,55 @@
 
     ;; 整段文本高亮为带 ANSI 颜色的字符串
     (define (highlight-text-to-ansi text def th)
-      (let ((highlighted-lines (highlight-text text def)))
-        (let ((rendered-list
-                (map
-                  (lambda (pair)
-                    (let ((spans (car pair)) (line (cdr pair)))
-                      (render-spans-to-ansi line spans th def)
-                    ) ;let
-                  ) ;lambda
-                  highlighted-lines
-                ) ;map
-              ) ;rendered-list
-             ) ;
-          (string-join rendered-list "\n")
+      (let-values (((rendered _)
+                    (highlight-text-to-ansi-state text (initial-highlight-state def) def th)
+                   ) ;
+                  ) ;
+        rendered
+      ) ;let-values
+    ) ;define
+
+    ;; 携带跨段状态的多行渲染：返回 (values rendered next-state)。
+    ;; 与 highlight-text-to-ansi 逐行语义一致，但状态可跨调用延续，
+    ;; 供流式渲染适配器分段使用（多行字符串/注释跨段不丢失上下文）。
+    (define (highlight-text-to-ansi-state text state def th)
+      (let ((lines (split-text-lines-private text)))
+        (let loop
+          ((ls lines) (st state) (acc '()))
+          (if (null? ls)
+            (values (string-join (reverse acc) "\n") st)
+            (let-values (((spans next-state) (highlight-line (car ls) st def)))
+              (loop (cdr ls)
+                next-state
+                (cons (render-spans-to-ansi (car ls) spans th def) acc)
+              ) ;loop
+            ) ;let-values
+          ) ;if
+        ) ;let
+      ) ;let
+    ) ;define
+
+    ;; 与 highlighter 的 split-text-lines 同语义：保留末尾空行。
+    (define (split-text-lines-private text)
+      (let ((len (string-length text)))
+        (let loop
+          ((i 0) (start 0) (lines '()))
+          (cond
+           ((= i len) (reverse (cons (substring text start len) lines)))
+           ((char=? (string-ref text i) #\newline)
+            (let ((end
+                    (if
+                      (and (> i start) (char=? (string-ref text (- i 1)) #\return))
+                      (- i 1)
+                      i
+                    ) ;if
+                  ) ;end
+                 ) ;
+              (loop (+ i 1) (+ i 1) (cons (substring text start end) lines))
+            ) ;let
+           ) ;
+           (else (loop (+ i 1) start lines))
+          ) ;cond
         ) ;let
       ) ;let
     ) ;define

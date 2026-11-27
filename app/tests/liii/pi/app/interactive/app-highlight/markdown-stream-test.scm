@@ -45,7 +45,7 @@
 
 (define (reply! job)
   (chan-send! (list-ref job 4)
-    (list (cadr job) (caddr job) (parse (cadddr job)))
+    (list (cadr job) (caddr job) (parse (cadddr job) (cadr job) (list-ref job 5)))
     100
   ) ;chan-send!
 ) ;define
@@ -78,12 +78,22 @@
 (define plain (component-render card 80))
 (reply! first)
 (poll)
-(check-true (eq? plain (component-render card 80)))
+;; The earlier result still owns a stable heading; it must not truncate
+;; the raw suffix which arrived while the job was outstanding.
+
+(define partial (component-render card 80))
+(check-true (string-contains? (car partial) "\x1b;["))
+(check (map strip-ansi partial) => plain)
+(check (list-ref first 5) => #f)
 
 (define last-job (take-job))
 (check (cadddr last-job) => (assistant-card-text card))
+(check (list-ref last-job 5) => #t)
 (reply! last-job)
-(poll)
+(do ((i 0 (+ i 1)))
+  ((= i 12))
+  (poll)
+) ;do
 
 (define colored (component-render card 80))
 (check-true (string-contains? (car colored) "\x1b;["))

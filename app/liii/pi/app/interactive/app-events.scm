@@ -18,10 +18,12 @@
     (liii path)
     (liii string)
     (liii tui)
+    (only (liii tui component) component-data)
     (liii pi agent queue)
     (liii pi app interactive state)
     (liii pi app interactive render)
     (liii pi app interactive views)
+    (only (liii pi app interactive views assistant) %assistant-finalize!)
     (liii pi app interactive working)
     (liii pi app interactive app-bash)
     (liii pi app interactive app-diff)
@@ -89,6 +91,12 @@
     ) ;define
 
     (define (%pi-app-close-assistant-card! app)
+      (let ((card (pi-app-assistant-card app)))
+        (when card
+          (%assistant-finalize! (component-data card))
+          (%markdown-dirty! app card)
+        ) ;when
+      ) ;let
       (%pi-app-assistant-card-set! app #f)
     ) ;define
 
@@ -101,7 +109,7 @@
               (assistant-card-append-text! card delta)
               (%markdown-dirty! app card)
             ) ;begin
-            (let ((new-card (make-assistant-card delta)))
+            (let ((new-card (make-assistant-card delta (%markdown-block-display? app))))
               (%pi-app-invalidate-scroll! app)
               (%pi-app-assistant-card-set! app new-card)
               (container-add! (%pi-app-chat app) new-card)
@@ -372,6 +380,11 @@
             ((retry) (pi-app-add-retry-message! app (cadr ev)))
             ;; 扩展通知（经 event-chan 投递的状态行）：渲染为聊天区 dim 提示
             ((tps_report) (pi-app-add-status-message! app (cadr ev)))
+            ((extension_command_notice) (pi-app-add-status-message! app (cadr ev)))
+            ((extension_command_error)
+             (pi-app-add-tool-result! app "review" '() 'error (cadr ev))
+            ) ;
+            ((extension_command_report) (pi-app-add-assistant-text! app (cadr ev)))
             ;; worker 消费了 steering / follow-up 注入消息：
             ;; 移除待处理显示并上屏正式用户卡片（对齐上游 message_start 双动作）
             ((user_message)

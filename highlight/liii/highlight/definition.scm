@@ -26,6 +26,8 @@
     (liii string)
     (liii sys)
     (liii highlight rule)
+    (liii highlight definition-rules)
+    (liii highlight structure)
   ) ;import
   (export make-context-def context-def? context-def-name context-def-attribute
     context-def-line-end-context context-def-fallthrough-context
@@ -33,7 +35,7 @@
     definition-extensions definition-contexts definition-item-datas
     definition-initial-context-name definition-find-context
     definition-item-data-def-style parse-definition-json load-syntax-definition
-    load-definition-for-file
+    load-definition-for-file definition-structures definition-line-blocks
   ) ;export
   (begin
 
@@ -56,12 +58,15 @@
     ;; 完整语法定义 record
     ;; contexts: alist (("ContextName" . <context-def>) ...)
     ;; item-datas: alist (("ItemName" . defStyleName) ...)
+    ;; structures: <structure-set>，语义切分声明；缺省为空，高亮行为不变。
     (define*-record-type <definition>
       (make-definition name
         (extensions '())
         (initial-context-name "Level0")
         (contexts '())
         (item-datas '())
+        (structures (make-structure-set))
+        (line-blocks '(("blank-separator" . #t) ("definitions" . #())))
       ) ;make-definition
       definition?
       (name definition-name)
@@ -69,6 +74,8 @@
       (initial-context-name definition-initial-context-name)
       (contexts definition-contexts)
       (item-datas definition-item-datas)
+      (structures definition-structures)
+      (line-blocks definition-line-blocks)
     ) ;define*-record-type
 
     (define (definition-find-context def name)
@@ -83,189 +90,6 @@
       ) ;let
     ) ;define
 
-    ;; 从单个 JSON rule 对象解析为 <rule>
-    (define (parse-rule-json obj kw-lists)
-      (let* ((type-str (json-ref-string obj "type" "unknown"))
-             (attr (json-ref-string obj "attribute" "Normal"))
-             (ctx-str (json-ref-string obj "context" "#stay"))
-             (ctx (parse-context-switch ctx-str))
-             (look-ahead (json-ref-boolean obj "look-ahead" #f))
-             (first-non-space (json-ref-boolean obj "first-non-space" #f))
-             (col (json-ref-integer obj "column" -1))
-            ) ;
-        (cond
-         ((string=? type-str "DetectChar")
-          (let ((c-str (json-ref-string obj "char" "")))
-            (make-rule 'detect-char
-              attr
-              ctx
-              (if (string-null? c-str) #\nul (string-ref c-str 0))
-              look-ahead
-              first-non-space
-              col
-            ) ;make-rule
-          ) ;let
-         ) ;
-         ((string=? type-str "Detect2Chars")
-          (let ((c1 (json-ref-string obj "char" "")) (c2 (json-ref-string obj "char1" "")))
-            (make-rule 'detect-2chars
-              attr
-              ctx
-              (cons (if (string-null? c1) #\nul (string-ref c1 0))
-                (if (string-null? c2) #\nul (string-ref c2 0))
-              ) ;cons
-              look-ahead
-              first-non-space
-              col
-            ) ;make-rule
-          ) ;let
-         ) ;
-         ((string=? type-str "AnyChar")
-          (let ((s (json-ref-string obj "String" "")))
-            (make-rule 'any-char attr ctx s look-ahead first-non-space col)
-          ) ;let
-         ) ;
-         ((string=? type-str "StringDetect")
-          (let ((s (json-ref-string obj "String" "")))
-            (make-rule 'string-detect attr ctx s look-ahead first-non-space col)
-          ) ;let
-         ) ;
-         ((string=? type-str "WordDetect")
-          (let ((w (json-ref-string obj "String" ""))
-                (delims (json-ref-string obj "delimiters" #f))
-               ) ;
-            (make-rule 'word-detect attr ctx (cons w delims) look-ahead first-non-space col)
-          ) ;let
-         ) ;
-         ((string=? type-str "keyword")
-          (let* ((list-name (json-ref-string obj "String" ""))
-                 (delims (json-ref-string obj "delimiters" #f))
-                 (kw-set
-                   (let ((p (assoc list-name kw-lists)))
-                     (if p (cdr p) '())
-                   ) ;let
-                 ) ;kw-set
-                ) ;
-            (make-rule 'keyword
-              attr
-              ctx
-              (cons kw-set delims)
-              look-ahead
-              first-non-space
-              col
-            ) ;make-rule
-          ) ;let*
-         ) ;
-         ((string=? type-str "Int")
-          (let ((delims (json-ref-string obj "delimiters" #f)))
-            (make-rule 'int attr ctx delims look-ahead first-non-space col)
-          ) ;let
-         ) ;
-         ((string=? type-str "Float")
-          (make-rule 'float attr ctx #f look-ahead first-non-space col)
-         ) ;
-         ((string=? type-str "Decimal")
-          (make-rule 'decimal attr ctx #f look-ahead first-non-space col)
-         ) ;
-         ((or (string=? type-str "Hex") (string=? type-str "HlCHex"))
-          (make-rule 'hex attr ctx #f look-ahead first-non-space col)
-         ) ;
-         ((string=? type-str "JsonEscapeChar")
-          (make-rule 'json-escape-char attr ctx #f look-ahead first-non-space col)
-         ) ;
-         ((string=? type-str "JsonEscapeError")
-          (make-rule 'json-escape-error attr ctx #f look-ahead first-non-space col)
-         ) ;
-         ((string=? type-str "RegExpr")
-          (let ((pat (json-ref-string obj "String" "")))
-            (cond ((string-contains? pat "\\.")
-                   (make-rule 'float attr ctx #f look-ahead first-non-space col)
-                  ) ;
-                  ((string-contains? pat "0\\b|[1-9]")
-                   (make-rule 'decimal attr ctx #f look-ahead first-non-space col)
-                  ) ;
-                  ((string-contains? pat "bfnrt")
-                   (make-rule 'json-escape-char attr ctx #f look-ahead first-non-space col)
-                  ) ;
-                  ((string-contains? pat "u[0-9a-fA-F]+")
-                   (make-rule 'json-escape-error attr ctx #f look-ahead first-non-space col)
-                  ) ;
-                  (else #f)
-            ) ;cond
-          ) ;let
-         ) ;
-         ((string=? type-str "DetectSpaces")
-          (make-rule 'detect-spaces attr ctx #t look-ahead first-non-space col)
-         ) ;
-         ((string=? type-str "DetectIdentifier")
-          (let ((delims (json-ref-string obj "delimiters" #f)))
-            (make-rule 'detect-identifier attr ctx delims look-ahead first-non-space col)
-          ) ;let
-         ) ;
-         ((string=? type-str "IncludeRules")
-          (let* ((ctx-ref (json-ref-string obj "context-ref" ""))
-                 (lang-name (if (string-starts? ctx-ref "##")
-                              (substring ctx-ref 2)
-                              (if (string-starts? ctx-ref "#") #f ctx-ref)
-                            ) ;if
-                 ) ;lang-name
-                ) ;
-            (if (not lang-name)
-              #f
-              (make-rule 'include-rules attr ctx lang-name look-ahead first-non-space col)
-            ) ;if
-          ) ;let*
-         ) ;
-         ((string=? type-str "CharsetRun")
-          (let ((chars (json-ref-string obj "String" ""))
-                (min-cnt (json-ref-integer obj "min" 1))
-               ) ;
-            (make-rule 'charset-run
-              attr
-              ctx
-              (cons chars min-cnt)
-              look-ahead
-              first-non-space
-              col
-            ) ;make-rule
-          ) ;let
-         ) ;
-         (else #f)
-        ) ;cond
-      ) ;let*
-    ) ;define
-
-    (define (parse-kw-list-item raw-lists k)
-      (let* ((raw-arr (json-ref raw-lists k))
-             (arr (cond ((vector? raw-arr) (vector->list raw-arr))
-                        ((list? raw-arr) raw-arr)
-                        (else '())
-                  ) ;cond
-             ) ;arr
-             (ht (make-hash-table))
-            ) ;
-        (for-each (lambda (item) (hash-table-set! ht item #t)) arr)
-        (cons k ht)
-      ) ;let*
-    ) ;define
-
-    (define (parse-kw-lists raw-lists)
-      (if (json-object? raw-lists)
-        (map (lambda (k) (parse-kw-list-item raw-lists k)) (json-keys raw-lists))
-        '()
-      ) ;if
-    ) ;define
-
-    (define (parse-context-rules c-obj kw-lists)
-      (let* ((rr (json-ref c-obj "rules"))
-             (raw-rules (cond ((vector? rr) (vector->list rr)) ((list? rr) rr) (else '())))
-            ) ;
-        (filter (lambda (r) r)
-          (map (lambda (ro) (parse-rule-json ro kw-lists)) raw-rules)
-        ) ;filter
-      ) ;let*
-    ) ;define
-
     (define (parse-context-def-entry ctx-name raw-contexts kw-lists)
       (let* ((c-obj (json-ref raw-contexts ctx-name))
              (attr (json-ref-string c-obj "attribute" "Normal"))
@@ -273,9 +97,168 @@
              ) ;line-end
              (ft-str (json-ref-string c-obj "fallthrough-context" #f))
              (fallthrough (and ft-str (parse-context-switch ft-str)))
-             (rules (parse-context-rules c-obj kw-lists))
+             (rules (%parse-context-rules c-obj kw-lists))
             ) ;
         (cons ctx-name (make-context-def ctx-name attr line-end fallthrough rules))
+      ) ;let*
+    ) ;define
+
+    ;; 解析单个结构声明对象为 <structure-definition>。
+    (define (parse-structure-json obj)
+      (let* ((name (json-ref-string obj "name" ""))
+             (role-str (json-ref-string obj "role" ""))
+             (scope-str (json-ref-string obj "scope" ""))
+             (role (if (string-null? role-str)
+                     (error 'structure-definition-error "Structure role is required" name)
+                     (string->symbol role-str)
+                   ) ;if
+             ) ;role
+             (scope (if (string-null? scope-str)
+                      (error 'structure-definition-error "Structure scope is required" name)
+                      (string->symbol scope-str)
+                    ) ;if
+             ) ;scope
+             (begin
+               (json-ref-string obj "begin" "")
+             ) ;begin
+             (raw-end (json-ref obj "end"))
+             (end (if (string? raw-end) raw-end #f))
+             (raw-meta (json-ref obj "metadata"))
+             (metadata
+               (if (json-object? raw-meta)
+                 (map (lambda (k) (cons (string->symbol k) (json-ref raw-meta k)))
+                   (json-keys raw-meta)
+                 ) ;map
+                 '()
+               ) ;if
+             ) ;metadata
+             (raw-children (json-ref obj "children"))
+             (children (cond ((vector? raw-children) (vector->list raw-children))
+                             ((list? raw-children) raw-children)
+                             (else '())
+                       ) ;cond
+             ) ;children
+             (include-begin (json-ref-boolean obj "include-begin" #t))
+             (include-end (json-ref-boolean obj "include-end" #t))
+             (raw-eof (json-ref obj "on-eof"))
+             (on-eof (if (string? raw-eof)
+                       (string->symbol raw-eof)
+                       (if (eq? scope 'line) 'close 'emit-unclosed)
+                     ) ;if
+             ) ;on-eof
+            ) ;
+        (make-structure-definition name role scope begin end metadata children
+          include-begin include-end on-eof
+        ) ;make-structure-definition
+      ) ;let*
+    ) ;define
+
+    ;; JSON 数组/列表 → 字符串列表；其他值→空列表。
+    (define (%json-string-list raw)
+      (cond ((vector? raw) (vector->list raw))
+            ((list? raw) raw)
+            (else '())
+      ) ;cond
+    ) ;define
+
+    (define (parse-line-blocks-json raw)
+      (let ((items (json-ref raw "line-blocks")))
+        (cond ((null? items) '(("blank-separator" . #t) ("definitions" . #())))
+              ((json-object? items) items)
+              (else (error 'structure-definition-error "line-blocks must be an object" items))
+        ) ;cond
+      ) ;let
+    ) ;define
+
+    ;; 解析顶层 segments 对象；返回 (structure-set . engine-events)。
+    (define (parse-segments-json root)
+      (let ((raw (json-ref root "segments")))
+        (cond ((null? raw) (cons (make-structure-set) '()))
+              ((json-object? raw)
+               (let* ((version (json-ref-integer raw "version" 1))
+                      (default-str (json-ref-string raw "default" "text"))
+                      (root-scope-str (json-ref-string raw "root-scope" "top-level"))
+                      (raw-structures (json-ref raw "structures"))
+                      (items (cond ((vector? raw-structures) (vector->list raw-structures))
+                                   ((list? raw-structures) raw-structures)
+                                   (else '())
+                             ) ;cond
+                      ) ;items
+                     ) ;
+                 (cons (make-structure-set version
+                         (string->symbol default-str)
+                         (string->symbol root-scope-str)
+                         (map parse-structure-json items)
+                       ) ;make-structure-set
+                   (%json-string-list (json-ref raw "engine-events"))
+                 ) ;cons
+               ) ;let*
+              ) ;
+              (else (error 'structure-definition-error "segments must be an object" raw))
+        ) ;cond
+      ) ;let
+    ) ;define
+
+    ;; 汇总所有规则声明的事件名（去重）。
+    (define (%collect-rule-events contexts)
+      (let loop
+        ((rules
+           (apply append (map (lambda (c) (context-def-rules (cdr c))) contexts))
+         ) ;rules
+         (acc '())
+        ) ;
+        (cond ((null? rules) acc)
+              ((and (rule-event (car rules)) (not (member (rule-event (car rules)) acc)))
+               (loop (cdr rules) (cons (rule-event (car rules)) acc))
+              ) ;
+              (else (loop (cdr rules) acc))
+        ) ;cond
+      ) ;let
+    ) ;define
+
+    ;; 结构引用的 begin/end 事件列表。
+    (define (%structure-referenced-events d)
+      (if (structure-definition-end d)
+        (list (structure-definition-begin d) (structure-definition-end d))
+        (list (structure-definition-begin d))
+      ) ;if
+    ) ;define
+
+    (define (%require-member item known message)
+      (if (not (member item known))
+        (error 'structure-definition-error message item)
+        #t
+      ) ;if
+    ) ;define
+
+    ;; 交叉校验：结构引用的 begin/end 事件必须由规则或引擎声明；
+    ;; 声明的事件必须被某个结构使用；children 引用存在的结构名。
+    ;; engine-events：引擎特殊结构（如 fenced code）发出的事件名列表。
+    (define (validate-structure-references contexts structures engine-events)
+      (let* ((rule-events (append (%collect-rule-events contexts) engine-events))
+             (defs (structure-set-structures structures))
+             (names (map structure-definition-name defs))
+             (referenced (apply append (map %structure-referenced-events defs)))
+            ) ;
+        (for-each (lambda (ev)
+                    (%require-member ev rule-events "Structure references an undeclared event")
+                  ) ;lambda
+          referenced
+        ) ;for-each
+        (for-each (lambda (ev)
+                    (%require-member ev referenced "Rule event is not used by any structure")
+                  ) ;lambda
+          rule-events
+        ) ;for-each
+        (for-each
+          (lambda (d)
+            (for-each (lambda (child) (%require-member child names "Unknown child structure"))
+              (structure-definition-children d)
+            ) ;for-each
+          ) ;lambda
+          defs
+        ) ;for-each
+        #t
       ) ;let*
     ) ;define
 
@@ -289,7 +272,7 @@
                    ) ;cond
              ) ;exts
              (init-ctx (json-ref-string root "initial-context" "Level0"))
-             (kw-lists (parse-kw-lists (json-ref root "lists")))
+             (kw-lists (%parse-kw-lists (json-ref root "lists")))
              ;; 解析 item-datas: {"Normal": "Normal", "Keyword": "Keyword"}
              (raw-items (json-ref root "item-datas"))
              (item-datas
@@ -310,8 +293,18 @@
                  '()
                ) ;if
              ) ;contexts
+             (segments (parse-segments-json root))
+             (structures (car segments))
             ) ;
-        (make-definition name exts init-ctx contexts item-datas)
+        (validate-structure-references contexts structures (cdr segments))
+        (make-definition name
+          exts
+          init-ctx
+          contexts
+          item-datas
+          structures
+          (parse-line-blocks-json (json-ref root "segments"))
+        ) ;make-definition
       ) ;let*
     ) ;define
 

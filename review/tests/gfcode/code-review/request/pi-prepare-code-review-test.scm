@@ -18,12 +18,17 @@
 ;;
 ;; 返回值
 ;; ----
-;; alist
-;; status 为 ok 或 no-files；ok 时包含 paths、records、prompt 和 notice。
+;; review-result
+;; status 为 ok（review-session-request）或 no-files（review-no-files）；
+;; ok 时包含 paths、records、prompt 和 notice。
 ;;
 ;; 没有变更文件时不调用 file-records，返回 no-files。
 
-(import (liii check) (liii string) (gfcode code-review request))
+(import (liii check)
+  (liii string)
+  (gfcode code-review request)
+  (gfcode code-review result)
+) ;import
 
 (check-set-mode! 'report-failed)
 
@@ -49,9 +54,9 @@
          ) ;pi-prepare-code-review
        ) ;result
       ) ;
-  (check (cdr (assoc 'status result)) => 'ok)
-  (check (cdr (assoc 'paths result)) => '("a.scm" "b.py"))
-  (check-true (string-contains? (cdr (assoc 'prompt result)) "## Files to Review")
+  (check (review-session-request? result) => #t)
+  (check (review-session-request-paths result) => '("a.scm" "b.py"))
+  (check-true (string-contains? (review-session-request-prompt result) "## Files to Review")
   ) ;check-true
   (check-true (pair? (member :staged seen)))
 ) ;let*
@@ -64,7 +69,7 @@
                 ) ;pi-prepare-code-review
         ) ;result
        ) ;
-    (check (cdr (assoc 'status result)) => 'no-files)
+    (check (review-no-files? result) => #t)
     (check called => #f)
   ) ;let
 ) ;let

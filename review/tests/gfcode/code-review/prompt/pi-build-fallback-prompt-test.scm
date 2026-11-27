@@ -31,6 +31,15 @@
   (check-true (string-contains? p "- src/app.py"))
   (check-true (string-contains? p "### Python"))
   (check-true (string-contains? p "report your findings"))
+  (check-true (string-contains? p
+                "Do not modify the original workspace, including through bash"
+              ) ;string-contains?
+  ) ;check-true
+  (check-true (string-contains? p "running tests that may write files"))
+  (check-true (string-contains? p
+                "temporary copy of the repository outside the original workspace"
+              ) ;string-contains?
+  ) ;check-true
 ) ;let*
 
 (check-report)

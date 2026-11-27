@@ -26,7 +26,6 @@
 ;; pi-parse-args：code-review 相关开关
 (let ((p (parse-pi-args '("--code-review"))))
   (check (pi-args-ref p 'code-review) => #t)
-  (check (pi-args-ref p 'auto-review) => #f)
   (check (pi-args-ref p 'staged) => #f)
   (check (pi-args-ref p 'review-ref) => #f)
 ) ;let
@@ -47,9 +46,9 @@
   (check (pi-args-ref p 'messages) => '())
 ) ;let
 
-(let ((p (parse-pi-args '("--auto-review" "实现功能"))))
-  (check (pi-args-ref p 'auto-review) => #t)
-  (check (pi-args-ref p 'messages) => '("实现功能"))
+;; 自动审查默认启用；--auto-review 已移除，作为未知选项处理
+(let ((p (parse-pi-args '("--auto-review"))))
+  (check (pi-args-ref p 'unknown-flags) => '("--auto-review"))
 ) ;let
 
 ;; 未知选项仍进入 unknown-flags

@@ -3,8 +3,12 @@
   (export %make-markdown-parser %worker-markdown-parser %markdown-max-bytes)
   (import (scheme base)
     (scheme time)
+    (scheme lazy)
+    (liii list)
     (liii string)
     (liii highlight definition)
+    (liii highlight block-render)
+    (liii highlight stream)
     (liii highlight highlighter)
     (liii pi app interactive views markdown-table)
     (liii pi code utils shell)
@@ -71,11 +75,31 @@
         ) ;if
       ) ;let
     ) ;define
-    (define (highlight-lines lines definition deadline)
+    (define (highlight-lines lines definition deadline cache)
+      ;; Reuse only an identical layout prefix. A growing table may resize
+      ;; earlier cells; resume at its first changed row with the saved state.
       (let loop
-        ((ls lines) (state (initial-highlight-state definition)) (out '()))
+        ((ls lines)
+         (state (initial-highlight-state definition))
+         (out '())
+         (old (car cache))
+         (saved '())
+        ) ;
         (cond ((> (current-jiffy) deadline) #f)
-              ((null? ls) (reverse out))
+              ((null? ls) (set-car! cache (reverse saved)) (reverse out))
+              ((and (pair? old)
+                 (equal? (layout-text (car ls)) (car (car (car old))))
+                 (eq? (layout-table? (car ls)) (cadr (car old)))
+               ) ;and
+               (let ((entry (car old)))
+                 (loop (cdr ls)
+                   (caddr entry)
+                   (cons (car entry) out)
+                   (cdr old)
+                   (cons entry saved)
+                 ) ;loop
+               ) ;let
+              ) ;
               (else
                 (let* ((layout (car ls)) (text (layout-text layout)))
                   (let-values (((spans next) (highlight-line text state definition)))
@@ -87,7 +111,14 @@
                              ) ;if
                            ) ;marked
                           ) ;
-                      (loop (cdr ls) next (cons (cons text marked) out))
+                      (let ((row (cons text marked)))
+                        (loop (cdr ls)
+                          next
+                          (cons row out)
+                          '()
+                          (cons (list row (layout-table? layout) next) saved)
+                        ) ;loop
+                      ) ;let
                     ) ;let*
                   ) ;let-values
                 ) ;let*
@@ -96,7 +127,7 @@
       ) ;let
     ) ;define
     (define (%make-markdown-parser loader)
-      (let ((definition 'unloaded))
+      (let ((definition 'unloaded) (cache (list '())))
         (lambda (raw)
           (catch #t
             (lambda ()
@@ -113,7 +144,7 @@
                       ) ;when
                       definition
                     ) ;begin
-                    (highlight-lines (markdown-layout-lines lines) definition deadline)
+                    (highlight-lines (markdown-layout-lines lines) definition deadline cache)
                   ) ;and
                 ) ;let
               ) ;and
@@ -128,8 +159,168 @@
         (or (> (string-length (car lines)) 2048) (any-long? (cdr lines)))
       ) ;and
     ) ;define
+    (define (styled-table-row definition text)
+      (let-values (((spans next)
+                    (highlight-line text (initial-highlight-state definition) definition)
+                   ) ;
+                  ) ;
+        (let ((styles (pack spans)))
+          (cons text
+            (if (null? styles)
+              styles
+              (cons (list (caar styles) (cadar styles) "TableBorder") (cdr styles))
+            ) ;if
+          ) ;cons
+        ) ;let
+      ) ;let-values
+    ) ;define
+
+    ;; One cursor per unfinished card. A patch keeps stable rows by index;
+    ;; only the active table may need earlier columns widened. The empty row
+    ;; following a newline is a display placeholder, never a stable row.
+    (define (make-cursor definition)
+      (let ((stable 0)
+            (fresh '())
+            (table '())
+            (fenced? #f)
+            (fed "")
+            (fragment "")
+            (delivered 0)
+            (patches '())
+           ) ;
+        (define (table-rows)
+          (let* ((original (reverse table)) (layout (markdown-layout-lines (map car original))))
+            (map
+              (lambda (item row)
+                (if (not (layout-table? item))
+                  row
+                  (styled-table-row definition (layout-text item))
+                ) ;if
+              ) ;lambda
+              layout
+              original
+            ) ;map
+          ) ;let*
+        ) ;define
+        (define (flush-table!)
+          (when (pair? table)
+            (set! fresh (append (reverse (table-rows)) fresh))
+            (set! table '())
+          ) ;when
+        ) ;define
+        (define (line! text newline spans events)
+          (let ((row (cons text (pack spans))))
+            (if (and (not fenced?) (null? events) (string-contains? text "|"))
+              (set! table (cons row table))
+              (begin
+                (flush-table!)
+                (set! fresh (cons row fresh))
+              ) ;begin
+            ) ;if
+            (for-each
+              (lambda (ev)
+                (cond ((equal? (car ev) "fenced-code-open") (set! fenced? #t))
+                      ((equal? (car ev) "fenced-code-close") (set! fenced? #f))
+                ) ;cond
+              ) ;lambda
+              events
+            ) ;for-each
+          ) ;let
+        ) ;define
+        (define stream (make-structure-stream definition #f :line-sink line!))
+        (define (emit! leaf)
+          (structure-stream-feed! stream leaf)
+          (set! delivered (+ delivered (string-length leaf)))
+          (let ((break (string-index-right leaf #\newline)))
+            (set! fragment
+              (if break (substring leaf (+ break 1)) (string-append fragment leaf))
+            ) ;set!
+          ) ;let
+          (flush-table!)
+          (let* ((tail
+                   (if (string-null? fragment)
+                     '("")
+                     (list fragment (list 0 (string-length fragment) "Plain"))
+                   ) ;if
+                 ) ;tail
+                 (added (reverse fresh))
+                ) ;
+            (set! patches (cons (list delivered (append added (list tail)) stable) patches))
+            (set! stable (+ stable (length added)))
+            (set! fresh '())
+          ) ;let*
+        ) ;define
+        (define (finish-tail!)
+          (structure-stream-finish! stream)
+          (flush-table!)
+          (if (pair? patches)
+            (let* ((p (car patches)) (prefix (reverse (cdr (reverse (cadr p))))))
+              (set-car! patches (list delivered (append prefix (reverse fresh)) (caddr p)))
+            ) ;let*
+            (set! patches (list (list delivered (reverse fresh) stable)))
+          ) ;if
+        ) ;define
+        (let ((feed
+                (%make-markdown-block-feed definition
+                  #f
+                  emit!
+                  8192
+                  (lambda (blank) (set! delivered (+ delivered (string-length blank))))
+                ) ;%make-markdown-block-feed
+              ) ;feed
+             ) ;
+          (lambda (text final?)
+            (and (string-starts? text fed)
+              (begin
+                (feed (substring text (string-length fed)) final?)
+                (set! fed text)
+                (when (and final? (not (string-null? fragment)))
+                  (finish-tail!)
+                ) ;when
+                (let ((result (reverse patches)))
+                  (set! patches '())
+                  result
+                ) ;let
+              ) ;begin
+            ) ;and
+          ) ;lambda
+        ) ;let
+      ) ;let
+    ) ;define
+
     (define (%worker-markdown-parser)
-      (%make-markdown-parser (lambda () (load-syntax-definition "markdown")))
+      (let ((definition (delay (load-syntax-definition "markdown"))) (cursors '()))
+        (lambda (raw id final?)
+          (let* ((cached (assv id cursors))
+                 (cursor (if cached (cdr cached) (make-cursor (force definition))))
+                 (text
+                   (sanitize-display-text
+                     (if final?
+                       raw
+                       (let ((nl (string-index-right raw #\newline)))
+                         (if nl (substring raw 0 (+ nl 1)) "")
+                       ) ;let
+                     ) ;if
+                   ) ;sanitize-display-text
+                 ) ;text
+                 (patch (cursor text final?))
+                ) ;
+            ;; A formerly incomplete display escape / UTF-8 sequence can
+            ;; change the sanitized prefix. Restart only that card in that case.
+            (unless patch
+              (set! cursor (make-cursor (force definition)))
+              (set! patch (cursor text final?))
+            ) ;unless
+            (when cached
+              (set! cursors (filter (lambda (entry) (not (eq? entry cached))) cursors))
+            ) ;when
+            (unless final?
+              (set! cursors (cons (cons id cursor) cursors))
+            ) ;unless
+            patch
+          ) ;let*
+        ) ;lambda
+      ) ;let
     ) ;define
   ) ;begin
 ) ;define-library

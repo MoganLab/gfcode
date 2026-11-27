@@ -87,6 +87,9 @@
 (pi-app-poll-events! app)
 
 (define link-card (pi-app-assistant-card app))
+;; An unterminated final line is committed on EOF, not at a transport boundary.
+(chan-send! events '(assistant_text_end) 100)
+(pi-app-poll-events! app)
 
 (define (link-line)
   (car (component-render link-card 160))

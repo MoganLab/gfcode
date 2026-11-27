@@ -25,7 +25,6 @@
 
 ;; code-review 组合
 (check (pi-validate-review-flags (parse-pi-args '("--code-review"))) => #t)
-(check (pi-validate-review-flags (parse-pi-args '("--auto-review"))) => #t)
 (check (pi-validate-review-flags (parse-pi-args '())) => #t)
 (check (pi-validate-review-flags (parse-pi-args '("--code-review" "--staged")))
   =>
@@ -36,10 +35,7 @@
   #t
 ) ;check
 
-;; 冲突组合与依赖缺失均报可读错误
-(check-catch 'pi-arg-error
-  (pi-validate-review-flags (parse-pi-args '("--code-review" "--auto-review")))
-) ;check-catch
+;; 依赖缺失报可读错误；自动审查默认启用，--auto-review 已移除（进入 unknown-flags）
 (check-catch 'pi-arg-error
   (pi-validate-review-flags (parse-pi-args '("--staged")))
 ) ;check-catch

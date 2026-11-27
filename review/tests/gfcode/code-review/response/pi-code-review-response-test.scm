@@ -12,8 +12,8 @@
 ;;
 ;; 返回值
 ;; ----
-;; alist
-;; 成功时含 status=ok 与 report；模型失败或截断时含 status=error 与 message。
+;; review-result
+;; 成功时为 review-ok（含 report）；模型失败或截断时为 review-error（含 message）。
 ;;
 ;; error、aborted 和 length 不生成 findings；非法 JSON 由解析器生成 parse-error finding。
 
@@ -21,6 +21,7 @@
   (liii string)
   (liii pi ai message)
   (gfcode code-review response)
+  (gfcode code-review result)
 ) ;import
 
 (check-set-mode! 'report-failed)
@@ -34,8 +35,8 @@
         ) ;pi-code-review-response
       ) ;result
      ) ;
-  (check (cdr (assoc 'status result)) => 'ok)
-  (check-true (string-contains? (cdr (assoc 'report result)) "no issues"))
+  (check (review-ok? result) => #t)
+  (check-true (string-contains? (review-ok-report result) "no issues"))
 ) ;let
 
 (let ((result (pi-code-review-response (list (pi-assistant-message '() :stop-reason "error" :error-message "request failed")
@@ -43,16 +44,16 @@
               ) ;pi-code-review-response
       ) ;result
      ) ;
-  (check (cdr (assoc 'status result)) => 'error)
-  (check (cdr (assoc 'message result)) => "request failed")
+  (check (review-error? result) => #t)
+  (check (review-error-message result) => "request failed")
 ) ;let
 
 (let ((result (pi-code-review-response (list (pi-assistant-message '() :stop-reason "length"))
               ) ;pi-code-review-response
       ) ;result
      ) ;
-  (check (cdr (assoc 'status result)) => 'error)
-  (check-true (string-contains? (cdr (assoc 'message result)) "truncated"))
+  (check (review-error? result) => #t)
+  (check-true (string-contains? (review-error-message result) "truncated"))
 ) ;let
 
 (check-report)

@@ -90,7 +90,13 @@
         { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": ":", "char1": ":" },
         { "type": "Detect2Chars", "attribute": "Operator", "context": "#stay", "char": "-", "char1": ">" },
         { "type": "AnyChar", "attribute": "Operator", "context": "#stay", "String": "+-*/%=<>!&|^~?:." },
-        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": "{}[](),;" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#stay", "char": "{", "event": "brace-open" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#stay", "char": "}", "event": "brace-close" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#stay", "char": "[", "event": "bracket-open" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#stay", "char": "]", "event": "bracket-close" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#stay", "char": "(", "event": "paren-open" },
+        { "type": "DetectChar", "attribute": "Normal", "context": "#stay", "char": ")", "event": "paren-close" },
+        { "type": "AnyChar", "attribute": "Normal", "context": "#stay", "String": ",;" },
         { "type": "DetectIdentifier", "attribute": "Normal", "context": "#stay" }
       ]
     },
@@ -166,5 +172,15 @@
         { "type": "StringDetect", "attribute": "String", "context": "#pop", "String": ")\"" }
       ]
     }
+  },
+  "segments": {
+    "version": 1,
+    "default": "text",
+    "root-scope": "top-level",
+    "structures": [
+      { "name": "brace", "role": "brace", "scope": "nested", "begin": "brace-open", "end": "brace-close", "children": ["brace", "paren", "bracket"], "on-eof": "emit-unclosed" },
+      { "name": "paren", "role": "paren", "scope": "nested", "begin": "paren-open", "end": "paren-close", "children": ["brace", "paren", "bracket"], "on-eof": "emit-unclosed" },
+      { "name": "bracket", "role": "bracket", "scope": "nested", "begin": "bracket-open", "end": "bracket-close", "children": ["brace", "paren", "bracket"], "on-eof": "emit-unclosed" }
+    ]
   }
 }

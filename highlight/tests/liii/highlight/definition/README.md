@@ -5,6 +5,7 @@
 ## 查看函数文档
 
 使用以下命令查看函数文档和测试用例：
+
 ```bash
 gf doc liii/highlight/definition "函数名"
 ```
@@ -12,6 +13,7 @@ gf doc liii/highlight/definition "函数名"
 ## 函数分类索引
 
 ### 一、上下文定义
+
 - `make-context-def` - 创建上下文定义对象
 - `context-def?` - 判断对象是否为上下文定义
 - `context-def-name` - 获取上下文定义的名称
@@ -21,6 +23,7 @@ gf doc liii/highlight/definition "函数名"
 - `context-def-rules` - 获取上下文规则列表
 
 ### 二、语法定义
+
 - `make-definition` - 创建语法定义对象
 - `definition?` - 判断对象是否为语法定义
 - `definition-name` - 获取语法定义的语言名称
@@ -32,6 +35,8 @@ gf doc liii/highlight/definition "函数名"
 - `definition-item-data-def-style` - 查找 itemData 的默认样式名
 
 ### 三、定义加载与解析
+
+- `definition-structures` - 获取语义结构集合（segments 解析结果，缺省为空）
 - `parse-definition-json` - 从 JSON 对象解析整套语法定义
-- `load-syntax-definition` - 根据语言名称从 highlight/resources/syntax/*.json 文件加载语法定义
+- `load-syntax-definition` - 根据语言名称从 highlight/resources/syntax/\*.json 文件加载语法定义
 - `load-definition-for-file` - 根据文件名自动查找并加载匹配的语法定义

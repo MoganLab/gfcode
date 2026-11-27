@@ -7,10 +7,12 @@
 ;; 编辑器输入变化：识别 bash 模式并联动边框颜色
 (define-library (liii pi app interactive app-submit)
   (export %starts-with-char? %pi-app-editor-on-change pi-app-submit!
-    pi-app-submit-initial!
+    pi-app-submit-initial! pi-parse-extension-command
+    pi-find-app-extension-command pi-app-submit-extension-command!
   ) ;export
   (import (scheme base)
     (liii string)
+    (liii go)
     (liii tui)
     (liii pi agent queue)
     (liii pi app interactive state)
@@ -29,11 +31,62 @@
     (liii pi app interactive app-events)
     (liii pi app interactive render)
     (liii pi code core skills format)
+    (liii pi code core extensions)
   ) ;import
   (begin
 
     (define (%starts-with-char? s c)
       (and (> (string-length s) 0) (char=? (string-ref s 0) c))
+    ) ;define
+
+    (define (pi-parse-extension-command text)
+      (if (not (%starts-with-char? text #\/))
+        #f
+        (let ((space (string-index text #\space)))
+          (if space
+            (cons (substring text 1 space)
+              (string-trim (substring text (+ space 1) (string-length text)))
+            ) ;cons
+            (cons (substring text 1 (string-length text)) "")
+          ) ;if
+        ) ;let
+      ) ;if
+    ) ;define
+
+    (define (pi-find-app-extension-command name)
+      (or (find-extension-command (default-extension-registry) name)
+        (find-extension-command (default-extension-registry) (string-append "/" name))
+      ) ;or
+    ) ;define
+
+    (define (pi-app-submit-extension-command! app command args)
+      (editor-set-text! (pi-app-editor app) "")
+      (cond ((pi-queue-busy? (pi-app-queue app))
+             (pi-app-flash! app
+               "Wait for the current task before running an extension command."
+             ) ;pi-app-flash!
+            ) ;
+            (else
+              (pi-app-add-user-message! app
+                (string-append (if (string-starts? (extension-command-def-name command) "/") "" "/")
+                  (extension-command-def-name command)
+                  (if (string-null? args) "" (string-append " " args))
+                ) ;string-append
+              ) ;pi-app-add-user-message!
+              (catch #t
+                (lambda ()
+                  ;; 通道不能序列化过程：只发送命令名，worker 侧从注册表重新解析 handler
+                  (chan-send! (pi-app-jobs-chan app)
+                    (list 'extension_command (extension-command-def-name command) args)
+                    1000
+                  ) ;chan-send!
+                ) ;lambda
+                (lambda (tag . err) (pi-app-flash! app "Failed to start extension command."))
+              ) ;catch
+            ) ;else
+      ) ;cond
+      (pi-app-render! app)
+      #t
     ) ;define
 
     ;; 启动初始消息：按顺序提交，保证接在恢复的历史之后
@@ -90,6 +143,18 @@
                 ((pi-app-config-command? clean) (pi-app-submit-config! app))
                 ((pi-app-login-command? clean) (pi-app-submit-login! app clean))
                 ((pi-app-exit-command? clean) (pi-app-submit-exit! app))
+                ((and (%starts-with-char? clean #\/)
+                   (let* ((parsed-command (pi-parse-extension-command clean))
+                          (command (and parsed-command (pi-find-app-extension-command (car parsed-command)))
+                          ) ;command
+                         ) ;
+                     (and command
+                       (pi-app-submit-extension-command! app command (cdr parsed-command))
+                     ) ;and
+                   ) ;let*
+                 ) ;and
+                 #t
+                ) ;
                 (else
                   ;; bash 模式：!cmd 直接经 bash 执行（对齐 pi 的 !/!! 前缀行为）；
                   ;; 命令为空（仅 "!" 或 "!!"）时回退为普通消息提交（对齐 pi 的 fall-through）
