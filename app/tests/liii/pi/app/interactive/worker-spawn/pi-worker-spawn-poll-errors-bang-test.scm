@@ -42,7 +42,9 @@
 ;; 能力探测：与 worker-spawn 内部同口径——注册临时库后删源制造仅
 ;; worker 可见的前导失败，新 Goldfish 回 (error ...)，旧实现超时 #f。
 
-(define (%probe-worker) #t)
+(define (%probe-worker)
+  #t
+) ;define
 
 (define (%result-protocol?)
   (let* ((root (path-join (path *base*) "probe-root"))
