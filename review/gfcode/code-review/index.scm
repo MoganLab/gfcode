@@ -105,7 +105,7 @@
                              (pi-review-tracker-take-edits! tracker)
                            ) ;and
                  ) ;snapshot
-                 (files (and snapshot (cdr (assoc 'files snapshot))))
+                 (files (and snapshot (cdr (assq 'files snapshot))))
                  (block (and files (pi-build-review-injection files)))
                 ) ;
             (if block (string-trim-both block) #f)
