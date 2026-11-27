@@ -4,23 +4,85 @@
 ;; Licensed under the MIT License
 ;;
 
-;; go-apply/source 与 go 使用相同的 worker 前导 import，但会把前导失败
-;; 通过结果 channel 返回主线程。普通 go 在这个阶段的错误只能写 stderr，
-;; worker 函数体内的 catch 没有机会执行。
+;; worker 启动兼容层：
+;; - 新 Goldfish（go-result / go-apply/source 把前导 import 失败回传
+;;   (error tag args)，goldfish 分支 da/1415/go-prelude-error-result）：
+;;   用 go-apply/source 启动并经结果 channel 把前导失败写入 pi 日志。
+;; - 旧 Goldfish（前导失败只写 stderr，结果 channel 永远收不到消息）：
+;;   回退普通 go，保持既有行为，不阻塞等待。
+;; 能力探测：注册临时库后删源并从活动库表摘除，使 worker 前导真的
+;; 重放该 import 而失败（主会话已命中缓存不受影响）：
+;; 新实现回 (error ...)，旧实现只写 stderr、超时收不到 → 回退普通 go。
+;; 探测在首个 worker 启动前执行，此时尚未加载任何扩展，不污染真实 worker。
 (define-library (liii pi app interactive worker-spawn)
-  (import (scheme base) (liii go) (liii string) (liii error) (liii pi ai log))
+  (import (scheme base)
+    (liii go)
+    (liii string)
+    (liii error)
+    (liii path)
+    (liii shutil)
+    (liii tempfile)
+    (liii hash-table)
+    (liii pi ai log)
+  ) ;import
   (export %pi-worker-spawn! pi-worker-spawn-poll-errors!)
   (begin
 
     (define *worker-spawn-results* '())
 
+    ;; #f 未探测；#t 结果协议可用；'legacy 旧实现回退普通 go
+    (define *spawn-result-protocol* #f)
+
+    (define (%spawn-probe-worker)
+      #t
+    ) ;define
+
+    (define (%probe-result-protocol)
+      (catch #t
+        (lambda ()
+          (let* ((base (make-temp-dir "gf-pi-worker-spawn-probe-" ""))
+                 (dir (path-join (path base) "gfcode"))
+                 (file (path-join dir "probe.scm"))
+                 (saved-load-path *load-path*)
+                 (probe-ch (make-chan 1))
+                ) ;
+            (path-mkdir dir :parents #t :exist-ok #t)
+            (path-write-text file
+              "(define-library (gfcode spawn-probe) (import (scheme base)) (export ok) (begin (define ok #t)))"
+            ) ;path-write-text
+            (set! *load-path* (cons (path->string base) *load-path*))
+            (load (path->string file))
+            (eval '(import (gfcode spawn-probe)) (rootlet))
+            (rmtree (path->string base) #t)
+            (hash-table-delete! *r7rs-libraries* '(gfcode spawn-probe))
+            (go-apply/source (procedure-source %spawn-probe-worker) (rootlet) '() probe-ch)
+            (let ((result (chan-recv! probe-ch 5000 #f)))
+              (set! *load-path* saved-load-path)
+              (if (and (pair? result) (eq? (car result) 'error)) #t 'legacy)
+            ) ;let
+          ) ;let*
+        ) ;lambda
+        (lambda _ 'legacy)
+      ) ;catch
+    ) ;define
+
+    (define (%spawn-result-protocol?)
+      (when (not *spawn-result-protocol*)
+        (set! *spawn-result-protocol* (%probe-result-protocol))
+      ) ;when
+      (eq? *spawn-result-protocol* #t)
+    ) ;define
+
     (define (%pi-worker-spawn! name fn . args)
-      (let ((result-ch (make-chan 1)))
-        (set! *worker-spawn-results*
-          (append *worker-spawn-results* (list (cons name result-ch)))
-        ) ;set!
-        (go-apply/source (procedure-source fn) (rootlet) args result-ch)
-      ) ;let
+      (if (%spawn-result-protocol?)
+        (let ((result-ch (make-chan 1)))
+          (set! *worker-spawn-results*
+            (append *worker-spawn-results* (list (cons name result-ch)))
+          ) ;set!
+          (go-apply/source (procedure-source fn) (rootlet) args result-ch)
+        ) ;let
+        (apply go-call fn args)
+      ) ;if
     ) ;define
 
     (define (%worker-spawn-error-text tag args)

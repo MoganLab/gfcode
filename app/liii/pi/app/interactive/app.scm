@@ -398,14 +398,16 @@
         ;; 无自定义 handler 时启动后台 agent worker
         (unless handler
           (%pi-worker-spawn! "display" %pi-display-worker display-jobs event-chan)
-          (%pi-worker-spawn! "agent" pi-tui-agent-worker
-            jobs-chan event-chan abort-chan session-file
-            steering-chan follow-up-chan request-selection-chan display-jobs
+          (%pi-worker-spawn! "agent" pi-tui-agent-worker jobs-chan event-chan
+            abort-chan session-file steering-chan follow-up-chan
+            request-selection-chan display-jobs
           ) ;%pi-worker-spawn!
         ) ;unless
         ;; 无注入执行器时启动后台 bash worker
         (unless bash-handler
-          (%pi-worker-spawn! "bash" pi-bash-worker bash-jobs-chan event-chan bash-abort-chan)
+          (%pi-worker-spawn! "bash" pi-bash-worker bash-jobs-chan event-chan
+            bash-abort-chan
+          ) ;%pi-worker-spawn!
         ) ;unless
         app
       ) ;let*

@@ -38,6 +38,7 @@
 (check-set-mode! 'report-failed)
 
 (define *base* (make-temp-dir "gf-pi-load-ext-log-" ""))
+
 (define *log-dir* (path-join (path *base*) "logs"))
 (pi-log-init! *log-dir*)
 
