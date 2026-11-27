@@ -23,6 +23,17 @@
     ;; 源码树内的扩展候选目录：除 .gf/gfcode 外，各 domain 根下的
     ;; gfcode/ 目录（如 review/gfcode、web-search/gfcode）
     ;; 也参与内置发现；同一 gfcode 目录只收录一次。
+    ;;
+    ;; 注意：当 load-path 含项目仓库的父目录（如 "." 解析到 ~/git）时，
+    ;; 会发现名为 gfcode 的项目仓库根目录（~/git/gfcode，含 gfproject.json）。
+    ;; 该目录是包源码树，其下 .scm 声明为 (liii pi ...) 等非扩展库，
+    ;; 一旦被当作扩展目录扫描，load-path 推导出的预期库名 (gfcode agent ...)
+    ;; 与文件实际声明不符，触发大量 "failed to load extension" 警告。
+    ;; 故收录前排除自身含 gfproject.json 的 gfcode/ 目录（项目根标记）。
+    (define (%extension-dir? dir)
+      (and (path-dir? dir) (not (path-exists? (path-join dir "gfproject.json"))))
+    ) ;define
+
     (define (%source-tree-extension-candidates)
       (let loop
         ((roots *load-path*) (acc '()))
@@ -30,7 +41,7 @@
           (reverse acc)
           (let* ((root (path (car roots)))
                  (gfcode-dir (path-join root "gfcode"))
-                 (next-acc (if (path-dir? gfcode-dir) (cons gfcode-dir acc) acc))
+                 (next-acc (if (%extension-dir? gfcode-dir) (cons gfcode-dir acc) acc))
                 ) ;
             (loop (cdr roots)
               (let dedup
