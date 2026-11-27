@@ -16,12 +16,14 @@
 ;;
 ;; 返回值
 ;; ----
-;; alist
-;; 参数错误返回 status=error；无变更返回 status=no-files；
-;; 成功时追加 parsed、config、prompt、on-finish 供通用 worker 执行。
+;; review-result
+;; 参数错误返回 review-error；无变更返回 review-no-files；
+;; 成功时返回 review-session-request，含 parsed、config、prompt、on-finish 供通用 worker 执行。
 ;; 未知参数不抛异常，以可读错误结果返回。
 
-(import (liii check) (liii string) (gfcode code-review interactive))
+(import (liii check) (liii string)
+  (gfcode code-review interactive)
+  (gfcode code-review result))
 
 (check-set-mode! 'report-failed)
 
@@ -34,16 +36,16 @@
            :prepare
            (lambda (parsed cfg)
              (set! seen parsed)
-             (list (cons 'status 'ok) (cons 'prompt "review") (cons 'notice #f))
+             (make-review-session-request #f #f "review" #f #f #f '() '())
            ) ;lambda
          ) ;pi-code-review-command
        ) ;result
       ) ;
-  (check (cdr (assoc 'status result)) => 'ok)
-  (check (cdr (assoc 'prompt result)) => "review")
-  (check (procedure? (cdr (assoc 'on-finish result))) => #t)
+  (check (review-session-request? result) => #t)
+  (check (review-session-request-prompt result) => "review")
+  (check (procedure? (review-session-request-on-finish result)) => #t)
   (check
-    (cdr (assoc 'tools (cdr (assoc 'config result))))
+    (cdr (assoc 'tools (review-session-request-config result)))
     =>
     '()
   ) ;check
@@ -54,17 +56,17 @@
   (check (cdr (assoc 'no-skills seen)) => #t)
 ) ;let*
 
-(check (cdr (assoc 'status (pi-code-review-command "--bad" '()))) => 'error)
+  (check (review-error? (pi-code-review-command "--bad" '())) => #t)
 
 (let ((result
         (pi-code-review-command ""
           '()
-          :prepare (lambda (parsed cfg) (list (cons 'status 'no-files)))
+          :prepare (lambda (parsed cfg) (make-review-no-files #f #f))
         ) ;pi-code-review-command
       ) ;result
      ) ;
-  (check (cdr (assoc 'status result)) => 'no-files)
-  (check-true (string? (cdr (assoc 'message result))))
+  (check (review-no-files? result) => #t)
+  (check-true (string? (review-no-files-message result)))
 ) ;let
 
 (check-report)

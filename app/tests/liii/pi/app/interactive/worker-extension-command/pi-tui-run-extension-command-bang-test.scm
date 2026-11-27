@@ -34,6 +34,7 @@
   (liii path)
   (liii pi code core extensions)
   (liii pi app interactive worker-extension-command)
+  (liii pi code core extension-result)
 ) ;import
 
 (check-set-mode! 'report-failed)
@@ -52,8 +53,7 @@
        (command
          (make-extension-command-def "/probe"
            "probe"
-           (lambda (args ctx) '((status . no-files)
-                                (message . "nothing to review")))
+           (lambda (args ctx) (make-review-no-files "nothing to review" #f))
          ) ;make-extension-command-def
        ) ;command
       ) ;
@@ -99,18 +99,15 @@
          (make-extension-command-def "/review"
            "review"
            (lambda (args ctx)
-             (list (cons 'status 'ok)
-               (cons 'parsed '((session-timeout . -1) (no-skills . #t)))
-               (cons 'config
-                 (list (cons 'tools '())
-                   (cons 'provider "google")
-                   (cons 'config-dir (path->string (path-temp-dir)))
-                 ) ;list
-               ) ;cons
-               (cons 'prompt "review this")
-               (cons 'on-finish (lambda (msgs) '((status . ok)
-                                                 (report . "report-text"))))
-             ) ;list
+             (make-review-session-request
+               '((session-timeout . -1) (no-skills . #t))
+               (list (cons 'tools '())
+                 (cons 'provider "google")
+                 (cons 'config-dir (path->string (path-temp-dir)))
+               ) ;list
+               "review this"
+               (lambda (msgs) (make-review-ok "report-text"))
+               #f #f '() '())
            ) ;lambda
          ) ;make-extension-command-def
        ) ;command
@@ -143,25 +140,19 @@
            ;; 捕获 fallback-runner，避免跨闭包引用外层环境
            (lambda (args ctx)
              (let ((runner (cdr (assoc 'fallback-runner ctx))))
-               (list (cons 'status 'ok)
-                 (cons 'notice #f)
-                 (cons 'parsed '((session-timeout . -1) (no-skills . #t)))
-                 (cons 'config
-                   (list (cons 'tools '())
-                     (cons 'provider "google")
-                     (cons 'config-dir (path->string (path-temp-dir)))
-                   ) ;list
-                 ) ;cons
-                 (cons 'prompt "structured")
-                 (cons 'on-finish
-                   (lambda (msgs)
-                     (runner "fallback prompt"
-                       (lambda (msgs2) '((status . ok)
-                                         (report . "fallback-report")))
-                     ) ;runner
-                   ) ;lambda
-                 ) ;cons
-               ) ;list
+               (make-review-session-request
+                 '((session-timeout . -1) (no-skills . #t))
+                 (list (cons 'tools '())
+                   (cons 'provider "google")
+                   (cons 'config-dir (path->string (path-temp-dir)))
+                 ) ;list
+                 "structured"
+                 (lambda (msgs)
+                   (runner "fallback prompt"
+                     (lambda (msgs2) (make-review-ok "fallback-report"))
+                   ) ;runner
+                 ) ;lambda
+                 #f #f '() '())
              ) ;let
            ) ;lambda
          ) ;make-extension-command-def

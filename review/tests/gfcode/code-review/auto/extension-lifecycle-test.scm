@@ -18,7 +18,8 @@
 
 (set! *load-path* (append (list "." "..") *load-path*))
 
-(import (scheme base) (liii check) (liii path) (liii pi code core extensions))
+(import (scheme base) (liii check) (liii path) (liii pi code core extensions)
+  (gfcode code-review result))
 
 (check-set-mode! 'report-failed)
 
@@ -36,16 +37,14 @@
   (pi-load-extension (source-path) api)
   ;; 后续 ST3/ST4/ST5 的行为规格；当前提交用于固定目标。
   (check
-    (cdr
-      (assoc 'status
-       ((extension-command-def-handler (find-extension-command api "/review"))
-        "--bad"
-        '()
-       ) ;
-      ) ;assoc
-    ) ;cdr
+    (review-error?
+     ((extension-command-def-handler (find-extension-command api "/review"))
+      "--bad"
+      '()
+     ) ;
+    ) ;review-error?
     =>
-    'error
+    #t
   ) ;check
   (check-true (pair? (extension-registry-get-listeners api 'tool_execution_end)))
   (check-true (pair? (extension-registry-get-listeners api 'turn_end)))

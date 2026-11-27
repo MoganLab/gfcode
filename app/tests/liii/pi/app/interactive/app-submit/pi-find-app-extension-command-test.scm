@@ -19,6 +19,7 @@
   (liii check)
   (liii pi code core extensions)
   (liii pi app interactive app-submit)
+  (liii pi code core extension-result)
 ) ;import
 
 (check-set-mode! 'report-failed)
@@ -27,7 +28,7 @@
       (command
         (make-extension-command-def "/probe-find"
           "probe"
-          (lambda (args ctx) '((status . no-files)))
+          (lambda (args ctx) (make-review-no-files #f #f))
         ) ;make-extension-command-def
       ) ;command
      ) ;

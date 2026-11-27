@@ -26,6 +26,7 @@
   (liii string)
   (liii pi ai message)
   (gfcode code-review interactive)
+  (gfcode code-review result)
 ) ;import
 
 (check-set-mode! 'report-failed)
@@ -49,50 +50,43 @@
              (cons 'fallback-runner
                (lambda (prompt on-finish)
                  (set! retried (list prompt on-finish))
-                 (list (cons 'status 'retry) (cons 'prompt prompt) (cons 'on-finish on-finish))
+                 (make-review-retry prompt on-finish)
                ) ;lambda
              ) ;cons
            ) ;list
            :prepare
            (lambda (parsed cfg)
-             (list (cons 'status 'ok)
-               (cons 'prompt "structured")
-               (cons 'records
-                 (list (list (cons 'path "a.scm") (cons 'language "scheme") (cons 'content "x")))
-               ) ;cons
-             ) ;list
+             (make-review-session-request #f #f "structured" #f #f #f
+               (list (list (cons 'path "a.scm") (cons 'language "scheme") (cons 'content "x")))
+               '())
            ) ;lambda
          ) ;pi-code-review-command
        ) ;request
-       (on-finish (cdr (assoc 'on-finish request)))
+       (on-finish (review-session-request-on-finish request))
       ) ;
   ;; 成功：不触发 fallback
   (check
-    (cdr (assoc 'status (on-finish (ok-msgs))))
+    (review-ok? (on-finish (ok-msgs)))
     =>
-    'ok
+    #t
   ) ;check
   (check retried => #f)
   ;; 失败：请求一次降级，prompt 为只读 fallback 提示词
   (let ((retry (on-finish (error-msgs))))
-    (check (cdr (assoc 'status retry)) => 'retry)
-    (check-true (string-contains? (cdr (assoc 'prompt retry)) "Do not modify any file")
+    (check (review-retry? retry) => #t)
+    (check-true (string-contains? (review-retry-prompt retry) "Do not modify any file")
     ) ;check-true
-    (check-true (procedure? (cdr (assoc 'on-finish retry))))
+    (check-true (procedure? (review-retry-on-finish retry)))
     ;; 降级结算：统一响应解析，不再产生 retry
     (check
-      (cdr
-        (assoc 'status ((cdr (assoc 'on-finish retry)) (ok-msgs)))
-      ) ;cdr
+      (review-ok? ((review-retry-on-finish retry) (ok-msgs)))
       =>
-      'ok
+      #t
     ) ;check
     (check
-      (cdr
-        (assoc 'status ((cdr (assoc 'on-finish retry)) (error-msgs)))
-      ) ;cdr
+      (review-error? ((review-retry-on-finish retry) (error-msgs)))
       =>
-      'error
+      #t
     ) ;check
   ) ;let
 ) ;let*
@@ -103,17 +97,16 @@
            '((config))
            :prepare
            (lambda (parsed cfg)
-             (list (cons 'status 'ok) (cons 'prompt "p") (cons 'records '()))
+             (make-review-session-request #f #f "p" #f #f #f '() '())
            ) ;lambda
          ) ;pi-code-review-command
        ) ;request
       ) ;
   (check
-    (cdr
-      (assoc 'status ((cdr (assoc 'on-finish request)) (error-msgs)))
-    ) ;cdr
+    (review-error?
+      ((review-session-request-on-finish request) (error-msgs)))
     =>
-    'error
+    #t
   ) ;check
 ) ;let*
 

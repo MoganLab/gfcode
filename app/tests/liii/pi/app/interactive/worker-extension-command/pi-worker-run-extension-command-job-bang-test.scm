@@ -32,6 +32,7 @@
   (liii go)
   (liii pi code core extensions)
   (liii pi app interactive worker-extension-command)
+  (liii pi code core extension-result)
 ) ;import
 
 (check-set-mode! 'report-failed)
@@ -48,7 +49,7 @@
 (define (make-no-files-command name)
   (make-extension-command-def name
     "probe"
-    (lambda (args ctx) '((status . no-files) (message . "nothing to review")))
+    (lambda (args ctx) (make-review-no-files "nothing to review" #f))
   ) ;make-extension-command-def
 ) ;define
 

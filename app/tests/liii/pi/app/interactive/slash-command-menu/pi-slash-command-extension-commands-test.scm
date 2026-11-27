@@ -22,12 +22,13 @@
   (liii list)
   (liii pi code core extensions)
   (liii pi app interactive slash-command-menu)
+  (liii pi code core extension-result)
 ) ;import
 
 (check-set-mode! 'report-failed)
 
 (define (%no-files-handler)
-  (lambda (args ctx) '((status . no-files)))
+  (lambda (args ctx) (make-review-no-files #f #f))
 ) ;define
 
 (let* ((registry (make-extension-registry)) (review-handler (%no-files-handler)))
