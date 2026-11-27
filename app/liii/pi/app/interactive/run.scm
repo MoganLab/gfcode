@@ -20,6 +20,7 @@
     (liii pi app interactive state)
     (liii pi app interactive selection)
     (liii pi app interactive app)
+    (liii pi app interactive worker-spawn)
     (liii pi app interactive app-bash)
     (liii pi app interactive app-queue)
     (liii pi app interactive render)
@@ -158,6 +159,8 @@
             (pi-app-submit-initial! app initial-msg rest-msgs)
             (let loop
               ()
+              ;; 前导 import 错误由结果 channel 返回，不能靠 worker 内 catch。
+              (pi-worker-spawn-poll-errors!)
               ;; 优先轮询来自后台 Worker 的事件流上屏；随后检测终端缩放
               (pi-app-poll-events! app)
               (%pi-app-handle-resize! app)

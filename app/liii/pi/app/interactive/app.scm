@@ -46,6 +46,7 @@
     (liii pi app interactive thinking)
     (liii pi app interactive working)
     (liii pi app interactive worker)
+    (liii pi app interactive worker-spawn)
     (liii pi app interactive diff-worker)
     (liii pi app interactive bash)
     (liii pi app interactive app-bash)
@@ -396,15 +397,15 @@
         (pi-app-rebuild-history! app session-file)
         ;; 无自定义 handler 时启动后台 agent worker
         (unless handler
-          (go (%pi-display-worker display-jobs event-chan))
-          (go (pi-tui-agent-worker jobs-chan event-chan abort-chan session-file
-                steering-chan follow-up-chan request-selection-chan display-jobs
-              ) ;pi-tui-agent-worker
-          ) ;go
+          (%pi-worker-spawn! "display" %pi-display-worker display-jobs event-chan)
+          (%pi-worker-spawn! "agent" pi-tui-agent-worker
+            jobs-chan event-chan abort-chan session-file
+            steering-chan follow-up-chan request-selection-chan display-jobs
+          ) ;%pi-worker-spawn!
         ) ;unless
         ;; 无注入执行器时启动后台 bash worker
         (unless bash-handler
-          (go (pi-bash-worker bash-jobs-chan event-chan bash-abort-chan))
+          (%pi-worker-spawn! "bash" pi-bash-worker bash-jobs-chan event-chan bash-abort-chan)
         ) ;unless
         app
       ) ;let*
