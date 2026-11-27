@@ -132,7 +132,7 @@
       ) ;cond
     ) ;define
 
-    (define (%handle-deepseek-success-response body-str)
+    (define (%handle-deepseek-success-response body-str model-id)
       (let ((json-data (catch #t (lambda () (string->json body-str)) (lambda _ #f))))
         (unless (pair? json-data)
           (error 'error "web_search: Invalid JSON response from DeepSeek API")
@@ -141,12 +141,12 @@
           (if (null? results)
             (pi-format-web-search-result "No search results returned"
               '()
-              :model-id "deepseek-search"
+              :model-id model-id
             ) ;pi-format-web-search-result
             (let ((ans (deepseek-format-search-text results)))
               (pi-format-web-search-result ans
                 '()
-                :model-id "deepseek-search"
+                :model-id model-id
                 :sources  (deepseek-sources-from-results results)
               ) ;pi-format-web-search-result
             ) ;let
@@ -155,7 +155,7 @@
       ) ;let
     ) ;define
 
-    (define (%handle-deepseek-response status body-str)
+    (define (%handle-deepseek-response status body-str model-id)
       (cond ((= status 0)
              (error 'error
                "web_search network error: request timed out or connection failed"
@@ -179,7 +179,7 @@
                ) ;string-append
              ) ;error
             ) ;
-            (else (%handle-deepseek-success-response body-str))
+            (else (%handle-deepseek-success-response body-str model-id))
       ) ;cond
     ) ;define
 
@@ -218,7 +218,9 @@
       ) ;let
     ) ;define
 
-    (define (pi-execute-deepseek-web-search query urls api-key base-url proxy-alist timeout)
+    (define (pi-execute-deepseek-web-search query urls api-key base-url
+              proxy-alist timeout model-id
+            ) ;pi-execute-deepseek-web-search
       (let* ((req-body (deepseek-build-search-request-body query))
              (req-json-str (json->string req-body))
              (endpoint (deepseek-build-search-endpoint base-url))
@@ -229,7 +231,7 @@
              (resp (%http-post-safe endpoint req-json-str headers proxy-alist timeout))
              (status (or (%resp-field resp 'status-code) 0))
              (body-str (or (%resp-field resp 'text) ""))
-             (res (%handle-deepseek-response status body-str))
+             (res (%handle-deepseek-response status body-str model-id))
              (url-list (cond ((vector? urls) (vector->list urls))
                              ((pair? urls) urls)
                              (else '())
@@ -289,6 +291,11 @@
                (timeout (pi-keyword-value :timeout opts 600))
                (query (pi-arg-ref args "query"))
                (urls (pi-normalize-web-search-urls (pi-arg-ref args "urls" '())))
+               ;; 统一解析搜索模型：两个后端共用同一入口。
+               ;; 优先级：显式 :model-id > web-search.json model > 匹配会话 model-id > provider 缺省
+               (opt-model (pi-keyword-value :model-id opts #f))
+               (ws-model (pi-web-search-config-model ws-config))
+               (model-id (pi-resolve-search-model-id config (or opt-model ws-model) provider))
               ) ;
           (if (equal? provider "deepseek")
             ;; DeepSeek 后端：独立 Search / Fetch API
@@ -309,9 +316,11 @@
                   "web_search: DeepSeek API key not found. Please set DEEPSEEK_API_KEY environment variable or configure api-key in auth.json"
                 ) ;error
               ) ;unless
-              (pi-execute-deepseek-web-search query urls api-key base-url proxy-alist timeout)
+              (pi-execute-deepseek-web-search query urls api-key base-url
+                proxy-alist timeout model-id
+              ) ;pi-execute-deepseek-web-search
             ) ;let*
-            ;; 默认 Google 后端：Gemini grounding API
+            ;; Google 后端：Gemini grounding API
             (let* ((api-key (if (pair? opt-env)
                               (pi-resolve-google-api-key config opt-key opt-env)
                               (pi-resolve-google-api-key config opt-key)
@@ -322,9 +331,6 @@
                                (pi-resolve-search-base-url config opt-url ws-config provider)
                              ) ;if
                    ) ;base-url
-                   (opt-model (pi-keyword-value :model-id opts #f))
-                   (ws-model (pi-web-search-config-model ws-config))
-                   (model-id (pi-resolve-search-model-id config (or opt-model ws-model)))
                   ) ;
               (unless
                 (and (string? api-key) (not (string-null? (string-trim-both api-key))))

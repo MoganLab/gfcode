@@ -26,6 +26,9 @@ class StubHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": {"message": "Invalid API key", "type": "authentication_error"}}).encode("utf-8"))
                 return
+            if "model" in req_json:
+                self.send_error(400, "Search requests must not select a model")
+                return
             q = req_json.get("query", "")
             count = req_json.get("count", 10)
             if "error-500" in q:

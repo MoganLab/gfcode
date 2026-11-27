@@ -44,6 +44,16 @@
   =>
   #f
 ) ;check
+;; 搜索路由覆盖不改变会话 key 的归属。
+(check (pi-resolve-deepseek-api-key '((provider . "google")
+                                      (web-search-provider . "deepseek")
+                                      (api-key . "google-key"))
+         #f
+         '(("DEEPSEEK_API_KEY" . "search-key"))
+       ) ;pi-resolve-deepseek-api-key
+  =>
+  "search-key"
+) ;check
 ;; 环境变量
 (check (pi-resolve-deepseek-api-key '()
          #f

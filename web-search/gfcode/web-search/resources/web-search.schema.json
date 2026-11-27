@@ -15,12 +15,12 @@
         "google",
         "deepseek"
       ],
-      "description": "联网搜索后端 provider，支持 google 或 deepseek；其余值或省略时由上层回退 google"
+      "description": "联网搜索后端 provider，支持 google 或 deepseek；缺省为 deepseek，其余值或省略时也回退 deepseek"
     },
     "model": {
       "type": "string",
       "minLength": 1,
-      "description": "联网搜索使用的模型标识（如 gemini-2.5-flash、deepseek-chat）"
+      "description": "Google 端点使用的模型（缺省 gemini-2.5-flash）；DeepSeek 下仅为结果 details.model 的配置标识（缺省 deepseek-flash），不传给 Search/Fetch API"
     },
     "baseUrl": {
       "type": "string",
@@ -36,7 +36,8 @@
   "additionalProperties": false,
   "examples": [
     {
-      "provider": "deepseek"
+      "provider": "deepseek",
+      "model": "deepseek-flash"
     },
     {
       "provider": "google",
