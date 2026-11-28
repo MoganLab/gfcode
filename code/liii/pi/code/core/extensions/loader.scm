@@ -12,6 +12,7 @@
     (liii list)
     (liii path)
     (liii pi code core extensions types)
+    (liii pi ai log)
   ) ;import
   (export pi-load-extension pi-load-extensions pi-load-results-success-count
     pi-load-results-failed-count
@@ -103,6 +104,81 @@
       ) ;let
     ) ;define
 
+    ;; 容错：把扩展根目录加入全局 *load-path*。
+    ;;
+    ;; go worker（独立 s7 会话）的前导 import 会重放主会话全部已加载库，
+    ;; 但只恢复 *load-path*。扩展库经 %call-with-library-root 临时挂载根目录
+    ;; 加载，加载完成后根目录即被移除；若扩展位于 load-path 之外（典型如
+    ;; 用户级 ~/.gf/gfcode 的插件，尤其 Windows junction：path-resolve 在
+    ;; Windows 不解析链接，root 停留在链接路径上），worker 前导 import 将
+    ;; 找不到该扩展文件而抛 io-error，导致 worker 启动即死、TUI 全部任务
+    ;; 无响应。故加载成功后把根目录常驻 *load-path*，保证任何会话（含 go
+    ;; worker）都能重新 import 扩展库；加载失败则不注册，坏扩展只降级为
+    ;; [WARN]，不会毒化 worker。
+    (define (%register-library-root! root)
+      (let ((root-str (path->string (path-resolve (path root)))))
+        (unless (member root-str *load-path*)
+          (set! *load-path* (append *load-path* (list root-str)))
+        ) ;unless
+      ) ;let
+    ) ;define
+
+    ;; s7 的 catch 拿到的 args 通常是 (list 格式串 参数...)；但经 define-library
+    ;; 边界抛出的 (error 'sym "msg") 会退化成循环引用结构，object->string
+    ;; 只能看到 #1=((#1#))。这里尽力把格式串与参数展开成可读文本
+    ;; （~A/~S/~D 简单替换，循环结构直接 object->string），
+    ;; 展开失败则退回 object->string，绝不因格式化而抛错。
+    (define (%format-error-args fmt rest)
+      (let loop
+        ((chars (string->list fmt)) (vals rest) (acc '()))
+        (cond ((null? chars) (list->string (reverse acc)))
+              ((and (char=? (car chars) #\~) (pair? (cdr chars)))
+               (let ((spec (cadr chars)))
+                 (if (or (char=? spec #\A) (char=? spec #\S) (char=? spec #\D))
+                   (loop (cddr chars)
+                     (if (pair? vals) (cdr vals) '())
+                     (append
+                       (reverse
+                         (string->list (if (pair? vals) (object->string (car vals)) ""))
+                       ) ;reverse
+                       acc
+                     ) ;append
+                   ) ;loop
+                   (loop (cdr chars) vals (cons (car chars) acc))
+                 ) ;if
+               ) ;let
+              ) ;
+              (else (loop (cdr chars) vals (cons (car chars) acc)))
+        ) ;cond
+      ) ;let
+    ) ;define
+
+    (define (%error-args->string args)
+      (catch #t
+        (lambda ()
+          (if (and (pair? args) (string? (car args)))
+            (%format-error-args (car args) (cdr args))
+            (object->string args)
+          ) ;if
+        ) ;lambda
+        (lambda _ (object->string args))
+      ) ;catch
+    ) ;define
+
+    ;; 错误日志：加载失败除了向 stderr 打 [WARN] 外，还以 ERROR 级别写入
+    ;; ~/.gf/agent/logs/pi-YYYY-MM-DD.log（与 HTTP 异常共用同一份日志），
+    ;; 方便插件开发者与使用者在 TUI 冲掉 stderr 后仍能事后定位问题。
+    ;; PI_LOG=off 可关闭；写日志本身失败静默忽略，不影响加载结果。
+    (define (%log-extension-error! path-str message)
+      (catch #t
+        (lambda ()
+          (pi-log-error! (string-append "extension-load path=" path-str " error=\"" message "\"")
+          ) ;pi-log-error!
+        ) ;lambda
+        (lambda args #f)
+      ) ;catch
+    ) ;define
+
     (define (pi-load-extension entry api . opt-context)
       (let* ((ctx (if (pair? opt-context) (car opt-context) #f))
              (api-obj (if (extension-api? api) api (make-extension-api api)))
@@ -113,16 +189,22 @@
         (catch #t
           (lambda ()
             (let ((value (%load-library-extension desc api-obj ctx)))
+              (%register-library-root! (%entry-field desc 'root))
               (list (cons 'status 'ok) (cons 'path path-str) (cons 'value value))
             ) ;let
           ) ;lambda
           (lambda (key . args)
-            (let ((message (string-append (object->string key) ": " (object->string args))))
+            (let ((message (string-append (object->string key) ": " (%error-args->string args)))
+                  (log-file (path->string (pi-log-file-path)))
+                 ) ;
+              (%log-extension-error! path-str message)
               (display (string-append "[WARN] failed to load extension " path-str ": ") err-p)
-              (display key err-p)
-              (display " " err-p)
-              (display args err-p)
+              (display message err-p)
               (newline err-p)
+              (when (pi-log-enabled?)
+                (display (string-append "[WARN] error log: " log-file) err-p)
+                (newline err-p)
+              ) ;when
               (list (cons 'status 'error) (cons 'path path-str) (cons 'error message))
             ) ;let
           ) ;lambda
